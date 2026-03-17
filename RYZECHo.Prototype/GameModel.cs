@@ -124,6 +124,9 @@ internal sealed class GameModel
     private const int CellSize = 56;
     private const int TotalRounds = 3;
     private const float FovDegrees = 120f;
+    private const float WorldPerspectiveScaleX = 0.82f;
+    private const float WorldPerspectiveScaleY = 0.86f;
+    private const float WorldPerspectiveShearX = 0.18f;
 
     private readonly Random _random = new();
     private readonly Dictionary<WeaponType, WeaponStats> _weaponStats = CreateWeaponStats();
@@ -208,7 +211,7 @@ internal sealed class GameModel
 
     private Rectangle TopBarBounds => new(WorldMargin, 20, WorldBounds.Width + SidePanelGap + SidePanelWidth, TopBarHeight);
 
-    private Rectangle BottomHudBounds => new(WorldMargin, WorldBounds.Bottom + 18, WorldBounds.Width, BottomHudHeight);
+    private Rectangle BottomHudBounds => new(WorldMargin, (int)MathF.Round(WorldVisualBounds.Bottom) + 18, WorldBounds.Width, BottomHudHeight);
 
     private Rectangle SidePanelBounds => new(WorldBounds.Right + SidePanelGap, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
@@ -217,6 +220,12 @@ internal sealed class GameModel
     private Rectangle IntelBounds => new(SidePanelBounds.Left, RosterBounds.Bottom + 18, SidePanelWidth, 168);
 
     private Rectangle MinimapBounds => new(SidePanelBounds.Left, SidePanelBounds.Bottom - 238, SidePanelWidth, 238);
+
+    private RectangleF WorldVisualBounds => new(
+        WorldBounds.Left + ((WorldBounds.Width - ((WorldBounds.Width * WorldPerspectiveScaleX) + (WorldBounds.Height * WorldPerspectiveShearX))) / 2f),
+        WorldBounds.Top + ((WorldBounds.Height - (WorldBounds.Height * WorldPerspectiveScaleY)) / 2f),
+        (WorldBounds.Width * WorldPerspectiveScaleX) + (WorldBounds.Height * WorldPerspectiveShearX),
+        WorldBounds.Height * WorldPerspectiveScaleY);
 
     public void CycleBuildTool()
     {
@@ -394,6 +403,7 @@ internal sealed class GameModel
         }
 
         var weapon = _weaponStats[_player.Weapon];
+        var worldMousePosition = ScreenToWorldPoint(input.MousePosition);
         var movement = PointF.Empty;
 
         if (input.MoveUp)
@@ -430,7 +440,7 @@ internal sealed class GameModel
 
         _player.FireCooldown = MathF.Max(0f, _player.FireCooldown - deltaSeconds);
 
-        var aimVector = new PointF(input.MousePosition.X - _player.Position.X, input.MousePosition.Y - _player.Position.Y);
+        var aimVector = new PointF(worldMousePosition.X - _player.Position.X, worldMousePosition.Y - _player.Position.Y);
         if (Math.Abs(aimVector.X) > 0.01f || Math.Abs(aimVector.Y) > 0.01f)
         {
             _player.FacingAngle = MathF.Atan2(aimVector.Y, aimVector.X);
@@ -438,7 +448,7 @@ internal sealed class GameModel
 
         if (input.FireHeld && _player.FireCooldown <= 0f)
         {
-            var target = PickRaycastTarget(_player.Position, input.MousePosition, weapon.ProjectileRange);
+            var target = PickRaycastTarget(_player.Position, worldMousePosition, weapon.ProjectileRange);
             if (target is not null)
             {
                 target.Health = MathF.Max(0f, target.Health - weapon.Damage);
@@ -577,17 +587,35 @@ internal sealed class GameModel
         using var background = new LinearGradientBrush(clientBounds, Color.FromArgb(5, 10, 14), Color.FromArgb(12, 22, 30), 90f);
         graphics.FillRectangle(background, clientBounds);
 
-        DrawWorldPanel(graphics);
-        DrawStructures(graphics);
-        DrawCore(graphics);
-        DrawRipples(graphics);
-        DrawActors(graphics, mousePosition);
+        DrawWorldDropShadow(graphics);
+
+        var worldMousePosition = ScreenToWorldPoint(mousePosition);
+        var graphicsState = graphics.Save();
+        using (var worldTransform = CreateWorldProjectionMatrix())
+        {
+            graphics.MultiplyTransform(worldTransform);
+            DrawWorldPanel(graphics);
+            DrawStructures(graphics);
+            DrawCore(graphics);
+            DrawRipples(graphics);
+            DrawActors(graphics, worldMousePosition);
+        }
+
+        graphics.Restore(graphicsState);
         DrawHud(graphics);
 
         if (_showBriefing)
         {
             DrawBriefingOverlay(graphics);
         }
+    }
+
+    private void DrawWorldDropShadow(Graphics graphics)
+    {
+        var corners = GetProjectedWorldCorners();
+        var shadow = corners.Select(point => new PointF(point.X + 14f, point.Y + 16f)).ToArray();
+        using var shadowBrush = new SolidBrush(Color.FromArgb(56, 0, 0, 0));
+        graphics.FillPolygon(shadowBrush, shadow);
     }
 
     private void DrawWorldPanel(Graphics graphics)
@@ -727,7 +755,7 @@ internal sealed class GameModel
         }
     }
 
-    private void DrawActors(Graphics graphics, Point mousePosition)
+    private void DrawActors(Graphics graphics, PointF mousePosition)
     {
         if (_player.IsAlive)
         {
@@ -747,7 +775,7 @@ internal sealed class GameModel
         }
     }
 
-    private void DrawActor(Graphics graphics, Actor actor, Point mousePosition)
+    private void DrawActor(Graphics graphics, Actor actor, PointF mousePosition)
     {
         var center = actor.Position;
         var isPlayer = actor.Type == ActorType.Player;
@@ -1184,7 +1212,7 @@ internal sealed class GameModel
 
     private void TryPlaceStructure(Point location)
     {
-        if (!WorldBounds.Contains(location))
+        if (!TryGetWorldPointFromScreen(location, out _))
         {
             return;
         }
@@ -1208,7 +1236,7 @@ internal sealed class GameModel
 
     private void TryRemoveStructure(Point location)
     {
-        if (!WorldBounds.Contains(location))
+        if (!TryGetWorldPointFromScreen(location, out _))
         {
             return;
         }
@@ -1518,7 +1546,7 @@ internal sealed class GameModel
         return defenders.FirstOrDefault(actor => HasLineOfSight(enemy.Position, actor.Position));
     }
 
-    private Actor? PickRaycastTarget(PointF origin, Point targetPoint, float range)
+    private Actor? PickRaycastTarget(PointF origin, PointF targetPoint, float range)
     {
         var direction = new PointF(targetPoint.X - origin.X, targetPoint.Y - origin.Y);
         var length = MathF.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y));
@@ -1884,7 +1912,28 @@ internal sealed class GameModel
 
     private Point ScreenToCell(Point location)
     {
-        return new Point((location.X - WorldBounds.Left) / CellSize, (location.Y - WorldBounds.Top) / CellSize);
+        var worldPoint = ScreenToWorldPoint(location);
+        return new Point(
+            (int)MathF.Floor((worldPoint.X - WorldBounds.Left) / CellSize),
+            (int)MathF.Floor((worldPoint.Y - WorldBounds.Top) / CellSize));
+    }
+
+    private bool TryGetWorldPointFromScreen(Point screenPoint, out PointF worldPoint)
+    {
+        worldPoint = ScreenToWorldPoint(screenPoint);
+        return worldPoint.X >= WorldBounds.Left &&
+               worldPoint.X < WorldBounds.Right &&
+               worldPoint.Y >= WorldBounds.Top &&
+               worldPoint.Y < WorldBounds.Bottom;
+    }
+
+    private PointF ScreenToWorldPoint(Point screenPoint)
+    {
+        var points = new[] { new PointF(screenPoint.X, screenPoint.Y) };
+        using var projection = CreateWorldProjectionMatrix();
+        projection.Invert();
+        projection.TransformPoints(points);
+        return points[0];
     }
 
     private Point WorldToCell(PointF point)
@@ -1909,6 +1958,32 @@ internal sealed class GameModel
     private PointF CorePosition()
     {
         return CellCenter(new Point(14, 6));
+    }
+
+    private Matrix CreateWorldProjectionMatrix()
+    {
+        return new Matrix(
+            WorldPerspectiveScaleX,
+            0f,
+            WorldPerspectiveShearX,
+            WorldPerspectiveScaleY,
+            WorldVisualBounds.Left - (WorldPerspectiveScaleX * WorldBounds.Left) - (WorldPerspectiveShearX * WorldBounds.Top),
+            WorldVisualBounds.Top - (WorldPerspectiveScaleY * WorldBounds.Top));
+    }
+
+    private PointF[] GetProjectedWorldCorners()
+    {
+        var points = new[]
+        {
+            new PointF(WorldBounds.Left, WorldBounds.Top),
+            new PointF(WorldBounds.Right, WorldBounds.Top),
+            new PointF(WorldBounds.Right, WorldBounds.Bottom),
+            new PointF(WorldBounds.Left, WorldBounds.Bottom),
+        };
+
+        using var projection = CreateWorldProjectionMatrix();
+        projection.TransformPoints(points);
+        return points;
     }
 
     private string BuildToolLabel(BuildToolKind tool)
