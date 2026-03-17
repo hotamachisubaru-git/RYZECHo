@@ -1,54 +1,67 @@
-# RYZECHØ Prototype
+# RYZECHØ プロトタイプ
 
-`RYZECHØ` is a playable C# prototype for the tactical-economy-hiding FPS pitch. Instead of attempting full 3D from an empty repo, this version focuses on the core loop in a top-down combat slice:
+`RYZECHØ` の要件をもとに作った、C# 製のプレイアブルプロトタイプです。フル 3D FPS ではなく、コア体験を素早く触れるようにトップダウン戦術スライスとして実装しています。
 
-- `CONSTRUCT`: spend AP one time to place blast doors, honey traps, and static nests.
-- `BET`: choose the round boss, set the stake, and buy your weapon before deploying.
-- `HUNT`: defend the data core with a 120-degree vision cone while enemy footsteps and gunfire appear as audio ripple cues.
+- `CONSTRUCT`:
+  最初の一度だけ AP を消費して、防壁ドア・ハチミツトラップ・スタティックネストを配置
+- `BET`:
+  ラウンドごとにボスを選び、賭け金を積み、武器を購入して出撃
+- `HUNT`:
+  120 度視界でデータコアを守りつつ、敵の足音や銃声を波紋 UI で追跡
 
-## Tech
+## 技術構成
 
 - `.NET 10`
 - `Windows Forms`
-- Pure C# and GDI+ rendering
+- C# と GDI+ のみで描画
 
-## Run
+## 起動
 
 ```powershell
 dotnet run --project .\RYZECHo.Prototype\RYZECHo.Prototype.csproj
 ```
 
-## Controls
+## 画面構成
 
-### Construct
+- 上部:
+  ラウンド、フェーズ、残り時間、資金、コア耐久を表示する MOBA オマージュ風トップバー
+- 右側:
+  味方ロスター、戦況フィード、ミニマップをまとめたサイド HUD
+- 下部:
+  プレイヤー情報、現在フェーズの説明、建築物や武器の選択カードを並べたコマンドバー
 
-- `1 / 2 / 3`: select blast door, honey trap, or static nest
-- `Tab`: cycle build tools
-- `Left Click`: place selected structure on a highlighted slot
-- `Right Click`: refund the structure on that slot
-- `Enter`: lock the fortification and move to betting
+## 操作
 
-### Bet
+### 構築
 
-- `1 / 2 / 3`: choose the boss for the round
-- `Q / E`: cycle your weapon
-- `A / D`: decrease or increase the bet
-- `Enter`: commit the loadout and start the round
+- `1 / 2 / 3`: 建築物選択
+- `Tab`: 建築物を順送り
+- `左クリック`: 強調スロットに設置
+- `右クリック`: 設置物を撤去して AP 返還
+- `Enter`: 構築確定
 
-### Hunt
+### 賭け
 
-- `W / A / S / D`: move
-- `Mouse`: aim
-- `Hold Left Click`: fire
+- `1 / 2 / 3`: ボス選択
+- `Q / E`: 武器変更
+- `A / D`: 賭け金調整
+- `Enter`: 出撃
 
-### Global
+### 狩り
 
-- `Space`: show or hide the briefing overlay
-- `R`: restart after victory or defeat
+- `W / A / S / D`: 移動
+- `マウス`: 照準
+- `左クリック長押し`: 射撃
 
-## Prototype Notes
+### 共通
 
-- The prototype keeps the requested economy loop: stake money before a round, then only receive the doubled payout if the chosen boss survives a win.
-- Weapon choice affects visibility and hearing. The sniper sees farther, while the SMG is better at reading ripple cues.
-- Honey traps slow raiders and amplify their footsteps. Static nests create noisy fake ripple traffic and reduce visibility inside their radius.
-- Blast doors are breakable, so fortifying a lane buys time instead of creating a permanent lockout.
+- `Space`: 説明オーバーレイ表示切替
+- `R`: 勝敗後に再挑戦
+
+## プロトタイプ仕様
+
+- ボスが生存したまま勝利すると、賭け金が倍になって戻ります。
+- 武器で視界と聴覚性能が変化します。`SR` は遠くを見やすく、`SMG` は波紋の把握に強いです。
+- ハチミツトラップは敵を鈍足化し、足音を増幅します。
+- スタティックネストは偽の波紋を発生させ、周辺の視認性を下げます。
+- 防壁ドアは破壊されるので、完全封鎖ではなく時間稼ぎ向きです。

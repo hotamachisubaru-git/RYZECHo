@@ -113,8 +113,12 @@ internal sealed class Actor
 
 internal sealed class GameModel
 {
+    private const string UiFontFamily = "Yu Gothic UI";
     private const int WorldMargin = 24;
-    private const int HudWidth = 360;
+    private const int TopBarHeight = 52;
+    private const int SidePanelGap = 20;
+    private const int SidePanelWidth = 364;
+    private const int BottomHudHeight = 146;
     private const int GridColumns = 18;
     private const int GridRows = 12;
     private const int CellSize = 56;
@@ -144,8 +148,9 @@ internal sealed class GameModel
     private float _pingCooldown;
     private float _resultTimer;
     private float _coreHealth;
-    private string _selectedBossName = "You";
-    private string _resultMessage = "FORTIFY THE GRID";
+    private GamePhase _resultDestination = GamePhase.Bet;
+    private string _selectedBossName = "あなた";
+    private string _resultMessage = "最初の構築が、全ラウンドを支配する。";
     private bool _showBriefing = true;
 
     private readonly Actor _player;
@@ -156,7 +161,7 @@ internal sealed class GameModel
 
         _player = new Actor
         {
-            Name = "You",
+            Name = "あなた",
             Type = ActorType.Player,
             HomeCell = new Point(13, 6),
             Weapon = WeaponType.Rifle,
@@ -170,7 +175,7 @@ internal sealed class GameModel
 
         _allies.Add(new Actor
         {
-            Name = "North Anchor",
+            Name = "北アンカー",
             Type = ActorType.Ally,
             HomeCell = new Point(13, 4),
             Weapon = WeaponType.Sniper,
@@ -184,7 +189,7 @@ internal sealed class GameModel
 
         _allies.Add(new Actor
         {
-            Name = "South Anchor",
+            Name = "南アンカー",
             Type = ActorType.Ally,
             HomeCell = new Point(13, 8),
             Weapon = WeaponType.SMG,
@@ -199,9 +204,19 @@ internal sealed class GameModel
         ResetCampaign();
     }
 
-    private Rectangle WorldBounds => new(WorldMargin, WorldMargin, GridColumns * CellSize, GridRows * CellSize);
+    private Rectangle WorldBounds => new(WorldMargin, 88, GridColumns * CellSize, GridRows * CellSize);
 
-    private Rectangle HudBounds => new(WorldBounds.Right + 18, WorldMargin, HudWidth, GridRows * CellSize);
+    private Rectangle TopBarBounds => new(WorldMargin, 20, WorldBounds.Width + SidePanelGap + SidePanelWidth, TopBarHeight);
+
+    private Rectangle BottomHudBounds => new(WorldMargin, WorldBounds.Bottom + 18, WorldBounds.Width, BottomHudHeight);
+
+    private Rectangle SidePanelBounds => new(WorldBounds.Right + SidePanelGap, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
+
+    private Rectangle RosterBounds => new(SidePanelBounds.Left, SidePanelBounds.Top, SidePanelWidth, 228);
+
+    private Rectangle IntelBounds => new(SidePanelBounds.Left, RosterBounds.Bottom + 18, SidePanelWidth, 168);
+
+    private Rectangle MinimapBounds => new(SidePanelBounds.Left, SidePanelBounds.Bottom - 238, SidePanelWidth, 238);
 
     public void CycleBuildTool()
     {
@@ -284,15 +299,15 @@ internal sealed class GameModel
     {
         if (input.Press1)
         {
-            _selectedBossName = "You";
+            _selectedBossName = "あなた";
         }
         else if (input.Press2)
         {
-            _selectedBossName = "North Anchor";
+            _selectedBossName = "北アンカー";
         }
         else if (input.Press3)
         {
-            _selectedBossName = "South Anchor";
+            _selectedBossName = "南アンカー";
         }
 
         if (input.PressQ)
@@ -352,17 +367,13 @@ internal sealed class GameModel
 
         if (input.Confirm || _resultTimer <= 0f)
         {
-            if (_resultMessage.StartsWith("CAMPAIGN CLEARED", StringComparison.Ordinal))
+            if (_resultDestination == GamePhase.Bet)
             {
-                _phase = GamePhase.Victory;
-            }
-            else if (_resultMessage.StartsWith("GRID COLLAPSED", StringComparison.Ordinal))
-            {
-                _phase = GamePhase.Defeat;
+                BeginBetPhase();
             }
             else
             {
-                BeginBetPhase();
+                _phase = _resultDestination;
             }
         }
     }
@@ -753,7 +764,7 @@ internal sealed class GameModel
         graphics.DrawLine(directionPen, center, facing);
 
         using var textBrush = new SolidBrush(Color.FromArgb(230, 235, 245, 245));
-        using var nameFont = new Font("Bahnschrift", isPlayer ? 11f : 9f, FontStyle.Bold);
+        using var nameFont = new Font(UiFontFamily, isPlayer ? 11f : 9f, FontStyle.Bold);
         graphics.DrawString(actor.Name, nameFont, textBrush, center.X - 34f, center.Y - actor.Radius - 24f);
 
         var hpRatio = actor.Health / actor.MaxHealth;
@@ -848,70 +859,327 @@ internal sealed class GameModel
 
     private void DrawHud(Graphics graphics)
     {
-        using var panelBrush = new SolidBrush(Color.FromArgb(170, 6, 14, 20));
-        using var borderPen = new Pen(Color.FromArgb(110, 90, 215, 230), 2f);
-        graphics.FillRectangle(panelBrush, HudBounds);
-        graphics.DrawRectangle(borderPen, HudBounds);
+        DrawPanelFrame(graphics, TopBarBounds);
+        DrawPanelFrame(graphics, RosterBounds);
+        DrawPanelFrame(graphics, IntelBounds);
+        DrawPanelFrame(graphics, MinimapBounds);
+        DrawPanelFrame(graphics, BottomHudBounds);
 
-        var x = HudBounds.Left + 20;
-        var y = HudBounds.Top + 18;
-
-        DrawHudText(graphics, "RYZECHØ // TACTICAL ECONOMY HIDING FPS", 15f, FontStyle.Bold, Color.FromArgb(235, 225, 248, 255), x, y);
-        y += 38;
-        DrawHudText(graphics, $"PHASE   {PhaseLabel()}", 12f, FontStyle.Bold, PhaseColor(), x, y);
-        y += 34;
-        DrawHudText(graphics, $"ROUND   {_currentRound}/{TotalRounds}", 12f, FontStyle.Bold, Color.FromArgb(255, 120, 235, 225), x, y);
-        y += 28;
-        DrawHudText(graphics, $"CREDITS {_credits}", 12f, FontStyle.Bold, Color.FromArgb(255, 255, 225, 140), x, y);
-        y += 28;
-        DrawHudText(graphics, $"CORE    {(int)_coreHealth}", 12f, FontStyle.Bold, Color.FromArgb(255, 85, 215, 185), x, y);
-        y += 34;
-
-        DrawSection(graphics, "Construct", x, ref y, _phase == GamePhase.Construct
-            ? $"AP {_buildPoints}   1 Door  2 Honey  3 Nest  Tab Cycle  Enter Lock\nSelected: {BuildToolLabel(_selectedBuildTool)}"
-            : "Layout locked. Structures persist across rounds.\nRight click refunds only during the build phase.");
-
-        DrawSection(graphics, "Bet", x, ref y, $"Boss: {_selectedBossName}\nWeapon: {_weaponStats[_selectedWeapon].Label}  Cost {_weaponStats[_selectedWeapon].Cost}\nStake: {_selectedBet}  Available: {AffordableCredits()}\n1/2/3 Boss  Q/E Weapon  A/D Stake  Enter Deploy");
-
-        var loadout = _weaponStats[_player.Weapon];
-        DrawSection(graphics, "Hunt", x, ref y, $"Weapon live: {loadout.Label}\nVision {loadout.VisionRange:0}  Hearing x{loadout.HearingMultiplier:0.0}\nTime {_roundTimer:0.0}  Enemies left {_pendingEnemies + _enemies.Count(enemy => enemy.IsAlive)}\nWASD Move  Mouse Aim  Hold Left Click Fire");
-
-        DrawSection(graphics, "Systems", x, ref y, "Audio ripples mark enemies outside your 120-degree cone.\nHoney traps slow enemies and amplify footsteps.\nStatic nests hide motion and create fake sound traffic.");
-
-        DrawSection(graphics, "Round Feed", x, ref y, _resultMessage);
-
-        DrawHudText(graphics, "Space toggles briefing overlay. R restarts after victory or defeat.", 9.5f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), x, HudBounds.Bottom - 30);
+        DrawTopBar(graphics);
+        DrawRosterPanel(graphics);
+        DrawIntelPanel(graphics);
+        DrawMiniMap(graphics);
+        DrawBottomBar(graphics);
     }
 
     private void DrawBriefingOverlay(Graphics graphics)
     {
-        var box = new Rectangle(WorldBounds.Left + 36, WorldBounds.Top + 36, WorldBounds.Width - 72, 208);
+        var box = new Rectangle(WorldBounds.Left + 34, WorldBounds.Top + 32, WorldBounds.Width - 68, 224);
 
         using var backdrop = new SolidBrush(Color.FromArgb(205, 7, 14, 18));
         using var border = new Pen(Color.FromArgb(120, 90, 215, 230), 2f);
         graphics.FillRectangle(backdrop, box);
         graphics.DrawRectangle(border, box);
 
-        DrawHudText(graphics, "240 degrees of blind space become sound.", 21f, FontStyle.Bold, Color.FromArgb(255, 225, 245, 250), box.Left + 20, box.Top + 20);
-        DrawHudText(graphics, "Construct once, bet every round, then survive with a 120-degree sight cone and audio ripple cues.", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 20, box.Top + 62);
-        DrawHudText(graphics, "Goal: defend the data core for three rounds. If your chosen boss survives a winning round, the stake pays back double.", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 20, box.Top + 88);
-        DrawHudText(graphics, "Prototype notes: top-down tactical slice, breakable blast doors, audible enemies, persistent fortification, and economy-driven loadouts.", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 20, box.Top + 114);
-        DrawHudText(graphics, "Space to hide this panel.", 10f, FontStyle.Bold, Color.FromArgb(255, 255, 215, 135), box.Left + 20, box.Bottom - 34);
+        DrawHudText(graphics, "死角240度を、音で視る。", 22f, FontStyle.Bold, Color.FromArgb(255, 225, 245, 250), box.Left + 22, box.Top + 20);
+        DrawHudText(graphics, "MOBA 風 HUD に合わせて、上段で戦況、右側でロスターとミニマップ、下段で装備と操作を確認できます。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 66);
+        DrawHudText(graphics, "構築は最初の一度だけ。以降は毎ラウンドごとにボスを指名し、賭け金を積み、120 度の視界でコアを守り抜いてください。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 94);
+        DrawHudText(graphics, "ハチミツトラップは足音を増幅し、スタティックネストは偽の波紋を撒いて視界を乱します。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 122);
+        DrawHudText(graphics, "スペースキーでこのパネルを閉じます。", 10f, FontStyle.Bold, Color.FromArgb(255, 255, 215, 135), box.Left + 22, box.Bottom - 36);
     }
 
-    private void DrawSection(Graphics graphics, string title, int x, ref int y, string body)
+    private void DrawTopBar(Graphics graphics)
     {
-        DrawHudText(graphics, title.ToUpperInvariant(), 11.5f, FontStyle.Bold, Color.FromArgb(255, 255, 225, 150), x, y);
-        y += 22;
-        DrawHudText(graphics, body, 10.5f, FontStyle.Regular, Color.FromArgb(225, 208, 220, 228), x, y);
-        y += 78;
+        var left = TopBarBounds.Left + 18;
+        var center = TopBarBounds.Left + (TopBarBounds.Width / 2);
+        var right = TopBarBounds.Right - 18;
+        var enemiesLeft = _pendingEnemies + _enemies.Count(enemy => enemy.IsAlive);
+
+        DrawHudText(graphics, "RYZECHØ // タクティカル・エコノミー・ハイディング FPS", 14f, FontStyle.Bold, Color.FromArgb(235, 225, 248, 255), left, TopBarBounds.Top + 9);
+        DrawHudText(graphics, $"防衛班  3人", 11f, FontStyle.Bold, Color.FromArgb(255, 115, 225, 205), left, TopBarBounds.Top + 29);
+        DrawHudText(graphics, $"資金 {_credits}", 11f, FontStyle.Bold, Color.FromArgb(255, 255, 225, 140), left + 124, TopBarBounds.Top + 29);
+        DrawHudText(graphics, $"コア {(int)_coreHealth}", 11f, FontStyle.Bold, Color.FromArgb(255, 85, 215, 185), left + 232, TopBarBounds.Top + 29);
+
+        DrawHudText(graphics, $"第{Math.Min(_currentRound, TotalRounds)}/{TotalRounds}ラウンド", 16f, FontStyle.Bold, Color.FromArgb(255, 245, 240, 210), center - 86, TopBarBounds.Top + 8);
+        DrawHudText(graphics, $"フェーズ {PhaseLabel()}   残り {_roundTimer:0.0} 秒", 11f, FontStyle.Bold, PhaseColor(), center - 86, TopBarBounds.Top + 30);
+
+        using var topRightFont = new Font(UiFontFamily, 12f, FontStyle.Bold);
+        var rightTextSize = graphics.MeasureString($"残敵 {enemiesLeft}", topRightFont);
+        DrawHudText(graphics, $"残敵 {enemiesLeft}", 12f, FontStyle.Bold, Color.FromArgb(255, 255, 125, 105), right - rightTextSize.Width, TopBarBounds.Top + 10);
+        DrawHudText(graphics, $"ボス {_selectedBossName}", 11f, FontStyle.Bold, Color.FromArgb(255, 248, 214, 130), right - 160, TopBarBounds.Top + 30);
+    }
+
+    private void DrawRosterPanel(Graphics graphics)
+    {
+        DrawPanelTitle(graphics, RosterBounds, "味方ロスター");
+
+        var y = RosterBounds.Top + 46;
+        foreach (var actor in new[] { _player }.Concat(_allies))
+        {
+            var row = new Rectangle(RosterBounds.Left + 14, y, RosterBounds.Width - 28, 54);
+            var accent = actor.IsBoss ? Color.FromArgb(255, 245, 210, 110) : actor.Type == ActorType.Player ? Color.FromArgb(255, 95, 225, 245) : Color.FromArgb(255, 95, 225, 200);
+            using var fill = new SolidBrush(Color.FromArgb(82, 18, 28, 36));
+            using var border = new Pen(Color.FromArgb(140, accent), actor.IsBoss ? 2.4f : 1.8f);
+            graphics.FillRectangle(fill, row);
+            graphics.DrawRectangle(border, row);
+
+            using var orbBrush = new SolidBrush(accent);
+            graphics.FillEllipse(orbBrush, row.Left + 10, row.Top + 12, 28, 28);
+
+            DrawHudText(graphics, actor.Name, 10.5f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), row.Left + 48, row.Top + 8);
+            DrawHudText(graphics, actor.IsBoss ? "賞金首" : "防衛ユニット", 8.8f, FontStyle.Bold, Color.FromArgb(220, accent), row.Left + 48, row.Top + 28);
+            DrawHudText(graphics, _weaponStats[actor.Weapon].Label, 8.8f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), row.Right - 112, row.Top + 8);
+
+            var hpRatio = actor.Health / actor.MaxHealth;
+            using var hpBack = new SolidBrush(Color.FromArgb(55, 0, 0, 0));
+            using var hpFill = new SolidBrush(Color.FromArgb(235, 82, 220, 170));
+            var hpRect = new RectangleF(row.Left + 48, row.Bottom - 14, row.Width - 62, 6f);
+            graphics.FillRectangle(hpBack, hpRect);
+            graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * Math.Clamp(hpRatio, 0f, 1f), hpRect.Height);
+
+            y += 62;
+        }
+    }
+
+    private void DrawIntelPanel(Graphics graphics)
+    {
+        DrawPanelTitle(graphics, IntelBounds, "戦況フィード");
+
+        var body = _phase switch
+        {
+            GamePhase.Construct => $"構築AP: {_buildPoints}\n選択中: {BuildToolLabel(_selectedBuildTool)}\nクリックで設置、右クリックで撤去。",
+            GamePhase.Bet => $"指名ボス: {_selectedBossName}\n賭け金: {_selectedBet}\n購入武器: {_weaponStats[_selectedWeapon].Label}",
+            GamePhase.Hunt => $"残敵: {_pendingEnemies + _enemies.Count(enemy => enemy.IsAlive)}\n視界: {_weaponStats[_player.Weapon].VisionRange:0}\n聴覚倍率: x{_weaponStats[_player.Weapon].HearingMultiplier:0.0}",
+            GamePhase.RoundResult => _resultMessage,
+            GamePhase.Victory => "三ラウンド連続で防衛成功。再挑戦は R。",
+            _ => "コアが陥落しました。再挑戦は R。",
+        };
+
+        using var font = new Font(UiFontFamily, 10.2f, FontStyle.Regular);
+        using var brush = new SolidBrush(Color.FromArgb(228, 208, 220, 228));
+        var bodyRect = new RectangleF(IntelBounds.Left + 16, IntelBounds.Top + 44, IntelBounds.Width - 32, 56);
+        graphics.DrawString(body, font, brush, bodyRect);
+
+        using var feedFont = new Font(UiFontFamily, 9.2f, FontStyle.Bold);
+        using var feedBrush = new SolidBrush(Color.FromArgb(235, 248, 214, 130));
+        graphics.DrawString(_resultMessage, feedFont, feedBrush, new RectangleF(IntelBounds.Left + 16, IntelBounds.Top + 106, IntelBounds.Width - 32, 48));
+    }
+
+    private void DrawMiniMap(Graphics graphics)
+    {
+        DrawPanelTitle(graphics, MinimapBounds, "戦術マップ");
+
+        var inner = Rectangle.Inflate(MinimapBounds, -16, -18);
+        inner = new Rectangle(inner.Left, inner.Top + 18, inner.Width, inner.Height - 18);
+
+        using var mapBrush = new SolidBrush(Color.FromArgb(150, 9, 16, 22));
+        graphics.FillRectangle(mapBrush, inner);
+
+        var scaleX = inner.Width / (float)WorldBounds.Width;
+        var scaleY = inner.Height / (float)WorldBounds.Height;
+
+        foreach (var cell in _permanentWalls)
+        {
+            var rect = CellRectangle(cell);
+            var miniRect = new RectangleF(
+                inner.Left + ((rect.Left - WorldBounds.Left) * scaleX),
+                inner.Top + ((rect.Top - WorldBounds.Top) * scaleY),
+                rect.Width * scaleX,
+                rect.Height * scaleY);
+            using var wallBrush = new SolidBrush(Color.FromArgb(160, 46, 62, 74));
+            graphics.FillRectangle(wallBrush, miniRect);
+        }
+
+        foreach (var structure in _structures)
+        {
+            var center = CellCenter(structure.Cell);
+            var color = structure.Kind switch
+            {
+                StructureKind.BlastDoor => Color.FromArgb(255, 105, 235, 240),
+                StructureKind.HoneyTrap => Color.FromArgb(255, 255, 196, 82),
+                _ => Color.FromArgb(255, 180, 235, 120),
+            };
+
+            using var brush = new SolidBrush(color);
+            var point = new PointF(inner.Left + ((center.X - WorldBounds.Left) * scaleX), inner.Top + ((center.Y - WorldBounds.Top) * scaleY));
+            graphics.FillEllipse(brush, point.X - 3.5f, point.Y - 3.5f, 7f, 7f);
+        }
+
+        DrawMiniMapActor(graphics, inner, scaleX, scaleY, _player, Color.FromArgb(255, 90, 225, 245));
+        foreach (var ally in _allies)
+        {
+            DrawMiniMapActor(graphics, inner, scaleX, scaleY, ally, Color.FromArgb(255, 95, 225, 200));
+        }
+
+        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && PlayerCanPerceive(actor.Position, 0.72f)))
+        {
+            DrawMiniMapActor(graphics, inner, scaleX, scaleY, enemy, Color.FromArgb(255, 235, 105, 90));
+        }
+
+        var core = CorePosition();
+        using var coreBrush = new SolidBrush(Color.FromArgb(255, 78, 220, 195));
+        var corePoint = new PointF(inner.Left + ((core.X - WorldBounds.Left) * scaleX), inner.Top + ((core.Y - WorldBounds.Top) * scaleY));
+        graphics.FillEllipse(coreBrush, corePoint.X - 5f, corePoint.Y - 5f, 10f, 10f);
+
+        using var border = new Pen(Color.FromArgb(110, 120, 220, 235), 1.6f);
+        graphics.DrawRectangle(border, inner);
+        DrawHudText(graphics, "青=味方  赤=感知敵  緑=コア", 8.6f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), MinimapBounds.Left + 16, MinimapBounds.Bottom - 20);
+    }
+
+    private void DrawBottomBar(Graphics graphics)
+    {
+        var portraitRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Top + 14, 190, BottomHudBounds.Height - 28);
+        var commandRect = new Rectangle(portraitRect.Right + 16, BottomHudBounds.Top + 14, 426, BottomHudBounds.Height - 28);
+        var loadoutRect = new Rectangle(commandRect.Right + 16, BottomHudBounds.Top + 14, BottomHudBounds.Right - commandRect.Right - 32, BottomHudBounds.Height - 28);
+
+        DrawInsetPanel(graphics, portraitRect);
+        DrawInsetPanel(graphics, commandRect);
+        DrawInsetPanel(graphics, loadoutRect);
+
+        using var avatarBrush = new SolidBrush(Color.FromArgb(255, 80, 220, 245));
+        graphics.FillEllipse(avatarBrush, portraitRect.Left + 16, portraitRect.Top + 18, 54, 54);
+        DrawHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), portraitRect.Left + 84, portraitRect.Top + 18);
+        DrawHudText(graphics, _player.IsBoss ? "現在の賞金首" : $"指名ボス: {_selectedBossName}", 9.6f, FontStyle.Bold, Color.FromArgb(255, 248, 214, 130), portraitRect.Left + 84, portraitRect.Top + 42);
+        DrawHudText(graphics, $"体力 {(int)_player.Health}/{(int)_player.MaxHealth}", 9.5f, FontStyle.Regular, Color.FromArgb(228, 208, 220, 228), portraitRect.Left + 16, portraitRect.Top + 86);
+        DrawHudText(graphics, $"武器 {_weaponStats[_player.Weapon].Label}", 9.5f, FontStyle.Regular, Color.FromArgb(228, 208, 220, 228), portraitRect.Left + 16, portraitRect.Top + 108);
+
+        DrawHudText(graphics, CurrentModeTitle(), 12f, FontStyle.Bold, PhaseColor(), commandRect.Left + 14, commandRect.Top + 12);
+        using (var bodyFont = new Font(UiFontFamily, 10.3f, FontStyle.Regular))
+        using (var bodyBrush = new SolidBrush(Color.FromArgb(230, 210, 224, 232)))
+        {
+            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 38, commandRect.Width - 28, 50));
+        }
+
+        DrawHudText(graphics, CurrentControlsHint(), 9.3f, FontStyle.Bold, Color.FromArgb(255, 255, 225, 150), commandRect.Left + 14, commandRect.Bottom - 26);
+
+        if (_phase == GamePhase.Construct)
+        {
+            DrawChoiceCard(graphics, new Rectangle(loadoutRect.Left + 12, loadoutRect.Top + 14, 112, 92), "1", "防壁ドア", "2AP / 通路封鎖", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 105, 235, 240));
+            DrawChoiceCard(graphics, new Rectangle(loadoutRect.Left + 130, loadoutRect.Top + 14, 112, 92), "2", "ハチミツ", "3AP / 鈍足+増音", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 255, 196, 82));
+            DrawChoiceCard(graphics, new Rectangle(loadoutRect.Left + 248, loadoutRect.Top + 14, 112, 92), "3", "ネスト", "4AP / 偽波紋", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 180, 235, 120));
+        }
+        else
+        {
+            DrawWeaponChoice(graphics, new Rectangle(loadoutRect.Left + 12, loadoutRect.Top + 14, 112, 92), "Q", WeaponType.SMG, ActiveSelection(WeaponType.SMG));
+            DrawWeaponChoice(graphics, new Rectangle(loadoutRect.Left + 130, loadoutRect.Top + 14, 112, 92), "E", WeaponType.Rifle, ActiveSelection(WeaponType.Rifle));
+            DrawWeaponChoice(graphics, new Rectangle(loadoutRect.Left + 248, loadoutRect.Top + 14, 112, 92), "R", WeaponType.Sniper, ActiveSelection(WeaponType.Sniper));
+        }
+
+        DrawHudText(graphics, "スペース: 説明表示切替   R: 勝敗後に再挑戦", 9.2f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), loadoutRect.Left + 12, loadoutRect.Bottom - 22);
     }
 
     private void DrawHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
     {
-        using var font = new Font("Bahnschrift", size, style);
+        using var font = new Font(UiFontFamily, size, style);
         using var brush = new SolidBrush(color);
         graphics.DrawString(text, font, brush, x, y);
+    }
+
+    private void DrawPanelFrame(Graphics graphics, Rectangle bounds)
+    {
+        using var fill = new SolidBrush(Color.FromArgb(170, 6, 14, 20));
+        using var border = new Pen(Color.FromArgb(110, 90, 215, 230), 2f);
+        graphics.FillRectangle(fill, bounds);
+        graphics.DrawRectangle(border, bounds);
+    }
+
+    private void DrawInsetPanel(Graphics graphics, Rectangle bounds)
+    {
+        using var fill = new SolidBrush(Color.FromArgb(78, 10, 18, 24));
+        using var border = new Pen(Color.FromArgb(85, 96, 175, 195), 1.6f);
+        graphics.FillRectangle(fill, bounds);
+        graphics.DrawRectangle(border, bounds);
+    }
+
+    private void DrawPanelTitle(Graphics graphics, Rectangle bounds, string title)
+    {
+        DrawHudText(graphics, title, 11.4f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), bounds.Left + 14, bounds.Top + 12);
+        using var accent = new Pen(Color.FromArgb(120, 92, 212, 225), 1.6f);
+        graphics.DrawLine(accent, bounds.Left + 14, bounds.Top + 34, bounds.Right - 14, bounds.Top + 34);
+    }
+
+    private void DrawChoiceCard(Graphics graphics, Rectangle bounds, string keyLabel, string title, string subtitle, bool selected, Color accent)
+    {
+        using var fill = new SolidBrush(selected ? Color.FromArgb(120, accent) : Color.FromArgb(70, 16, 24, 30));
+        using var border = new Pen(selected ? Color.FromArgb(240, accent) : Color.FromArgb(100, 76, 110, 124), selected ? 2.2f : 1.4f);
+        graphics.FillRectangle(fill, bounds);
+        graphics.DrawRectangle(border, bounds);
+
+        DrawHudText(graphics, keyLabel, 9f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), bounds.Left + 10, bounds.Top + 8);
+        DrawHudText(graphics, title, 10.2f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), bounds.Left + 10, bounds.Top + 30);
+        DrawHudText(graphics, subtitle, 8.8f, FontStyle.Regular, Color.FromArgb(225, 204, 218, 226), bounds.Left + 10, bounds.Top + 56);
+    }
+
+    private void DrawWeaponChoice(Graphics graphics, Rectangle bounds, string keyLabel, WeaponType weaponType, bool selected)
+    {
+        var weapon = _weaponStats[weaponType];
+        var accent = weaponType switch
+        {
+            WeaponType.SMG => Color.FromArgb(255, 255, 196, 82),
+            WeaponType.Rifle => Color.FromArgb(255, 92, 220, 235),
+            _ => Color.FromArgb(255, 245, 170, 120),
+        };
+
+        DrawChoiceCard(graphics, bounds, keyLabel, weapon.Label, $"{weapon.Cost}c / 視界 {weapon.VisionRange:0}", selected, accent);
+    }
+
+    private void DrawMiniMapActor(Graphics graphics, Rectangle inner, float scaleX, float scaleY, Actor actor, Color color)
+    {
+        if (!actor.IsAlive)
+        {
+            return;
+        }
+
+        using var brush = new SolidBrush(color);
+        var point = new PointF(inner.Left + ((actor.Position.X - WorldBounds.Left) * scaleX), inner.Top + ((actor.Position.Y - WorldBounds.Top) * scaleY));
+        var size = actor.IsBoss ? 8f : 6f;
+        graphics.FillEllipse(brush, point.X - (size / 2f), point.Y - (size / 2f), size, size);
+    }
+
+    private string CurrentModeTitle()
+    {
+        return _phase switch
+        {
+            GamePhase.Construct => "初期構築フェーズ",
+            GamePhase.Bet => "ベット & ロードアウト",
+            GamePhase.Hunt => "防衛ハント進行中",
+            GamePhase.RoundResult => "ラウンド精算",
+            GamePhase.Victory => "作戦成功",
+            _ => "作戦失敗",
+        };
+    }
+
+    private string CurrentModeBody()
+    {
+        return _phase switch
+        {
+            GamePhase.Construct => $"AP を使って初期陣地を構築します。現在の選択は {BuildToolLabel(_selectedBuildTool)}。この配置は全ラウンド共通です。",
+            GamePhase.Bet => $"{_selectedBossName} を賞金首に指名中。賭け金 {_selectedBet}、購入武器は {_weaponStats[_selectedWeapon].Label}。勝利かつボス生存で投資額が倍化します。",
+            GamePhase.Hunt => $"視界は 120 度固定。死角の敵は音の波紋で拾います。残り {_roundTimer:0.0} 秒、感知中の敵は {_pendingEnemies + _enemies.Count(enemy => enemy.IsAlive)} 体です。",
+            GamePhase.RoundResult => _resultMessage,
+            GamePhase.Victory => "全ラウンドの防衛に成功しました。構築・賭け・音索敵のループが一通り遊べる状態です。",
+            _ => "コアが破壊されるか、防衛班が壊滅しました。構築とボス指名を見直して再挑戦してください。",
+        };
+    }
+
+    private string CurrentControlsHint()
+    {
+        return _phase switch
+        {
+            GamePhase.Construct => "1/2/3 で建築物選択  |  左クリック設置  |  右クリック撤去  |  Enter で構築確定",
+            GamePhase.Bet => "1/2/3 でボス選択  |  Q/E で武器変更  |  A/D で賭け金調整  |  Enter で出撃",
+            GamePhase.Hunt => "WASD 移動  |  マウス照準  |  左クリック長押し射撃",
+            _ => "Enter で進行  |  R で再挑戦",
+        };
+    }
+
+    private bool ActiveSelection(WeaponType weaponType)
+    {
+        return _phase switch
+        {
+            GamePhase.Bet => _selectedWeapon == weaponType,
+            _ => _player.Weapon == weaponType,
+        };
     }
 
     private void TryPlaceStructure(Point location)
@@ -935,7 +1203,7 @@ internal sealed class GameModel
 
         _buildPoints -= candidate.APCost;
         _structures.Add(candidate);
-        _resultMessage = $"{candidate.Label} planted at {cell.X},{cell.Y}.";
+        _resultMessage = $"{candidate.Label} を {cell.X},{cell.Y} に設置。";
     }
 
     private void TryRemoveStructure(Point location)
@@ -954,7 +1222,7 @@ internal sealed class GameModel
 
         _buildPoints += structure.APCost;
         _structures.Remove(structure);
-        _resultMessage = $"{structure.Label} refunded.";
+        _resultMessage = $"{structure.Label} を撤去して AP を返還。";
     }
 
     private void StartRound()
@@ -963,7 +1231,7 @@ internal sealed class GameModel
         var totalCost = weapon.Cost + _selectedBet;
         if (totalCost > _credits)
         {
-            _resultMessage = "Not enough credits for that loadout and stake.";
+            _resultMessage = "所持クレジットが足りません。賭け金か装備を見直してください。";
             return;
         }
 
@@ -997,7 +1265,8 @@ internal sealed class GameModel
         RestoreBossFlags();
         _phase = GamePhase.Hunt;
         _showBriefing = false;
-        _resultMessage = $"Round {_currentRound} live. Keep {_selectedBossName} breathing.";
+        _resultDestination = GamePhase.Bet;
+        _resultMessage = $"第{_currentRound}ラウンド開始。{_selectedBossName}を生存させて防衛を完了してください。";
     }
 
     private void EndRound(bool won)
@@ -1010,22 +1279,28 @@ internal sealed class GameModel
             if (bossAlive)
             {
                 _credits += _selectedBet * 2;
-                _resultMessage = $"Round {_currentRound} secured. Boss lived. Payout +{(_selectedBet * 2) + 150}.";
+                _resultMessage = $"第{_currentRound}ラウンド防衛成功。ボス生存につき +{(_selectedBet * 2) + 150} クレジット。";
             }
             else
             {
-                _resultMessage = $"Round {_currentRound} secured, but the boss dropped. Stake burned.";
+                _resultMessage = $"第{_currentRound}ラウンドは勝利。ただしボスが倒れたため賭け金は没収。";
             }
 
             _currentRound++;
             if (_currentRound > TotalRounds)
             {
-                _resultMessage = $"CAMPAIGN CLEARED // Credits {_credits}";
+                _resultDestination = GamePhase.Victory;
+                _resultMessage = $"全ラウンド制圧。最終資産 {_credits} クレジット。";
+            }
+            else
+            {
+                _resultDestination = GamePhase.Bet;
             }
         }
         else
         {
-            _resultMessage = "GRID COLLAPSED // Core breached or squad wiped.";
+            _resultDestination = GamePhase.Defeat;
+            _resultMessage = "グリッド崩壊。コア突破、または防衛班壊滅。";
         }
 
         _phase = GamePhase.RoundResult;
@@ -1036,7 +1311,8 @@ internal sealed class GameModel
     {
         _phase = GamePhase.Bet;
         _selectedBet = Math.Min(Math.Max(25, AffordableCredits()), 100);
-        _resultMessage = $"Round {_currentRound}: choose a boss, set a stake, pick your weapon.";
+        _resultDestination = GamePhase.Bet;
+        _resultMessage = $"第{_currentRound}ラウンド準備。ボス、賭け金、武器を決めてください。";
     }
 
     private void ResetCampaign()
@@ -1047,14 +1323,15 @@ internal sealed class GameModel
         _selectedBet = 100;
         _selectedWeapon = WeaponType.Rifle;
         _selectedBuildTool = BuildToolKind.BlastDoor;
-        _selectedBossName = "You";
+        _selectedBossName = "あなた";
         _coreHealth = 180f;
         _phase = GamePhase.Construct;
+        _resultDestination = GamePhase.Bet;
         _showBriefing = true;
         _structures.Clear();
         _ripples.Clear();
         _enemies.Clear();
-        _resultMessage = "Build once. The whole campaign rides on it.";
+        _resultMessage = "陣地構築は一度だけ。この配置が全ラウンドを左右する。";
 
         _player.Health = _player.MaxHealth;
         _player.Position = CellCenter(_player.HomeCell);
@@ -1123,7 +1400,7 @@ internal sealed class GameModel
         var enemyHealth = weapon == WeaponType.SMG ? 48f : weapon == WeaponType.Rifle ? 58f : 44f;
         var enemy = new Actor
         {
-            Name = "Raider",
+            Name = "襲撃者",
             Type = ActorType.Enemy,
             HomeCell = spawnCell,
             Weapon = weapon,
@@ -1523,7 +1800,7 @@ internal sealed class GameModel
                 Kind = StructureKind.BlastDoor,
                 Cell = cell,
                 APCost = 2,
-                Label = "Blast Door",
+                Label = "防壁ドア",
                 Health = 120f,
                 MaxHealth = 120f,
                 PulseCooldown = 0f,
@@ -1533,7 +1810,7 @@ internal sealed class GameModel
                 Kind = StructureKind.HoneyTrap,
                 Cell = cell,
                 APCost = 3,
-                Label = "Honey Trap",
+                Label = "ハチミツトラップ",
                 Health = 1f,
                 MaxHealth = 1f,
                 PulseCooldown = 0f,
@@ -1543,7 +1820,7 @@ internal sealed class GameModel
                 Kind = StructureKind.StaticNest,
                 Cell = cell,
                 APCost = 4,
-                Label = "Static Nest",
+                Label = "スタティックネスト",
                 Health = 1f,
                 MaxHealth = 1f,
                 PulseCooldown = 0.3f,
@@ -1558,7 +1835,7 @@ internal sealed class GameModel
             [WeaponType.SMG] = new()
             {
                 Type = WeaponType.SMG,
-                Label = "SMG / Earline",
+                Label = "SMG / 聴覚特化",
                 Cost = 50,
                 VisionRange = 225f,
                 HearingMultiplier = 1.35f,
@@ -1570,7 +1847,7 @@ internal sealed class GameModel
             [WeaponType.Rifle] = new()
             {
                 Type = WeaponType.Rifle,
-                Label = "Rifle / Balance",
+                Label = "ライフル / 汎用",
                 Cost = 100,
                 VisionRange = 320f,
                 HearingMultiplier = 1f,
@@ -1582,7 +1859,7 @@ internal sealed class GameModel
             [WeaponType.Sniper] = new()
             {
                 Type = WeaponType.Sniper,
-                Label = "SR / Eye Line",
+                Label = "SR / 視界特化",
                 Cost = 150,
                 VisionRange = 470f,
                 HearingMultiplier = 0.75f,
@@ -1638,9 +1915,9 @@ internal sealed class GameModel
     {
         return tool switch
         {
-            BuildToolKind.BlastDoor => "Blast Door / 2 AP",
-            BuildToolKind.HoneyTrap => "Honey Trap / 3 AP",
-            _ => "Static Nest / 4 AP",
+            BuildToolKind.BlastDoor => "防壁ドア / 2AP",
+            BuildToolKind.HoneyTrap => "ハチミツトラップ / 3AP",
+            _ => "スタティックネスト / 4AP",
         };
     }
 
@@ -1648,12 +1925,12 @@ internal sealed class GameModel
     {
         return _phase switch
         {
-            GamePhase.Construct => "CONSTRUCT",
-            GamePhase.Bet => "BET",
-            GamePhase.Hunt => "HUNT",
-            GamePhase.RoundResult => "SETTLEMENT",
-            GamePhase.Victory => "VICTORY",
-            _ => "DEFEAT",
+            GamePhase.Construct => "構築",
+            GamePhase.Bet => "賭け",
+            GamePhase.Hunt => "狩り",
+            GamePhase.RoundResult => "精算",
+            GamePhase.Victory => "勝利",
+            _ => "敗北",
         };
     }
 
