@@ -1,0 +1,11 @@
+﻿{
+    "fireCooldown":  0.68,
+    "id":  "sr_eyeline",
+    "visionRange":  470,
+    "cost":  150,
+    "projectileRange":  430,
+    "damage":  36,
+    "moveSpeed":  185,
+    "hearingMultiplier":  0.75,
+    "displayName":  "SR / Vision Focus"
+}

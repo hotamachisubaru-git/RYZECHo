@@ -118,16 +118,16 @@ internal sealed class GameModel
     private const int TopBarHeight = 52;
     private const int SidePanelGap = 20;
     private const int SidePanelWidth = 364;
-    private const int BottomHudHeight = 192;
+    private const int BottomHudHeight = 208;
     private const int GridColumns = 18;
     private const int GridRows = 12;
     private const int CellSize = 56;
     private const int TotalRounds = 3;
     private const float FovDegrees = 120f;
-    private const float WorldPerspectiveScaleX = 0.78f;
-    private const float WorldPerspectiveScaleY = 0.72f;
-    private const float WorldPerspectiveShearX = 0.26f;
-    private const float WorldPerspectiveTopInset = 18f;
+    private const float WorldPerspectiveScaleX = 0.84f;
+    private const float WorldPerspectiveScaleY = 0.78f;
+    private const float WorldPerspectiveShearX = 0.22f;
+    private const float WorldPerspectiveTopInset = 10f;
 
     private readonly Random _random = new();
     private readonly Dictionary<WeaponType, WeaponStats> _weaponStats = CreateWeaponStats();
@@ -212,7 +212,7 @@ internal sealed class GameModel
 
     private Rectangle TopBarBounds => new(WorldBounds.Left + 236, 16, 560, TopBarHeight);
 
-    private Rectangle BottomHudBounds => new(WorldBounds.Left + 92, (int)MathF.Round(WorldVisualBounds.Bottom) + 50, 900, BottomHudHeight);
+    private Rectangle BottomHudBounds => new(WorldBounds.Left + 92, (int)MathF.Round(WorldVisualBounds.Bottom) + 42, 900, BottomHudHeight);
 
     private Rectangle SidePanelBounds => new(WorldBounds.Right + SidePanelGap, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
@@ -585,8 +585,10 @@ internal sealed class GameModel
 
     public void Render(Graphics graphics, Rectangle clientBounds, Point mousePosition)
     {
-        using var background = new LinearGradientBrush(clientBounds, Color.FromArgb(5, 10, 14), Color.FromArgb(12, 22, 30), 90f);
+        using var background = new LinearGradientBrush(clientBounds, Color.FromArgb(7, 14, 22), Color.FromArgb(3, 8, 14), 90f);
         graphics.FillRectangle(background, clientBounds);
+        using var vignette = new LinearGradientBrush(clientBounds, Color.FromArgb(0, 86, 229, 247), Color.FromArgb(26, 20, 54, 84), 22f);
+        graphics.FillRectangle(vignette, clientBounds);
 
         DrawWorldDropShadow(graphics);
 
@@ -614,26 +616,59 @@ internal sealed class GameModel
     private void DrawWorldDropShadow(Graphics graphics)
     {
         var corners = GetProjectedWorldCorners();
-        var shadow = corners.Select(point => new PointF(point.X + 14f, point.Y + 16f)).ToArray();
-        using var shadowBrush = new SolidBrush(Color.FromArgb(56, 0, 0, 0));
+        var shadow = corners.Select(point => new PointF(point.X + 18f, point.Y + 20f)).ToArray();
+        using var shadowBrush = new SolidBrush(Color.FromArgb(64, 0, 0, 0));
         graphics.FillPolygon(shadowBrush, shadow);
     }
 
     private void DrawWorldPanel(Graphics graphics)
     {
-        using var worldBrush = new LinearGradientBrush(WorldBounds, Color.FromArgb(30, 65, 34), Color.FromArgb(16, 38, 24), 90f);
+        using var worldBrush = new LinearGradientBrush(WorldBounds, Color.FromArgb(10, 22, 32), Color.FromArgb(4, 11, 18), 90f);
         graphics.FillRectangle(worldBrush, WorldBounds);
 
-        DrawLaneGround(graphics);
-        DrawBushCluster(graphics, new PointF(WorldBounds.Left + 92f, WorldBounds.Top + 126f), 98f, 54f, Color.FromArgb(36, 92, 42), Color.FromArgb(18, 54, 28));
-        DrawBushCluster(graphics, new PointF(WorldBounds.Left + 170f, WorldBounds.Bottom - 100f), 118f, 62f, Color.FromArgb(40, 96, 48), Color.FromArgb(18, 60, 30));
-        DrawBushCluster(graphics, new PointF(WorldBounds.Right - 146f, WorldBounds.Top + 104f), 132f, 72f, Color.FromArgb(44, 100, 50), Color.FromArgb(20, 58, 28));
-        DrawBushCluster(graphics, new PointF(WorldBounds.Right - 190f, WorldBounds.Bottom - 126f), 148f, 84f, Color.FromArgb(44, 100, 50), Color.FromArgb(20, 58, 28));
+        DrawTacticalSurface(graphics);
+        DrawSignalLane(graphics, new[]
+        {
+            new PointF(WorldBounds.Left + 46f, WorldBounds.Top + 392f),
+            new PointF(WorldBounds.Left + 246f, WorldBounds.Top + 318f),
+            new PointF(WorldBounds.Left + 536f, WorldBounds.Top + 276f),
+            new PointF(WorldBounds.Right - 56f, WorldBounds.Top + 308f),
+            new PointF(WorldBounds.Right - 84f, WorldBounds.Top + 382f),
+            new PointF(WorldBounds.Left + 572f, WorldBounds.Top + 344f),
+            new PointF(WorldBounds.Left + 258f, WorldBounds.Top + 382f),
+            new PointF(WorldBounds.Left + 30f, WorldBounds.Top + 460f),
+        }, Color.FromArgb(54, 234, 220, 182), Color.FromArgb(122, 246, 236, 214));
+        DrawSignalLane(graphics, new[]
+        {
+            new PointF(WorldBounds.Left + 118f, WorldBounds.Top + 562f),
+            new PointF(WorldBounds.Left + 328f, WorldBounds.Top + 440f),
+            new PointF(WorldBounds.Left + 628f, WorldBounds.Top + 418f),
+            new PointF(WorldBounds.Right - 112f, WorldBounds.Top + 468f),
+            new PointF(WorldBounds.Right - 136f, WorldBounds.Top + 516f),
+            new PointF(WorldBounds.Left + 620f, WorldBounds.Top + 472f),
+            new PointF(WorldBounds.Left + 346f, WorldBounds.Top + 490f),
+            new PointF(WorldBounds.Left + 140f, WorldBounds.Top + 610f),
+        }, Color.FromArgb(36, 194, 230, 214), Color.FromArgb(98, 224, 240, 236));
+
+        DrawCornerRelay(graphics, new PointF(WorldBounds.Left + 126f, WorldBounds.Top + 126f), 60f, Color.FromArgb(84, 104, 216, 104));
+        DrawCornerRelay(graphics, new PointF(WorldBounds.Left + 142f, WorldBounds.Bottom - 108f), 72f, Color.FromArgb(84, 94, 214, 122));
+        DrawCornerRelay(graphics, new PointF(WorldBounds.Right - 126f, WorldBounds.Top + 118f), 66f, Color.FromArgb(84, 104, 216, 104));
+        DrawCornerRelay(graphics, new PointF(WorldBounds.Right - 154f, WorldBounds.Bottom - 96f), 78f, Color.FromArgb(84, 94, 214, 122));
+
+        DrawBoardScanner(graphics, new PointF(WorldBounds.Left + (WorldBounds.Width * 0.52f), WorldBounds.Top + (WorldBounds.Height * 0.52f)), 186f, Color.FromArgb(88, 86, 229, 247));
 
         foreach (var cell in _permanentWalls)
         {
             var rectangle = CellRectangle(cell);
-            DrawRaisedBlock(graphics, Rectangle.Inflate(rectangle, -2, -2), Color.FromArgb(62, 88, 94), Color.FromArgb(28, 44, 52), Color.FromArgb(110, 170, 184), 18f);
+            var tile = Rectangle.Inflate(rectangle, -2, -2);
+            if (IsPerimeterCell(cell))
+            {
+                DrawBoardTile(graphics, tile, Color.FromArgb(82, 70, 126, 150), Color.FromArgb(176, 118, 232, 246), true);
+            }
+            else
+            {
+                DrawRaisedBlock(graphics, tile, Color.FromArgb(90, 82, 132, 160), Color.FromArgb(42, 16, 36, 52), Color.FromArgb(210, 138, 228, 246), 14f);
+            }
         }
 
         if (_phase == GamePhase.Construct)
@@ -644,88 +679,97 @@ internal sealed class GameModel
             }
         }
 
-        using var borderPen = new Pen(Color.FromArgb(80, 115, 210, 220), 2f);
+        using var borderPen = new Pen(Color.FromArgb(110, 116, 220, 236), 2.2f);
         graphics.DrawRectangle(borderPen, WorldBounds);
+        using var innerPen = new Pen(Color.FromArgb(70, 84, 152, 172), 1f);
+        graphics.DrawRectangle(innerPen, Rectangle.Inflate(WorldBounds, -10, -10));
     }
 
-    private void DrawLaneGround(Graphics graphics)
+    private void DrawTacticalSurface(Graphics graphics)
     {
-        var upperRim = new[]
-        {
-            new PointF(WorldBounds.Left + 34f, WorldBounds.Top + 360f),
-            new PointF(WorldBounds.Left + 162f, WorldBounds.Top + 300f),
-            new PointF(WorldBounds.Left + 364f, WorldBounds.Top + 250f),
-            new PointF(WorldBounds.Left + 610f, WorldBounds.Top + 236f),
-            new PointF(WorldBounds.Left + 824f, WorldBounds.Top + 250f),
-            new PointF(WorldBounds.Right - 28f, WorldBounds.Top + 296f),
-        };
+        var inner = Rectangle.Inflate(WorldBounds, -12, -12);
+        using var boardBrush = new LinearGradientBrush(inner, Color.FromArgb(18, 32, 42), Color.FromArgb(6, 16, 22), 90f);
+        graphics.FillRectangle(boardBrush, inner);
 
-        var lowerRim = new[]
-        {
-            new PointF(WorldBounds.Right - 26f, WorldBounds.Top + 510f),
-            new PointF(WorldBounds.Left + 854f, WorldBounds.Top + 470f),
-            new PointF(WorldBounds.Left + 640f, WorldBounds.Top + 442f),
-            new PointF(WorldBounds.Left + 372f, WorldBounds.Top + 430f),
-            new PointF(WorldBounds.Left + 132f, WorldBounds.Top + 466f),
-            new PointF(WorldBounds.Left + 36f, WorldBounds.Top + 544f),
-        };
+        using var sweepBrush = new LinearGradientBrush(inner, Color.FromArgb(0, 86, 229, 247), Color.FromArgb(36, 86, 229, 247), 24f);
+        graphics.FillRectangle(sweepBrush, inner);
 
+        using var gridMinor = new Pen(Color.FromArgb(24, 86, 229, 247), 1f);
+        using var gridMajor = new Pen(Color.FromArgb(62, 86, 229, 247), 1.6f);
+        for (var x = 0; x <= GridColumns; x++)
+        {
+            var xPos = WorldBounds.Left + (x * CellSize);
+            graphics.DrawLine(x % 3 == 0 ? gridMajor : gridMinor, xPos, WorldBounds.Top, xPos, WorldBounds.Bottom);
+        }
+
+        for (var y = 0; y <= GridRows; y++)
+        {
+            var yPos = WorldBounds.Top + (y * CellSize);
+            graphics.DrawLine(y % 3 == 0 ? gridMajor : gridMinor, WorldBounds.Left, yPos, WorldBounds.Right, yPos);
+        }
+
+        using var pathPen = new Pen(Color.FromArgb(40, 200, 245, 255), 2f);
+        graphics.DrawBezier(pathPen,
+            new PointF(WorldBounds.Left + 118f, WorldBounds.Top + 188f),
+            new PointF(WorldBounds.Left + 312f, WorldBounds.Top + 234f),
+            new PointF(WorldBounds.Left + 612f, WorldBounds.Top + 204f),
+            new PointF(WorldBounds.Right - 142f, WorldBounds.Top + 286f));
+        graphics.DrawBezier(pathPen,
+            new PointF(WorldBounds.Left + 138f, WorldBounds.Bottom - 118f),
+            new PointF(WorldBounds.Left + 366f, WorldBounds.Top + 492f),
+            new PointF(WorldBounds.Left + 654f, WorldBounds.Top + 470f),
+            new PointF(WorldBounds.Right - 166f, WorldBounds.Bottom - 104f));
+    }
+
+    private void DrawSignalLane(Graphics graphics, PointF[] points, Color fillColor, Color outlineColor)
+    {
         using var lanePath = new GraphicsPath();
-        lanePath.AddPolygon(upperRim.Concat(lowerRim.Reverse()).ToArray());
+        lanePath.AddPolygon(points);
 
-        using var laneBrush = new LinearGradientBrush(WorldBounds, Color.FromArgb(96, 116, 98), Color.FromArgb(62, 72, 66), 90f);
-        graphics.FillPath(laneBrush, lanePath);
-
-        using var edgePen = new Pen(Color.FromArgb(110, 184, 168, 124), 6f)
+        using var laneBrush = new SolidBrush(fillColor);
+        using var edgePen = new Pen(outlineColor, 2.4f)
         {
             LineJoin = LineJoin.Round,
         };
 
-        graphics.DrawLines(edgePen, upperRim);
-        graphics.DrawLines(edgePen, lowerRim);
-
-        using var laneDetailPen = new Pen(Color.FromArgb(96, 140, 146, 132), 2.2f);
-        graphics.DrawLines(laneDetailPen, new[]
-        {
-            new PointF(WorldBounds.Left + 110f, WorldBounds.Top + 402f),
-            new PointF(WorldBounds.Left + 246f, WorldBounds.Top + 366f),
-            new PointF(WorldBounds.Left + 458f, WorldBounds.Top + 344f),
-            new PointF(WorldBounds.Left + 686f, WorldBounds.Top + 344f),
-            new PointF(WorldBounds.Right - 102f, WorldBounds.Top + 384f),
-        });
-
-        using var crackPen = new Pen(Color.FromArgb(92, 82, 92, 88), 2f);
-        graphics.DrawLines(crackPen, new[]
-        {
-            new PointF(WorldBounds.Left + 238f, WorldBounds.Top + 334f),
-            new PointF(WorldBounds.Left + 278f, WorldBounds.Top + 382f),
-            new PointF(WorldBounds.Left + 252f, WorldBounds.Top + 426f),
-        });
-        graphics.DrawLines(crackPen, new[]
-        {
-            new PointF(WorldBounds.Left + 520f, WorldBounds.Top + 296f),
-            new PointF(WorldBounds.Left + 574f, WorldBounds.Top + 356f),
-            new PointF(WorldBounds.Left + 548f, WorldBounds.Top + 430f),
-        });
-        graphics.DrawLines(crackPen, new[]
-        {
-            new PointF(WorldBounds.Left + 760f, WorldBounds.Top + 318f),
-            new PointF(WorldBounds.Left + 812f, WorldBounds.Top + 380f),
-            new PointF(WorldBounds.Left + 784f, WorldBounds.Top + 442f),
-        });
+        graphics.FillPath(laneBrush, lanePath);
+        graphics.DrawPath(edgePen, lanePath);
     }
 
-    private void DrawBushCluster(Graphics graphics, PointF center, float width, float height, Color light, Color dark)
+    private void DrawCornerRelay(Graphics graphics, PointF center, float radius, Color accent)
     {
-        using var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0));
-        graphics.FillEllipse(shadowBrush, center.X - (width / 2f) + 8f, center.Y - (height / 2f) + 10f, width, height);
+        using var shadow = new SolidBrush(Color.FromArgb(38, 0, 0, 0));
+        graphics.FillEllipse(shadow, center.X - radius + 10f, center.Y - (radius * 0.45f) + 10f, radius * 2f, radius * 0.9f);
 
-        using var darkBrush = new SolidBrush(dark);
-        using var lightBrush = new SolidBrush(light);
+        using var glow = new SolidBrush(accent);
+        using var rim = new Pen(Color.FromArgb(148, 146, 244, 146), 2f);
+        graphics.FillEllipse(glow, center.X - radius, center.Y - (radius * 0.56f), radius * 2f, radius * 1.12f);
+        graphics.DrawEllipse(rim, center.X - radius, center.Y - (radius * 0.56f), radius * 2f, radius * 1.12f);
+    }
 
-        graphics.FillEllipse(darkBrush, center.X - (width / 2f), center.Y - (height / 2f), width, height);
-        graphics.FillEllipse(lightBrush, center.X - (width / 2.8f), center.Y - (height / 2.4f), width * 0.72f, height * 0.68f);
-        graphics.FillEllipse(lightBrush, center.X - (width / 3.8f), center.Y - (height / 1.8f), width * 0.5f, height * 0.48f);
+    private void DrawBoardScanner(Graphics graphics, PointF center, float radius, Color accent)
+    {
+        using var ringPen = new Pen(accent, 2f);
+        using var outerPen = new Pen(Color.FromArgb(48, accent), 1.2f);
+        using var crossPen = new Pen(Color.FromArgb(120, accent), 1.2f);
+        graphics.DrawEllipse(outerPen, center.X - radius - 42f, center.Y - radius - 42f, (radius + 42f) * 2f, (radius + 42f) * 2f);
+        graphics.DrawEllipse(ringPen, center.X - radius, center.Y - radius, radius * 2f, radius * 2f);
+        graphics.DrawEllipse(outerPen, center.X - (radius * 0.48f), center.Y - (radius * 0.48f), radius * 0.96f, radius * 0.96f);
+        graphics.DrawLine(crossPen, center.X - radius - 18f, center.Y, center.X + radius + 18f, center.Y);
+        graphics.DrawLine(crossPen, center.X, center.Y - radius - 18f, center.X, center.Y + radius + 18f);
+    }
+
+    private void DrawBoardTile(Graphics graphics, Rectangle rectangle, Color fillColor, Color outlineColor, bool diagonalCut)
+    {
+        using var fill = new LinearGradientBrush(rectangle, fillColor, Color.FromArgb(34, 18, 44, 62), 90f);
+        using var border = new Pen(outlineColor, 1.6f);
+        using var detail = new Pen(Color.FromArgb(122, outlineColor), 1f);
+        graphics.FillRectangle(fill, rectangle);
+        graphics.DrawRectangle(border, rectangle);
+        if (diagonalCut)
+        {
+            graphics.DrawLine(detail, rectangle.Left + 8, rectangle.Bottom - 8, rectangle.Right - 8, rectangle.Top + 8);
+        }
     }
 
     private void DrawRaisedBlock(Graphics graphics, Rectangle rectangle, Color topColor, Color sideColor, Color outlineColor, float height)
@@ -745,18 +789,22 @@ internal sealed class GameModel
         graphics.FillRectangle(topBrush, rectangle);
         graphics.DrawPolygon(outlinePen, sideFace);
         graphics.DrawRectangle(outlinePen, rectangle);
+        using var detailPen = new Pen(Color.FromArgb(120, 214, 240, 248), 1f);
+        graphics.DrawLine(detailPen, rectangle.Left + 8f, rectangle.Bottom - 8f, rectangle.Right - 8f, rectangle.Top + 8f);
     }
 
     private void DrawBuildSlotMarker(Graphics graphics, Point slot)
     {
         var center = CellCenter(slot);
-        using var outerPen = new Pen(Color.FromArgb(120, 90, 230, 220), 2f)
+        using var outerPen = new Pen(Color.FromArgb(148, 84, 214, 228), 2f)
         {
             DashStyle = DashStyle.Dash,
         };
-        using var innerBrush = new SolidBrush(Color.FromArgb(58, 70, 220, 205));
-        graphics.FillEllipse(innerBrush, center.X - 12f, center.Y - 12f, 24f, 24f);
+        using var innerBrush = new SolidBrush(Color.FromArgb(74, 70, 220, 205));
+        using var haloPen = new Pen(Color.FromArgb(52, 116, 236, 248), 1.2f);
+        graphics.FillEllipse(innerBrush, center.X - 10f, center.Y - 10f, 20f, 20f);
         graphics.DrawEllipse(outerPen, center.X - 18f, center.Y - 18f, 36f, 36f);
+        graphics.DrawEllipse(haloPen, center.X - 30f, center.Y - 30f, 60f, 60f);
     }
 
     private void DrawStructures(Graphics graphics)
@@ -768,11 +816,11 @@ internal sealed class GameModel
             switch (structure.Kind)
             {
                 case StructureKind.BlastDoor:
-                    DrawRaisedBlock(graphics, rectangle, Color.FromArgb(118, 170, 232), Color.FromArgb(44, 78, 108), Color.FromArgb(220, 236, 246), 20f);
+                    DrawRaisedBlock(graphics, rectangle, Color.FromArgb(128, 90, 162, 204), Color.FromArgb(48, 14, 44, 70), Color.FromArgb(232, 156, 238, 248), 18f);
 
                     var ratio = structure.Health / structure.MaxHealth;
-                    using (var hpBack = new SolidBrush(Color.FromArgb(30, 0, 0, 0)))
-                    using (var hpFill = new SolidBrush(Color.FromArgb(220, 80, 220, 165)))
+                    using (var hpBack = new SolidBrush(Color.FromArgb(36, 0, 0, 0)))
+                    using (var hpFill = new SolidBrush(Color.FromArgb(220, 88, 228, 220)))
                     {
                         var hpRect = new RectangleF(rectangle.Left, rectangle.Bottom + 3f, rectangle.Width, 5f);
                         graphics.FillRectangle(hpBack, hpRect);
@@ -784,11 +832,13 @@ internal sealed class GameModel
                     {
                         graphics.FillEllipse(shadow, rectangle.Left + 6, rectangle.Top + 12, rectangle.Width, rectangle.Height);
                     }
-                    using (var fill = new SolidBrush(Color.FromArgb(175, 245, 177, 55)))
-                    using (var pen = new Pen(Color.FromArgb(255, 255, 225, 145), 2f))
+                    using (var fill = new SolidBrush(Color.FromArgb(178, 238, 168, 62)))
+                    using (var pen = new Pen(Color.FromArgb(255, 255, 230, 164), 2.2f))
+                    using (var ring = new Pen(Color.FromArgb(88, 255, 210, 116), 1.4f))
                     {
                         graphics.FillEllipse(fill, rectangle);
                         graphics.DrawEllipse(pen, rectangle);
+                        graphics.DrawEllipse(ring, rectangle.Left - 12, rectangle.Top - 12, rectangle.Width + 24, rectangle.Height + 24);
                     }
                     break;
                 case StructureKind.StaticNest:
@@ -796,16 +846,17 @@ internal sealed class GameModel
                     {
                         graphics.FillEllipse(shadow, rectangle.Left + 6, rectangle.Top + 12, rectangle.Width, rectangle.Height);
                     }
-                    using (var fill = new SolidBrush(Color.FromArgb(110, 120, 220, 90)))
-                    using (var pen = new Pen(Color.FromArgb(225, 210, 255, 135), 2f))
+                    using (var fill = new SolidBrush(Color.FromArgb(116, 92, 214, 128)))
+                    using (var pen = new Pen(Color.FromArgb(225, 214, 255, 180), 2f))
                     {
                         graphics.FillEllipse(fill, rectangle);
                         graphics.DrawEllipse(pen, rectangle);
                     }
 
-                    using (var auraPen = new Pen(Color.FromArgb(70, 165, 225, 115), 1.5f))
+                    using (var auraPen = new Pen(Color.FromArgb(92, 132, 232, 154), 1.5f))
                     {
                         graphics.DrawEllipse(auraPen, rectangle.Left - 20, rectangle.Top - 20, rectangle.Width + 40, rectangle.Height + 40);
+                        graphics.DrawEllipse(auraPen, rectangle.Left - 34, rectangle.Top - 34, rectangle.Width + 68, rectangle.Height + 68);
                     }
                     break;
             }
@@ -817,17 +868,30 @@ internal sealed class GameModel
         var coreCenter = CorePosition();
         var coreRect = new RectangleF(coreCenter.X - 24f, coreCenter.Y - 24f, 48f, 48f);
 
-        using var glow = new SolidBrush(Color.FromArgb(60, 70, 225, 240));
-        graphics.FillEllipse(glow, coreCenter.X - 42f, coreCenter.Y - 42f, 84f, 84f);
+        using var glow = new SolidBrush(Color.FromArgb(56, 76, 228, 242));
+        graphics.FillEllipse(glow, coreCenter.X - 64f, coreCenter.Y - 64f, 128f, 128f);
 
-        using var fill = new SolidBrush(Color.FromArgb(220, 55, 180, 210));
-        using var border = new Pen(Color.FromArgb(235, 210, 255, 255), 2.5f);
+        using var fill = new SolidBrush(Color.FromArgb(220, 48, 168, 198));
+        using var border = new Pen(Color.FromArgb(238, 214, 255, 255), 2.5f);
+        using var outerRing = new Pen(Color.FromArgb(88, 118, 236, 246), 1.8f);
         graphics.FillEllipse(fill, coreRect);
         graphics.DrawEllipse(border, coreRect);
+        graphics.DrawEllipse(outerRing, coreCenter.X - 42f, coreCenter.Y - 42f, 84f, 84f);
+        graphics.DrawEllipse(outerRing, coreCenter.X - 78f, coreCenter.Y - 78f, 156f, 156f);
+
+        var diamond = new[]
+        {
+            new PointF(coreCenter.X, coreCenter.Y - 14f),
+            new PointF(coreCenter.X + 14f, coreCenter.Y),
+            new PointF(coreCenter.X, coreCenter.Y + 14f),
+            new PointF(coreCenter.X - 14f, coreCenter.Y),
+        };
+        using var diamondPen = new Pen(Color.FromArgb(248, 232, 255, 255), 1.8f);
+        graphics.DrawPolygon(diamondPen, diamond);
 
         var ratio = _coreHealth / 180f;
         using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
-        using var hpFill = new SolidBrush(Color.FromArgb(225, 70, 220, 185));
+        using var hpFill = new SolidBrush(Color.FromArgb(225, 70, 220, 210));
         var hpRect = new RectangleF(coreCenter.X - 50f, coreCenter.Y + 30f, 100f, 8f);
         graphics.FillRectangle(hpBack, hpRect);
         graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * ratio, hpRect.Height);
@@ -852,8 +916,10 @@ internal sealed class GameModel
             var alpha = (int)(160f * (1f - progress));
             var color = Color.FromArgb(Math.Clamp(alpha, 10, 180), ripple.Color);
 
-            using var pen = new Pen(color, 2f);
+            using var pen = new Pen(color, 2.2f);
+            using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 10, 90), ripple.Color), 1.2f);
             graphics.DrawEllipse(pen, ripple.Position.X - radius, ripple.Position.Y - radius, radius * 2f, radius * 2f);
+            graphics.DrawEllipse(halo, ripple.Position.X - radius - 10f, ripple.Position.Y - radius - 10f, (radius * 2f) + 20f, (radius * 2f) + 20f);
         }
     }
 
@@ -883,6 +949,11 @@ internal sealed class GameModel
         var isPlayer = actor.Type == ActorType.Player;
         var color = actor.IsBoss ? Color.FromArgb(255, 245, 210, 110) : actor.Type == ActorType.Ally ? Color.FromArgb(255, 95, 225, 200) : Color.FromArgb(255, 75, 220, 245);
 
+        if (isPlayer)
+        {
+            DrawBoardScanner(graphics, center, 68f, Color.FromArgb(96, 86, 229, 247));
+        }
+
         using var shadow = new SolidBrush(Color.FromArgb(72, 0, 0, 0));
         graphics.FillEllipse(shadow, center.X - actor.Radius - 4f, center.Y - (actor.Radius * 0.25f), (actor.Radius * 2f) + 8f, actor.Radius + 12f);
 
@@ -901,7 +972,7 @@ internal sealed class GameModel
 
         using var textBrush = new SolidBrush(Color.FromArgb(230, 235, 245, 245));
         using var nameFont = new Font(UiFontFamily, isPlayer ? 11f : 9f, FontStyle.Bold);
-        graphics.DrawString(actor.Name, nameFont, textBrush, center.X - 34f, center.Y - actor.Radius - 24f);
+        graphics.DrawString(actor.Name, nameFont, textBrush, center.X - 34f, center.Y - actor.Radius - 28f);
 
         var hpRatio = actor.Health / actor.MaxHealth;
         using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
@@ -942,10 +1013,12 @@ internal sealed class GameModel
             new PointF(enemy.Position.X - enemy.Radius - 2f, enemy.Position.Y),
         };
 
-        using var shadow = new SolidBrush(Color.FromArgb(74, 0, 0, 0));
+        using var shadow = new SolidBrush(Color.FromArgb(82, 0, 0, 0));
         graphics.FillEllipse(shadow, enemy.Position.X - enemy.Radius - 5f, enemy.Position.Y - (enemy.Radius * 0.1f), (enemy.Radius * 2f) + 10f, enemy.Radius + 12f);
-        using var ringPen = new Pen(Color.FromArgb(205, 236, 105, 90), 1.8f);
+        using var ringPen = new Pen(Color.FromArgb(205, 236, 105, 90), 2f);
+        using var glowPen = new Pen(Color.FromArgb(92, 255, 164, 112), 1.2f);
         graphics.DrawEllipse(ringPen, enemy.Position.X - enemy.Radius - 8f, enemy.Position.Y - 6f, (enemy.Radius * 2f) + 16f, (enemy.Radius * 1.18f) + 14f);
+        graphics.DrawEllipse(glowPen, enemy.Position.X - enemy.Radius - 18f, enemy.Position.Y - 16f, (enemy.Radius * 2f) + 36f, (enemy.Radius * 2f) + 24f);
 
         using var fill = new SolidBrush(Color.FromArgb(235, 230, 95, 85));
         using var border = new Pen(Color.FromArgb(255, 255, 220, 210), 2f);
@@ -970,8 +1043,8 @@ internal sealed class GameModel
 
         using var coneBrush = new PathGradientBrush(path)
         {
-            CenterColor = Color.FromArgb(70, 100, 240, 255),
-            SurroundColors = [Color.FromArgb(0, 100, 240, 255)],
+            CenterColor = Color.FromArgb(78, 248, 244, 214),
+            SurroundColors = [Color.FromArgb(0, 120, 240, 255)],
         };
 
         graphics.FillPath(coneBrush, path);
@@ -993,9 +1066,15 @@ internal sealed class GameModel
         var strength = Math.Clamp(1f - (length / hearing), 0.2f, 1f);
         var ring = 12f + (14f * strength);
 
-        using var cuePen = new Pen(Color.FromArgb((int)(205 * strength), 255, 180, 110), 2.6f);
+        using var cuePen = new Pen(Color.FromArgb((int)(205 * strength), 255, 180, 110), 2.6f)
+        {
+            DashStyle = DashStyle.Dash,
+        };
+        using var centerPen = new Pen(Color.FromArgb((int)(180 * strength), 255, 224, 188), 1.2f);
         graphics.DrawEllipse(cuePen, anchor.X - ring, anchor.Y - ring, ring * 2f, ring * 2f);
         graphics.DrawEllipse(cuePen, anchor.X - ring - 7f, anchor.Y - ring - 7f, (ring * 2f) + 14f, (ring * 2f) + 14f);
+        graphics.DrawLine(centerPen, anchor.X - (ring * 0.8f), anchor.Y, anchor.X + (ring * 0.8f), anchor.Y);
+        graphics.DrawLine(centerPen, anchor.X, anchor.Y - (ring * 0.8f), anchor.X, anchor.Y + (ring * 0.8f));
     }
 
     private void DrawHud(Graphics graphics)
@@ -1023,7 +1102,7 @@ internal sealed class GameModel
         graphics.DrawRectangle(border, box);
 
         DrawHudText(graphics, "死角240度を、音で視る。", 22f, FontStyle.Bold, Color.FromArgb(255, 225, 245, 250), box.Left + 22, box.Top + 20);
-        DrawHudText(graphics, "MOBA 風 HUD に合わせて、上段で戦況、右側でロスターとミニマップ、下段で装備と操作を確認できます。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 66);
+        DrawHudText(graphics, "ホログラム戦術 HUD に合わせて、上段で戦況、左右で索敵情報、下段で装備とコマンドを確認できます。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 66);
         DrawHudText(graphics, "構築は最初の一度だけ。以降は毎ラウンドごとにボスを指名し、賭け金を積み、120 度の視界でコアを守り抜いてください。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 94);
         DrawHudText(graphics, "ハチミツトラップは足音を増幅し、スタティックネストは偽の波紋を撒いて視界を乱します。", 11f, FontStyle.Regular, Color.FromArgb(220, 195, 215, 222), box.Left + 22, box.Top + 122);
         DrawHudText(graphics, "スペースキーでこのパネルを閉じます。", 10f, FontStyle.Bold, Color.FromArgb(255, 255, 215, 135), box.Left + 22, box.Bottom - 36);
@@ -1032,6 +1111,7 @@ internal sealed class GameModel
     private void DrawTopBar(Graphics graphics)
     {
         var enemiesLeft = _pendingEnemies + _enemies.Count(enemy => enemy.IsAlive);
+        var defendersLeft = LiveDefenders().Count();
         var leftBlock = new RectangleF(TopBarBounds.Left + 8f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
         var centerBlock = new RectangleF(leftBlock.Right + 6f, TopBarBounds.Top + 4f, TopBarBounds.Width - 300f, TopBarBounds.Height - 8f);
         var rightBlock = new RectangleF(TopBarBounds.Right - 144f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
@@ -1043,7 +1123,7 @@ internal sealed class GameModel
         DrawCenteredHudText(graphics, $"フェーズ {PhaseLabel()}  |  残り {_roundTimer:0.0} 秒  |  資金 {_credits}", 9.2f, FontStyle.Bold, PhaseColor(), new RectangleF(centerBlock.Left, centerBlock.Top + 22f, centerBlock.Width, 16f));
 
         DrawCenteredHudText(graphics, "防衛班", 10.2f, FontStyle.Bold, Color.FromArgb(220, 125, 230, 214), new RectangleF(rightBlock.Left, rightBlock.Top + 2f, rightBlock.Width, 14f));
-        DrawCenteredHudText(graphics, "3", 19f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), new RectangleF(rightBlock.Left, rightBlock.Top + 14f, rightBlock.Width, 24f));
+        DrawCenteredHudText(graphics, defendersLeft.ToString(), 19f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), new RectangleF(rightBlock.Left, rightBlock.Top + 14f, rightBlock.Width, 24f));
     }
 
     private void DrawRosterPanel(Graphics graphics)
@@ -1108,8 +1188,23 @@ internal sealed class GameModel
         var inner = Rectangle.Inflate(MinimapBounds, -12, -12);
         inner = new Rectangle(inner.Left, inner.Top + 14, inner.Width, inner.Height - 14);
 
-        using var mapBrush = new SolidBrush(Color.FromArgb(178, 12, 18, 22));
+        using var mapBrush = new SolidBrush(Color.FromArgb(188, 10, 16, 22));
         graphics.FillRectangle(mapBrush, inner);
+
+        using (var gridPen = new Pen(Color.FromArgb(26, 98, 228, 242), 1f))
+        {
+            for (var x = 1; x < 10; x++)
+            {
+                var xPos = inner.Left + ((inner.Width / 10f) * x);
+                graphics.DrawLine(gridPen, xPos, inner.Top, xPos, inner.Bottom);
+            }
+
+            for (var y = 1; y < 10; y++)
+            {
+                var yPos = inner.Top + ((inner.Height / 10f) * y);
+                graphics.DrawLine(gridPen, inner.Left, yPos, inner.Right, yPos);
+            }
+        }
 
         var scaleX = inner.Width / (float)WorldBounds.Width;
         var scaleY = inner.Height / (float)WorldBounds.Height;
@@ -1152,6 +1247,13 @@ internal sealed class GameModel
             DrawMiniMapActor(graphics, inner, scaleX, scaleY, enemy, Color.FromArgb(255, 235, 105, 90));
         }
 
+        var playerPoint = new PointF(inner.Left + ((_player.Position.X - WorldBounds.Left) * scaleX), inner.Top + ((_player.Position.Y - WorldBounds.Top) * scaleY));
+        using (var pingPen = new Pen(Color.FromArgb(112, 98, 228, 242), 1.2f))
+        {
+            graphics.DrawEllipse(pingPen, playerPoint.X - 18f, playerPoint.Y - 18f, 36f, 36f);
+            graphics.DrawEllipse(pingPen, playerPoint.X - 32f, playerPoint.Y - 32f, 64f, 64f);
+        }
+
         var core = CorePosition();
         using var coreBrush = new SolidBrush(Color.FromArgb(255, 78, 220, 195));
         var corePoint = new PointF(inner.Left + ((core.X - WorldBounds.Left) * scaleX), inner.Top + ((core.Y - WorldBounds.Top) * scaleY));
@@ -1159,25 +1261,29 @@ internal sealed class GameModel
 
         using var border = new Pen(Color.FromArgb(146, 194, 170, 110), 2.2f);
         graphics.DrawRectangle(border, inner);
-        DrawHudText(graphics, "青=味方  赤=敵  緑=コア", 8.2f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), MinimapBounds.Left + 14, MinimapBounds.Bottom - 18);
+        DrawHudText(graphics, "水色=味方  赤=敵  緑=コア", 8.2f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), MinimapBounds.Left + 14, MinimapBounds.Bottom - 18);
     }
 
     private void DrawBottomBar(Graphics graphics)
     {
-        var portraitCenter = new PointF(BottomHudBounds.Left + 96f, BottomHudBounds.Top + 88f);
+        var portraitCenter = new PointF(BottomHudBounds.Left + 96f, BottomHudBounds.Top + 84f);
         var portraitDiameter = 126f;
-        var commandRect = new Rectangle(BottomHudBounds.Left + 150, BottomHudBounds.Top + 18, 318, 146);
-        var skillsRect = new Rectangle(commandRect.Right + 12, BottomHudBounds.Top + 26, 254, 110);
-        var itemRect = new Rectangle(skillsRect.Right + 14, BottomHudBounds.Top + 26, 118, 110);
+        var commandRect = new Rectangle(BottomHudBounds.Left + 150, BottomHudBounds.Top + 18, 328, 150);
+        var skillsRect = new Rectangle(commandRect.Right + 14, BottomHudBounds.Top + 24, 270, 118);
+        var itemRect = new Rectangle(skillsRect.Right + 14, BottomHudBounds.Top + 24, 116, 118);
+        var weaponRect = new Rectangle(BottomHudBounds.Left + 18, BottomHudBounds.Bottom - 46, 214, 28);
+        var statusRect = new Rectangle(commandRect.Left, BottomHudBounds.Bottom - 46, BottomHudBounds.Right - commandRect.Left - 18, 28);
 
         DrawChampionHudFrame(graphics, BottomHudBounds);
         DrawInsetPanel(graphics, commandRect);
         DrawInsetPanel(graphics, skillsRect);
         DrawInsetPanel(graphics, itemRect);
+        DrawInsetPanel(graphics, weaponRect);
+        DrawInsetPanel(graphics, statusRect);
 
         DrawPortraitOrb(graphics, portraitCenter, portraitDiameter, Color.FromArgb(255, 88, 220, 245));
-        DrawCenteredHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 136, 164, 18));
-        DrawCenteredHudText(graphics, _weaponStats[_player.Weapon].Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 200, 214, 224), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 154, 164, 16));
+        DrawCenteredHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 132, 164, 18));
+        DrawCenteredHudText(graphics, _weaponStats[_player.Weapon].Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 200, 214, 224), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 150, 164, 16));
 
         var hpBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 16, commandRect.Width - 28, 16);
         var energyBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 40, commandRect.Width - 28, 10);
@@ -1188,16 +1294,16 @@ internal sealed class GameModel
         using (var bodyFont = new Font(UiFontFamily, 9.5f, FontStyle.Regular))
         using (var bodyBrush = new SolidBrush(Color.FromArgb(230, 210, 224, 232)))
         {
-            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 82, commandRect.Width - 28, 34));
+            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 82, commandRect.Width - 28, 38));
         }
-        DrawHudText(graphics, CurrentControlsHint(), 7.9f, FontStyle.Bold, Color.FromArgb(250, 214, 196, 134), commandRect.Left + 14, commandRect.Bottom - 17);
+        DrawHudText(graphics, CurrentControlsHint(), 7.4f, FontStyle.Bold, Color.FromArgb(250, 214, 196, 134), commandRect.Left + 14, commandRect.Bottom - 17);
 
         var abilityRects = new[]
         {
-            new Rectangle(skillsRect.Left + 8, skillsRect.Top + 18, 54, 54),
-            new Rectangle(skillsRect.Left + 68, skillsRect.Top + 18, 54, 54),
-            new Rectangle(skillsRect.Left + 128, skillsRect.Top + 18, 54, 54),
-            new Rectangle(skillsRect.Left + 188, skillsRect.Top + 18, 54, 54),
+            new Rectangle(skillsRect.Left + 10, skillsRect.Top + 18, 58, 58),
+            new Rectangle(skillsRect.Left + 74, skillsRect.Top + 18, 58, 58),
+            new Rectangle(skillsRect.Left + 138, skillsRect.Top + 18, 58, 58),
+            new Rectangle(skillsRect.Left + 202, skillsRect.Top + 18, 58, 58),
         };
 
         if (_phase == GamePhase.Construct)
@@ -1222,7 +1328,7 @@ internal sealed class GameModel
             DrawAbilitySlot(graphics, abilityRects[3], "R", "コア", $"{(int)_coreHealth}", false, Color.FromArgb(255, 208, 170, 104));
         }
 
-        DrawHudText(graphics, "スキル / コマンド", 8.5f, FontStyle.Bold, Color.FromArgb(236, 206, 216, 228), skillsRect.Left + 10, skillsRect.Top + 84);
+        DrawHudText(graphics, "スキル / コマンド", 8.5f, FontStyle.Bold, Color.FromArgb(236, 206, 216, 228), skillsRect.Left + 10, skillsRect.Top + 90);
 
         var itemRects = new[]
         {
@@ -1242,6 +1348,8 @@ internal sealed class GameModel
         DrawItemSlot(graphics, itemRects[5], "R", Color.FromArgb(255, 212, 104, 104), _phase is GamePhase.Victory or GamePhase.Defeat);
 
         DrawCenteredHudText(graphics, $"G {_credits}", 11.5f, FontStyle.Bold, Color.FromArgb(255, 238, 202, 112), new RectangleF(itemRect.Left + 6, itemRect.Bottom - 24, itemRect.Width - 12, 18));
+        DrawWeaponStatusCard(graphics, weaponRect);
+        DrawQuickStatusStrip(graphics, statusRect);
     }
 
     private void DrawHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
@@ -1305,8 +1413,10 @@ internal sealed class GameModel
         graphics.DrawEllipse(rimPen, outerRect);
         graphics.DrawEllipse(innerPen, innerRect);
 
-        using var emblemBrush = new SolidBrush(Color.FromArgb(210, 236, 244, 248));
-        graphics.FillEllipse(emblemBrush, center.X - 18f, center.Y - 18f, 36f, 36f);
+        using var emblemPen = new Pen(Color.FromArgb(210, 236, 244, 248), 2f);
+        graphics.DrawLine(emblemPen, center.X - 18f, center.Y, center.X + 18f, center.Y);
+        graphics.DrawLine(emblemPen, center.X, center.Y - 18f, center.X, center.Y + 18f);
+        graphics.DrawEllipse(emblemPen, center.X - 10f, center.Y - 10f, 20f, 20f);
     }
 
     private void DrawLabeledBar(Graphics graphics, RectangleF bounds, string label, float ratio, Color fillColor, Color backColor, string valueText)
@@ -1345,9 +1455,50 @@ internal sealed class GameModel
         DrawCenteredHudText(graphics, label, 8.2f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), new RectangleF(bounds.Left + 2, bounds.Top + 2, bounds.Width - 4, bounds.Height - 4));
     }
 
+    private void DrawWeaponStatusCard(Graphics graphics, Rectangle bounds)
+    {
+        var weaponType = DisplayedWeaponType();
+        using var weaponPen = new Pen(Color.FromArgb(228, 214, 188, 118), 2f)
+        {
+            StartCap = LineCap.Round,
+            EndCap = LineCap.Round,
+        };
+        var midY = bounds.Top + (bounds.Height / 2f);
+        graphics.DrawLine(weaponPen, bounds.Left + 16f, midY, bounds.Left + 104f, midY);
+        graphics.DrawLine(weaponPen, bounds.Left + 34f, midY - 8f, bounds.Left + 58f, midY - 8f);
+        graphics.DrawLine(weaponPen, bounds.Left + 76f, midY, bounds.Left + 92f, midY - 10f);
+        graphics.DrawLine(weaponPen, bounds.Left + 92f, midY - 10f, bounds.Left + 110f, midY - 10f);
+        graphics.DrawLine(weaponPen, bounds.Left + 96f, midY, bounds.Left + 118f, midY + 6f);
+
+        DrawHudText(graphics, weaponType switch
+        {
+            WeaponType.SMG => "SMG-02",
+            WeaponType.Sniper => "SR-11",
+            _ => "RFL-07",
+        }, 7.8f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), bounds.Left + 122, bounds.Top + 5);
+        DrawHudText(graphics, $"x {CurrentMagazineAmmo()}", 9.2f, FontStyle.Bold, Color.FromArgb(248, 238, 244, 248), bounds.Right - 44, bounds.Top + 4);
+        DrawHudText(graphics, $"RP {(int)_player.Health} / {(int)_player.MaxHealth}", 7.6f, FontStyle.Bold, Color.FromArgb(236, 164, 232, 168), bounds.Left + 12, bounds.Bottom - 14);
+    }
+
+    private void DrawQuickStatusStrip(Graphics graphics, Rectangle bounds)
+    {
+        var chipBounds = new[]
+        {
+            new Rectangle(bounds.Left + 8, bounds.Top + 3, 28, bounds.Height - 6),
+            new Rectangle(bounds.Left + 40, bounds.Top + 3, 28, bounds.Height - 6),
+            new Rectangle(bounds.Left + 72, bounds.Top + 3, 34, bounds.Height - 6),
+        };
+
+        DrawItemSlot(graphics, chipBounds[0], "R", Color.FromArgb(255, 116, 212, 230), _phase == GamePhase.RoundResult);
+        DrawItemSlot(graphics, chipBounds[1], "C", Color.FromArgb(255, 214, 190, 108), _phase == GamePhase.Construct);
+        DrawItemSlot(graphics, chipBounds[2], "3", Color.FromArgb(255, 220, 170, 92), false);
+
+        DrawHudText(graphics, CurrentControlsHint(), 7.7f, FontStyle.Bold, Color.FromArgb(238, 214, 224, 232), bounds.Left + 118, bounds.Top + 8);
+    }
+
     private void DrawPanelFrame(Graphics graphics, Rectangle bounds)
     {
-        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(182, 14, 20, 28), Color.FromArgb(156, 8, 12, 18), 90f);
+        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(188, 14, 20, 28), Color.FromArgb(160, 8, 12, 18), 90f);
         using var border = new Pen(Color.FromArgb(166, 170, 146, 92), 2f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
@@ -1357,10 +1508,12 @@ internal sealed class GameModel
 
     private void DrawInsetPanel(Graphics graphics, Rectangle bounds)
     {
-        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(94, 18, 24, 30), Color.FromArgb(74, 8, 12, 18), 90f);
-        using var border = new Pen(Color.FromArgb(112, 166, 140, 88), 1.6f);
+        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(108, 18, 24, 30), Color.FromArgb(78, 8, 12, 18), 90f);
+        using var border = new Pen(Color.FromArgb(118, 166, 140, 88), 1.6f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
+        using var inner = new Pen(Color.FromArgb(44, 96, 220, 232), 1f);
+        graphics.DrawRectangle(inner, Rectangle.Inflate(bounds, -4, -4));
     }
 
     private void DrawPanelTitle(Graphics graphics, Rectangle bounds, string title)
@@ -1451,6 +1604,21 @@ internal sealed class GameModel
         {
             GamePhase.Bet => _selectedWeapon == weaponType,
             _ => _player.Weapon == weaponType,
+        };
+    }
+
+    private WeaponType DisplayedWeaponType()
+    {
+        return _phase == GamePhase.Bet ? _selectedWeapon : _player.Weapon;
+    }
+
+    private int CurrentMagazineAmmo()
+    {
+        return DisplayedWeaponType() switch
+        {
+            WeaponType.SMG => 42,
+            WeaponType.Sniper => 8,
+            _ => 30,
         };
     }
 
@@ -2061,6 +2229,11 @@ internal sealed class GameModel
                 _permanentWalls.Add(new Point(x, y));
             }
         }
+    }
+
+    private static bool IsPerimeterCell(Point cell)
+    {
+        return cell.X == 0 || cell.Y == 0 || cell.X == GridColumns - 1 || cell.Y == GridRows - 1;
     }
 
     private Structure CreateStructure(BuildToolKind tool, Point cell)

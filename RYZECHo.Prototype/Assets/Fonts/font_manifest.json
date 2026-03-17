@@ -1,0 +1,8 @@
+﻿{
+    "primary":  "Yu Gothic UI",
+    "fallback":  [
+                     "Segoe UI",
+                     "Bahnschrift"
+                 ],
+    "note":  "Temporary system-font manifest until production font assets arrive."
+}

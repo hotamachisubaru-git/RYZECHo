@@ -1,0 +1,11 @@
+﻿{
+    "fireCooldown":  0.22,
+    "id":  "rifle_balance",
+    "visionRange":  320,
+    "cost":  100,
+    "projectileRange":  300,
+    "damage":  15,
+    "moveSpeed":  210,
+    "hearingMultiplier":  1,
+    "displayName":  "Rifle / Balanced"
+}

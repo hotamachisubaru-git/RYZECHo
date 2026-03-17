@@ -1,0 +1,15 @@
+﻿{
+    "archetypes":  [
+                       "SMG",
+                       "Rifle",
+                       "Sniper"
+                   ],
+    "displayName":  "Raider",
+    "id":  "raider",
+    "health":  {
+                   "smg":  48,
+                   "sniper":  44,
+                   "rifle":  58
+               },
+    "intent":  "DestroyDataCore"
+}

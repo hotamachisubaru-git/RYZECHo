@@ -1,0 +1,10 @@
+﻿{
+    "palette":  {
+                    "bg":  "#081018",
+                    "cyan":  "#56E5F7",
+                    "red":  "#F26652",
+                    "gold":  "#B68E58",
+                    "green":  "#60C47A"
+                },
+    "style":  "holographic_tactical_board"
+}
