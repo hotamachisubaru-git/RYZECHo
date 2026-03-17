@@ -114,6 +114,8 @@ internal sealed class Actor
 internal sealed class GameModel
 {
     private const string UiFontFamily = "Yu Gothic UI";
+    private const int DefaultClientWidth = 1440;
+    private const int DefaultClientHeight = 960;
     private const int WorldMargin = 24;
     private const int TopBarHeight = 52;
     private const int SidePanelGap = 20;
@@ -138,6 +140,7 @@ internal sealed class GameModel
     private readonly HashSet<Point> _permanentWalls = [];
     private readonly HashSet<Point> _buildSlots = [];
     private readonly List<Point> _spawnCells = [];
+    private Size _layoutSize = new(DefaultClientWidth, DefaultClientHeight);
 
     private GamePhase _phase = GamePhase.Construct;
     private BuildToolKind _selectedBuildTool = BuildToolKind.BlastDoor;
@@ -208,19 +211,23 @@ internal sealed class GameModel
         ResetCampaign();
     }
 
-    private Rectangle WorldBounds => new(WorldMargin, 88, GridColumns * CellSize, GridRows * CellSize);
+    private Rectangle WorldBounds => new((((_layoutSize.Width - (GridColumns * CellSize)) / 2) - 20), 88, GridColumns * CellSize, GridRows * CellSize);
 
-    private Rectangle TopBarBounds => new(WorldBounds.Left + 236, 16, 560, TopBarHeight);
+    private Rectangle TopBarBounds => new((_layoutSize.Width - 560) / 2, 16, 560, TopBarHeight);
 
-    private Rectangle BottomHudBounds => new(WorldBounds.Left + 92, (int)MathF.Round(WorldVisualBounds.Bottom) + 42, 900, BottomHudHeight);
+    private Rectangle BottomHudBounds => new((_layoutSize.Width - 900) / 2, (int)MathF.Round(WorldVisualBounds.Bottom) + 42, 900, BottomHudHeight);
 
-    private Rectangle SidePanelBounds => new(WorldBounds.Right + SidePanelGap, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
+    private Rectangle SidePanelBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
-    private Rectangle RosterBounds => new(WorldMargin, WorldBounds.Top + 10, 168, 166);
+    private Rectangle RosterBounds => new(Math.Max(WorldMargin, WorldBounds.Left - 172), WorldBounds.Top + 10, 168, 166);
 
-    private Rectangle IntelBounds => new((int)MathF.Round(WorldVisualBounds.Right) - 210, WorldBounds.Top + 10, 210, 104);
+    private Rectangle IntelBounds => new(
+        Math.Min(_layoutSize.Width - WorldMargin - 210, (int)MathF.Round(WorldVisualBounds.Right) + SidePanelGap),
+        WorldBounds.Top + 10,
+        210,
+        104);
 
-    private Rectangle MinimapBounds => new(SidePanelBounds.Left + 126, BottomHudBounds.Top - 8, 222, 222);
+    private Rectangle MinimapBounds => new(_layoutSize.Width - WorldMargin - 222, BottomHudBounds.Top - 8, 222, 222);
 
     private RectangleF WorldVisualBounds => new(
         WorldBounds.Left + ((WorldBounds.Width - ((WorldBounds.Width * WorldPerspectiveScaleX) + (WorldBounds.Height * WorldPerspectiveShearX))) / 2f),
@@ -585,6 +592,8 @@ internal sealed class GameModel
 
     public void Render(Graphics graphics, Rectangle clientBounds, Point mousePosition)
     {
+        _layoutSize = clientBounds.Size;
+
         using var background = new LinearGradientBrush(clientBounds, Color.FromArgb(7, 14, 22), Color.FromArgb(3, 8, 14), 90f);
         graphics.FillRectangle(background, clientBounds);
         using var vignette = new LinearGradientBrush(clientBounds, Color.FromArgb(0, 86, 229, 247), Color.FromArgb(26, 20, 54, 84), 22f);
