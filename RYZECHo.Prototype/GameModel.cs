@@ -212,7 +212,7 @@ internal sealed class GameModel
 
     private Rectangle TopBarBounds => new(WorldBounds.Left + 236, 16, 560, TopBarHeight);
 
-    private Rectangle BottomHudBounds => new(WorldBounds.Left + 92, (int)MathF.Round(WorldVisualBounds.Bottom) + 28, 900, BottomHudHeight);
+    private Rectangle BottomHudBounds => new(WorldBounds.Left + 92, (int)MathF.Round(WorldVisualBounds.Bottom) + 50, 900, BottomHudHeight);
 
     private Rectangle SidePanelBounds => new(WorldBounds.Right + SidePanelGap, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
@@ -220,7 +220,7 @@ internal sealed class GameModel
 
     private Rectangle IntelBounds => new((int)MathF.Round(WorldVisualBounds.Right) - 210, WorldBounds.Top + 10, 210, 104);
 
-    private Rectangle MinimapBounds => new(SidePanelBounds.Left + 126, BottomHudBounds.Top - 18, 222, 222);
+    private Rectangle MinimapBounds => new(SidePanelBounds.Left + 126, BottomHudBounds.Top - 8, 222, 222);
 
     private RectangleF WorldVisualBounds => new(
         WorldBounds.Left + ((WorldBounds.Width - ((WorldBounds.Width * WorldPerspectiveScaleX) + (WorldBounds.Height * WorldPerspectiveShearX))) / 2f),
@@ -1032,17 +1032,18 @@ internal sealed class GameModel
     private void DrawTopBar(Graphics graphics)
     {
         var enemiesLeft = _pendingEnemies + _enemies.Count(enemy => enemy.IsAlive);
-        var centerX = TopBarBounds.Left + (TopBarBounds.Width / 2f);
+        var leftBlock = new RectangleF(TopBarBounds.Left + 8f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
+        var centerBlock = new RectangleF(leftBlock.Right + 6f, TopBarBounds.Top + 4f, TopBarBounds.Width - 300f, TopBarBounds.Height - 8f);
+        var rightBlock = new RectangleF(TopBarBounds.Right - 144f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
 
-        DrawHudText(graphics, "防衛班", 10.5f, FontStyle.Bold, Color.FromArgb(220, 125, 230, 214), TopBarBounds.Left + 22, TopBarBounds.Top + 10);
-        DrawHudText(graphics, "襲撃班", 10.5f, FontStyle.Bold, Color.FromArgb(220, 236, 122, 108), TopBarBounds.Right - 66, TopBarBounds.Top + 10);
+        DrawCenteredHudText(graphics, "襲撃班", 10.2f, FontStyle.Bold, Color.FromArgb(220, 236, 122, 108), new RectangleF(leftBlock.Left, leftBlock.Top + 2f, leftBlock.Width, 14f));
+        DrawCenteredHudText(graphics, enemiesLeft.ToString(), 19f, FontStyle.Bold, Color.FromArgb(255, 240, 128, 112), new RectangleF(leftBlock.Left, leftBlock.Top + 14f, leftBlock.Width, 24f));
 
-        DrawHudText(graphics, "3", 20f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), TopBarBounds.Left + 56, TopBarBounds.Top + 19);
-        DrawHudText(graphics, enemiesLeft.ToString(), 20f, FontStyle.Bold, Color.FromArgb(255, 240, 128, 112), TopBarBounds.Right - 58, TopBarBounds.Top + 19);
-        DrawHudText(graphics, "VS", 15f, FontStyle.Bold, Color.FromArgb(240, 232, 222, 186), centerX - 18f, TopBarBounds.Top + 23);
+        DrawCenteredHudText(graphics, $"第{Math.Min(_currentRound, TotalRounds)}/{TotalRounds}ラウンド", 14f, FontStyle.Bold, Color.FromArgb(246, 238, 224, 188), new RectangleF(centerBlock.Left, centerBlock.Top + 1f, centerBlock.Width, 18f));
+        DrawCenteredHudText(graphics, $"フェーズ {PhaseLabel()}  |  残り {_roundTimer:0.0} 秒  |  資金 {_credits}", 9.2f, FontStyle.Bold, PhaseColor(), new RectangleF(centerBlock.Left, centerBlock.Top + 22f, centerBlock.Width, 16f));
 
-        DrawHudText(graphics, $"第{Math.Min(_currentRound, TotalRounds)}/{TotalRounds}ラウンド", 14f, FontStyle.Bold, Color.FromArgb(246, 238, 224, 188), centerX - 76f, TopBarBounds.Top + 9);
-        DrawHudText(graphics, $"フェーズ {PhaseLabel()}  |  残り {_roundTimer:0.0} 秒  |  資金 {_credits}", 9.8f, FontStyle.Bold, PhaseColor(), centerX - 132f, TopBarBounds.Top + 30);
+        DrawCenteredHudText(graphics, "防衛班", 10.2f, FontStyle.Bold, Color.FromArgb(220, 125, 230, 214), new RectangleF(rightBlock.Left, rightBlock.Top + 2f, rightBlock.Width, 14f));
+        DrawCenteredHudText(graphics, "3", 19f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), new RectangleF(rightBlock.Left, rightBlock.Top + 14f, rightBlock.Width, 24f));
     }
 
     private void DrawRosterPanel(Graphics graphics)
@@ -1175,21 +1176,21 @@ internal sealed class GameModel
         DrawInsetPanel(graphics, itemRect);
 
         DrawPortraitOrb(graphics, portraitCenter, portraitDiameter, Color.FromArgb(255, 88, 220, 245));
-        DrawHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), BottomHudBounds.Left + 40, BottomHudBounds.Top + 138);
-        DrawHudText(graphics, _weaponStats[_player.Weapon].Label, 8.8f, FontStyle.Bold, Color.FromArgb(236, 200, 214, 224), BottomHudBounds.Left + 34, BottomHudBounds.Top + 156);
+        DrawCenteredHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 136, 164, 18));
+        DrawCenteredHudText(graphics, _weaponStats[_player.Weapon].Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 200, 214, 224), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 154, 164, 16));
 
         var hpBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 16, commandRect.Width - 28, 16);
         var energyBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 40, commandRect.Width - 28, 10);
         DrawLabeledBar(graphics, hpBar, "HP", _player.Health / _player.MaxHealth, Color.FromArgb(255, 98, 196, 98), Color.FromArgb(50, 14, 34, 18), $"{(int)_player.Health}/{(int)_player.MaxHealth}");
         DrawLabeledBar(graphics, energyBar, "SONIC", _weaponStats[_player.Weapon].HearingMultiplier / 1.35f, Color.FromArgb(255, 62, 180, 220), Color.FromArgb(42, 8, 26, 32), $"{_weaponStats[_player.Weapon].HearingMultiplier:0.0}x");
 
-        DrawHudText(graphics, CurrentModeTitle(), 10.6f, FontStyle.Bold, PhaseColor(), commandRect.Left + 14, commandRect.Top + 62);
+        DrawHudText(graphics, CurrentModeTitle(), 10.2f, FontStyle.Bold, PhaseColor(), commandRect.Left + 14, commandRect.Top + 62);
         using (var bodyFont = new Font(UiFontFamily, 9.5f, FontStyle.Regular))
         using (var bodyBrush = new SolidBrush(Color.FromArgb(230, 210, 224, 232)))
         {
-            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 82, commandRect.Width - 28, 42));
+            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 82, commandRect.Width - 28, 34));
         }
-        DrawHudText(graphics, CurrentControlsHint(), 8.4f, FontStyle.Bold, Color.FromArgb(250, 214, 196, 134), commandRect.Left + 14, commandRect.Bottom - 18);
+        DrawHudText(graphics, CurrentControlsHint(), 7.9f, FontStyle.Bold, Color.FromArgb(250, 214, 196, 134), commandRect.Left + 14, commandRect.Bottom - 17);
 
         var abilityRects = new[]
         {
@@ -1221,7 +1222,7 @@ internal sealed class GameModel
             DrawAbilitySlot(graphics, abilityRects[3], "R", "コア", $"{(int)_coreHealth}", false, Color.FromArgb(255, 208, 170, 104));
         }
 
-        DrawHudText(graphics, "スキル / コマンド", 8.8f, FontStyle.Bold, Color.FromArgb(236, 206, 216, 228), skillsRect.Left + 10, skillsRect.Top + 84);
+        DrawHudText(graphics, "スキル / コマンド", 8.5f, FontStyle.Bold, Color.FromArgb(236, 206, 216, 228), skillsRect.Left + 10, skillsRect.Top + 84);
 
         var itemRects = new[]
         {
@@ -1240,7 +1241,7 @@ internal sealed class GameModel
         DrawItemSlot(graphics, itemRects[4], "音", Color.FromArgb(255, 84, 188, 228), _phase == GamePhase.Hunt);
         DrawItemSlot(graphics, itemRects[5], "R", Color.FromArgb(255, 212, 104, 104), _phase is GamePhase.Victory or GamePhase.Defeat);
 
-        DrawHudText(graphics, $"G {_credits}", 12f, FontStyle.Bold, Color.FromArgb(255, 238, 202, 112), itemRect.Left + 18, itemRect.Bottom - 18);
+        DrawCenteredHudText(graphics, $"G {_credits}", 11.5f, FontStyle.Bold, Color.FromArgb(255, 238, 202, 112), new RectangleF(itemRect.Left + 6, itemRect.Bottom - 24, itemRect.Width - 12, 18));
     }
 
     private void DrawHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
@@ -1248,6 +1249,20 @@ internal sealed class GameModel
         using var font = new Font(UiFontFamily, size, style);
         using var brush = new SolidBrush(color);
         graphics.DrawString(text, font, brush, x, y);
+    }
+
+    private void DrawCenteredHudText(Graphics graphics, string text, float size, FontStyle style, Color color, RectangleF bounds)
+    {
+        using var font = new Font(UiFontFamily, size, style);
+        using var brush = new SolidBrush(color);
+        using var format = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center,
+            Trimming = StringTrimming.EllipsisCharacter,
+        };
+
+        graphics.DrawString(text, font, brush, bounds, format);
     }
 
     private void DrawChampionHudFrame(Graphics graphics, Rectangle bounds)
@@ -1317,8 +1332,8 @@ internal sealed class GameModel
         graphics.DrawRectangle(border, bounds);
 
         DrawHudText(graphics, hotkey, 8f, FontStyle.Bold, Color.FromArgb(246, 244, 228, 196), bounds.Left + 6, bounds.Top + 4);
-        DrawHudText(graphics, title, 9.4f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), bounds.Left + 8, bounds.Top + 18);
-        DrawHudText(graphics, subtitle, 7.8f, FontStyle.Regular, Color.FromArgb(226, 208, 220, 228), bounds.Left + 8, bounds.Top + 36);
+        DrawCenteredHudText(graphics, title, 9f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(bounds.Left + 4, bounds.Top + 18, bounds.Width - 8, 14));
+        DrawCenteredHudText(graphics, subtitle, 7.4f, FontStyle.Regular, Color.FromArgb(226, 208, 220, 228), new RectangleF(bounds.Left + 4, bounds.Top + 34, bounds.Width - 8, 14));
     }
 
     private void DrawItemSlot(Graphics graphics, Rectangle bounds, string label, Color accent, bool selected)
@@ -1327,7 +1342,7 @@ internal sealed class GameModel
         using var border = new Pen(selected ? Color.FromArgb(240, accent) : Color.FromArgb(116, 154, 138, 102), selected ? 2f : 1.2f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
-        DrawHudText(graphics, label, 8.6f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), bounds.Left + 5, bounds.Top + 7);
+        DrawCenteredHudText(graphics, label, 8.2f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), new RectangleF(bounds.Left + 2, bounds.Top + 2, bounds.Width - 4, bounds.Height - 4));
     }
 
     private void DrawPanelFrame(Graphics graphics, Rectangle bounds)
