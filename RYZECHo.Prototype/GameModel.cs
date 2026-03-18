@@ -133,6 +133,9 @@ internal sealed class GameModel
     private const float WorldPerspectiveScaleY = 0.78f;
     private const float WorldPerspectiveShearX = 0.22f;
     private const float WorldPerspectiveTopInset = 10f;
+    private const float HuntCameraZoom = 1.32f;
+    private const float HuntCameraTargetX = 0.46f;
+    private const float HuntCameraTargetY = 0.64f;
 
     private readonly Random _random = new();
     private readonly Dictionary<WeaponType, WeaponStats> _weaponStats = CreateWeaponStats();
@@ -623,7 +626,7 @@ internal sealed class GameModel
 
         var worldMousePosition = ScreenToWorldPoint(mousePosition);
         var graphicsState = graphics.Save();
-        using (var worldTransform = CreateWorldProjectionMatrix())
+        using (var worldTransform = CreateActiveWorldMatrix())
         {
             graphics.MultiplyTransform(worldTransform);
             DrawWorldPanel(graphics);
@@ -1254,12 +1257,7 @@ internal sealed class GameModel
             }
         }
 
-        var viewWidth = CellSize * 6.2f;
-        var viewHeight = viewWidth * (inner.Height / (float)inner.Width);
-        var viewCenter = _player.IsAlive ? _player.Position : CorePosition();
-        var viewLeft = Math.Clamp(viewCenter.X - (viewWidth / 2f), WorldBounds.Left, WorldBounds.Right - viewWidth);
-        var viewTop = Math.Clamp(viewCenter.Y - (viewHeight / 2f), WorldBounds.Top, WorldBounds.Bottom - viewHeight);
-        var viewRect = new RectangleF(viewLeft, viewTop, viewWidth, viewHeight);
+        var viewRect = new RectangleF(WorldBounds.Left, WorldBounds.Top, WorldBounds.Width, WorldBounds.Height);
         var scaleX = inner.Width / viewRect.Width;
         var scaleY = inner.Height / viewRect.Height;
 
@@ -2628,7 +2626,7 @@ internal sealed class GameModel
     private PointF ScreenToWorldPoint(Point screenPoint)
     {
         var points = new[] { new PointF(screenPoint.X, screenPoint.Y) };
-        using var projection = CreateWorldProjectionMatrix();
+        using var projection = CreateActiveWorldMatrix();
         projection.Invert();
         projection.TransformPoints(points);
         return points[0];
@@ -2658,6 +2656,28 @@ internal sealed class GameModel
         return CellCenter(new Point(14, 6));
     }
 
+    private Matrix CreateActiveWorldMatrix()
+    {
+        var matrix = CreateWorldProjectionMatrix();
+        if (_phase != GamePhase.Hunt || !_player.IsAlive)
+        {
+            return matrix;
+        }
+
+        var focusPoints = new[] { new PointF(_player.Position.X, _player.Position.Y) };
+        matrix.TransformPoints(focusPoints);
+        var focusScreen = focusPoints[0];
+        var targetScreen = new PointF(
+            WorldVisualBounds.Left + (WorldVisualBounds.Width * HuntCameraTargetX),
+            WorldVisualBounds.Top + (WorldVisualBounds.Height * HuntCameraTargetY));
+
+        matrix.Translate(-focusScreen.X, -focusScreen.Y, MatrixOrder.Append);
+        matrix.Scale(HuntCameraZoom, HuntCameraZoom, MatrixOrder.Append);
+        matrix.Translate(focusScreen.X, focusScreen.Y, MatrixOrder.Append);
+        matrix.Translate(targetScreen.X - focusScreen.X, targetScreen.Y - focusScreen.Y, MatrixOrder.Append);
+        return matrix;
+    }
+
     private Matrix CreateWorldProjectionMatrix()
     {
         return new Matrix(
@@ -2679,7 +2699,7 @@ internal sealed class GameModel
             new PointF(WorldBounds.Left, WorldBounds.Bottom),
         };
 
-        using var projection = CreateWorldProjectionMatrix();
+        using var projection = CreateActiveWorldMatrix();
         projection.TransformPoints(points);
         return points;
     }
