@@ -99,9 +99,12 @@ internal sealed class Actor
     public required PointF Position { get; set; }
     public required float Radius { get; init; }
     public required float MaxHealth { get; init; }
+    public required float MaxShield { get; init; }
     public required float HearingRange { get; init; }
     public required float BaseMoveSpeed { get; init; }
     public float Health { get; set; }
+    public float Shield { get; set; }
+    public float ShieldRegenDelay { get; set; }
     public float FireCooldown { get; set; }
     public float PathCooldown { get; set; }
     public float FootstepCooldown { get; set; }
@@ -151,11 +154,13 @@ internal sealed class GameModel
     private int _currentRound = 1;
     private int _selectedBet = 100;
     private int _pendingEnemies;
+    private int _roundEnemyTotal;
     private float _spawnCooldown;
     private float _roundTimer;
     private float _pingCooldown;
     private float _resultTimer;
     private float _coreHealth;
+    private float _uiPulseTime;
     private GamePhase _resultDestination = GamePhase.Bet;
     private string _selectedBossName = "あなた";
     private string _resultMessage = "最初の構築が、全ラウンドを支配する。";
@@ -176,7 +181,9 @@ internal sealed class GameModel
             Position = CellCenter(new Point(13, 6)),
             Radius = 14f,
             MaxHealth = 100f,
+            MaxShield = 60f,
             Health = 100f,
+            Shield = 60f,
             HearingRange = 350f,
             BaseMoveSpeed = 210f,
         };
@@ -190,7 +197,9 @@ internal sealed class GameModel
             Position = CellCenter(new Point(13, 4)),
             Radius = 13f,
             MaxHealth = 95f,
+            MaxShield = 42f,
             Health = 95f,
+            Shield = 42f,
             HearingRange = 300f,
             BaseMoveSpeed = 0f,
         });
@@ -204,7 +213,9 @@ internal sealed class GameModel
             Position = CellCenter(new Point(13, 8)),
             Radius = 13f,
             MaxHealth = 95f,
+            MaxShield = 36f,
             Health = 95f,
+            Shield = 36f,
             HearingRange = 420f,
             BaseMoveSpeed = 0f,
         });
@@ -220,7 +231,7 @@ internal sealed class GameModel
 
     private Rectangle SidePanelBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
-    private Rectangle RosterBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, 18, SidePanelWidth, 74);
+    private Rectangle RosterBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, 18, SidePanelWidth, 88);
 
     private Rectangle IntelBounds => new(
         _layoutSize.Width - WorldMargin - SidePanelWidth,
@@ -273,6 +284,7 @@ internal sealed class GameModel
 
     public void Update(float deltaSeconds, InputSnapshot input)
     {
+        _uiPulseTime += deltaSeconds;
         UpdateRipples(deltaSeconds);
 
         switch (_phase)
@@ -415,6 +427,7 @@ internal sealed class GameModel
             return;
         }
 
+        UpdateShieldRegen(_player, deltaSeconds);
         var weapon = _weaponStats[_player.Weapon];
         var worldMousePosition = ScreenToWorldPoint(input.MousePosition);
         var movement = PointF.Empty;
@@ -464,7 +477,7 @@ internal sealed class GameModel
             var target = PickRaycastTarget(_player.Position, worldMousePosition, weapon.ProjectileRange);
             if (target is not null)
             {
-                target.Health = MathF.Max(0f, target.Health - weapon.Damage);
+                ApplyDamage(target, weapon.Damage);
                 EmitRipple(target.Position, 0.95f, Color.FromArgb(235, 85, 80));
             }
 
@@ -482,6 +495,7 @@ internal sealed class GameModel
                 continue;
             }
 
+            UpdateShieldRegen(ally, deltaSeconds);
             ally.FireCooldown = MathF.Max(0f, ally.FireCooldown - deltaSeconds);
             var weapon = _weaponStats[ally.Weapon];
             var target = PickBestTarget(ally.Position, weapon.VisionRange, ActorType.Ally);
@@ -495,7 +509,7 @@ internal sealed class GameModel
 
             if (ally.FireCooldown <= 0f)
             {
-                target.Health = MathF.Max(0f, target.Health - weapon.Damage);
+                ApplyDamage(target, weapon.Damage);
                 ally.FireCooldown = weapon.FireCooldown;
                 EmitRipple(ally.Position, 0.6f, Color.FromArgb(60, 190, 230));
             }
@@ -517,6 +531,7 @@ internal sealed class GameModel
                 continue;
             }
 
+            UpdateShieldRegen(enemy, deltaSeconds);
             var weapon = _weaponStats[enemy.Weapon];
             enemy.FireCooldown = MathF.Max(0f, enemy.FireCooldown - deltaSeconds);
             enemy.PathCooldown -= deltaSeconds;
@@ -529,7 +544,7 @@ internal sealed class GameModel
                 enemy.FacingAngle = MathF.Atan2(target.Position.Y - enemy.Position.Y, target.Position.X - enemy.Position.X);
                 if (enemy.FireCooldown <= 0f)
                 {
-                    target.Health = MathF.Max(0f, target.Health - weapon.Damage);
+                    ApplyDamage(target, weapon.Damage);
                     enemy.FireCooldown = weapon.FireCooldown * 1.2f;
                     EmitRipple(enemy.Position, 0.72f, Color.FromArgb(255, 120, 85));
                 }
@@ -989,10 +1004,16 @@ internal sealed class GameModel
         graphics.DrawString(actor.Name, nameFont, textBrush, center.X - 34f, center.Y - actor.Radius - 28f);
 
         var hpRatio = actor.Health / actor.MaxHealth;
+        var shieldRatio = actor.MaxShield <= 0f ? 0f : actor.Shield / actor.MaxShield;
         using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
         using var hpFill = new SolidBrush(Color.FromArgb(220, 70, 220, 165));
         graphics.FillRectangle(hpBack, center.X - 28f, center.Y + actor.Radius + 6f, 56f, 5f);
         graphics.FillRectangle(hpFill, center.X - 28f, center.Y + actor.Radius + 6f, 56f * Math.Clamp(hpRatio, 0f, 1f), 5f);
+        if (shieldRatio > 0f)
+        {
+            using var shieldFill = new SolidBrush(Color.FromArgb(220, 92, 168, 232));
+            graphics.FillRectangle(shieldFill, center.X - 28f, center.Y + actor.Radius, 56f * Math.Clamp(shieldRatio, 0f, 1f), 4f);
+        }
         DrawStatusEffects(graphics, actor, new PointF(center.X, center.Y - actor.Radius - 42f));
 
         if (isPlayer && _phase == GamePhase.Hunt && actor.IsAlive)
@@ -1043,6 +1064,12 @@ internal sealed class GameModel
         using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
         using var hpFill = new SolidBrush(Color.FromArgb(220, 255, 140, 120));
         var ratio = enemy.Health / enemy.MaxHealth;
+        var shieldRatio = enemy.MaxShield <= 0f ? 0f : enemy.Shield / enemy.MaxShield;
+        if (shieldRatio > 0f)
+        {
+            using var shieldFill = new SolidBrush(Color.FromArgb(220, 92, 168, 232));
+            graphics.FillRectangle(shieldFill, enemy.Position.X - 24f, enemy.Position.Y + enemy.Radius + 2f, 48f * Math.Clamp(shieldRatio, 0f, 1f), 4f);
+        }
         graphics.FillRectangle(hpBack, enemy.Position.X - 24f, enemy.Position.Y + enemy.Radius + 8f, 48f, 5f);
         graphics.FillRectangle(hpFill, enemy.Position.X - 24f, enemy.Position.Y + enemy.Radius + 8f, 48f * ratio, 5f);
         DrawStatusEffects(graphics, enemy, new PointF(enemy.Position.X, enemy.Position.Y - enemy.Radius - 26f));
@@ -1145,32 +1172,29 @@ internal sealed class GameModel
 
     private void DrawRosterPanel(Graphics graphics)
     {
-        var actors = new[] { _player }.Concat(_allies).ToArray();
-        var slotWidth = (RosterBounds.Width - 16) / actors.Length;
+        var total = Math.Max(1, _roundEnemyTotal);
+        var alive = _enemies.Count(enemy => enemy.IsAlive);
+        var remaining = Math.Clamp(_pendingEnemies + alive, 0, total);
+        var dead = Math.Clamp(total - remaining, 0, total);
+        var columns = 8;
+        var iconSize = 22;
+        var gap = 8;
+        var rows = (int)Math.Ceiling(total / (float)columns);
+        var horizontalPadding = 12;
 
-        for (var index = 0; index < actors.Length; index++)
+        DrawHudText(graphics, $"残り人数 {remaining}", 8.4f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), RosterBounds.Left + 10, RosterBounds.Top + 8);
+        DrawHudText(graphics, "襲撃者", 8f, FontStyle.Bold, Color.FromArgb(255, 240, 128, 112), RosterBounds.Right - 56, RosterBounds.Top + 8);
+
+        for (var index = 0; index < total; index++)
         {
-            var actor = actors[index];
-            var accent = actor.IsBoss ? Color.FromArgb(255, 245, 210, 110) : actor.Type == ActorType.Player ? Color.FromArgb(255, 95, 225, 245) : Color.FromArgb(255, 95, 225, 200);
-            var iconRect = new Rectangle(RosterBounds.Left + 8 + (index * slotWidth) + ((slotWidth - 38) / 2), RosterBounds.Top + 10, 38, 38);
-            using var coreBrush = new SolidBrush(actor.IsAlive ? accent : Color.FromArgb(120, 88, 88, 94));
-            using var ring = new Pen(Color.FromArgb(208, accent), actor.IsBoss ? 2.4f : 1.6f);
-            graphics.FillEllipse(coreBrush, iconRect);
-            graphics.DrawEllipse(ring, iconRect);
+            var row = index / columns;
+            var column = index % columns;
+            var x = RosterBounds.Left + horizontalPadding + (column * (iconSize + gap));
+            var y = RosterBounds.Top + 30 + (row * 26);
+            var rect = new Rectangle(x, y, iconSize, iconSize);
 
-            if (actor.IsBoss)
-            {
-                using var bossPen = new Pen(Color.FromArgb(244, 250, 224, 160), 1.4f);
-                graphics.DrawEllipse(bossPen, iconRect.Left - 4, iconRect.Top - 4, iconRect.Width + 8, iconRect.Height + 8);
-            }
-
-            var hpRatio = actor.Health / actor.MaxHealth;
-            var hpRect = new RectangleF(iconRect.Left, iconRect.Bottom + 5, iconRect.Width, 5f);
-            using var hpBack = new SolidBrush(Color.FromArgb(55, 0, 0, 0));
-            using var hpFill = new SolidBrush(Color.FromArgb(225, 82, 220, 170));
-            graphics.FillRectangle(hpBack, hpRect);
-            graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * Math.Clamp(hpRatio, 0f, 1f), hpRect.Height);
-            DrawCenteredHudText(graphics, actor.Name, 7.1f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), new RectangleF(iconRect.Left - 18, hpRect.Bottom + 1f, iconRect.Width + 36, 12f));
+            var state = index < alive ? 0 : index < remaining ? 1 : 2;
+            DrawEnemyTrackerPortrait(graphics, rect, state);
         }
     }
 
@@ -1288,10 +1312,28 @@ internal sealed class GameModel
         }
 
         var playerPoint = new PointF(inner.Left + ((_player.Position.X - viewRect.Left) * scaleX), inner.Top + ((_player.Position.Y - viewRect.Top) * scaleY));
-        using (var pingPen = new Pen(Color.FromArgb(112, 98, 228, 242), 1.2f))
+        var fovRadius = Math.Clamp(_weaponStats[_player.Weapon].VisionRange * scaleX * 0.55f, 18f, inner.Width * 0.48f);
+        var startAngle = RadiansToDegrees(_player.FacingAngle) - (FovDegrees / 2f);
+        using (var fovPath = new GraphicsPath())
+        using (var coneBrush = new SolidBrush(Color.FromArgb(56, 98, 228, 242)))
+        {
+            fovPath.AddPie(playerPoint.X - fovRadius, playerPoint.Y - fovRadius, fovRadius * 2f, fovRadius * 2f, startAngle, FovDegrees);
+            graphics.FillPath(coneBrush, fovPath);
+        }
+
+        var pulseSize = 12f + (2.5f * (0.5f + (0.5f * MathF.Sin(_uiPulseTime * 5.8f))));
+        using (var pingPen = new Pen(Color.FromArgb(148, 98, 228, 242), 1.4f))
         {
             graphics.DrawEllipse(pingPen, playerPoint.X - 18f, playerPoint.Y - 18f, 36f, 36f);
             graphics.DrawEllipse(pingPen, playerPoint.X - 32f, playerPoint.Y - 32f, 64f, 64f);
+            graphics.DrawEllipse(pingPen, playerPoint.X - pulseSize, playerPoint.Y - pulseSize, pulseSize * 2f, pulseSize * 2f);
+        }
+        using (var playerBrush = new SolidBrush(Color.FromArgb(255, 90, 225, 245)))
+        using (var centerPen = new Pen(Color.FromArgb(244, 236, 244, 248), 1.4f))
+        {
+            graphics.FillEllipse(playerBrush, playerPoint.X - 4.5f, playerPoint.Y - 4.5f, 9f, 9f);
+            graphics.DrawLine(centerPen, playerPoint.X - 8f, playerPoint.Y, playerPoint.X + 8f, playerPoint.Y);
+            graphics.DrawLine(centerPen, playerPoint.X, playerPoint.Y - 8f, playerPoint.X, playerPoint.Y + 8f);
         }
 
         var core = CorePosition();
@@ -1310,7 +1352,7 @@ internal sealed class GameModel
     {
         DrawChampionHudFrame(graphics, BottomHudBounds);
 
-        var statusRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Top + 14, 230, 74);
+        var statusRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Top + 10, 236, 82);
         var skillRects = new[]
         {
             new Rectangle(statusRect.Right + 18, BottomHudBounds.Top + 18, 62, 58),
@@ -1318,8 +1360,9 @@ internal sealed class GameModel
             new Rectangle(statusRect.Right + 158, BottomHudBounds.Top + 18, 62, 58),
         };
         var abilityRect = new Rectangle(skillRects[2].Right + 14, BottomHudBounds.Top + 18, 72, 58);
-        var weaponRect = new Rectangle(BottomHudBounds.Right - 118, BottomHudBounds.Top + 18, 102, 28);
-        var subWeaponRect = new Rectangle(BottomHudBounds.Right - 118, BottomHudBounds.Top + 52, 102, 28);
+        var mainWeaponRect = new Rectangle(BottomHudBounds.Right - 202, BottomHudBounds.Top + 18, 58, 58);
+        var subWeaponRect = new Rectangle(mainWeaponRect.Right + 6, BottomHudBounds.Top + 18, 58, 58);
+        var knifeRect = new Rectangle(subWeaponRect.Right + 6, BottomHudBounds.Top + 18, 58, 58);
         var footerRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Bottom - 28, BottomHudBounds.Width - 32, 16);
 
         DrawInsetPanel(graphics, statusRect);
@@ -1329,39 +1372,47 @@ internal sealed class GameModel
         }
 
         DrawInsetPanel(graphics, abilityRect);
-        DrawInsetPanel(graphics, weaponRect);
+        DrawInsetPanel(graphics, mainWeaponRect);
         DrawInsetPanel(graphics, subWeaponRect);
+        DrawInsetPanel(graphics, knifeRect);
 
         DrawHudText(graphics, CurrentModeTitle(), 9.8f, FontStyle.Bold, PhaseColor(), statusRect.Left + 10, statusRect.Top + 8);
-        var hpBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 28, statusRect.Width - 20, 12);
-        var sonicBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 48, statusRect.Width - 20, 10);
+        var hpBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 28, statusRect.Width - 20, 10);
+        var shieldBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 44, statusRect.Width - 20, 10);
+        var sonicBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 60, statusRect.Width - 20, 9);
         DrawLabeledBar(graphics, hpBar, "体力", _player.Health / _player.MaxHealth, Color.FromArgb(255, 88, 196, 88), Color.FromArgb(36, 8, 14, 18), $"{(int)_player.Health}");
+        DrawLabeledBar(graphics, shieldBar, "シールド", _player.MaxShield <= 0f ? 0f : _player.Shield / _player.MaxShield, Color.FromArgb(255, 92, 168, 232), Color.FromArgb(36, 8, 14, 18), $"{(int)_player.Shield}");
         DrawLabeledBar(graphics, sonicBar, "SONIC", _weaponStats[DisplayedWeaponType()].HearingMultiplier / 1.35f, Color.FromArgb(255, 74, 186, 232), Color.FromArgb(36, 8, 14, 18), $"{_weaponStats[DisplayedWeaponType()].HearingMultiplier:0.0}x");
 
         if (_phase == GamePhase.Construct)
         {
-            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", "構築", false, Color.FromArgb(255, 208, 170, 104));
+            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230), _buildPoints / 2, Math.Clamp(_buildPoints / 2f, 0f, 1f), _buildPoints >= 2);
+            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88), _buildPoints / 3, Math.Clamp(_buildPoints / 3f, 0f, 1f), _buildPoints >= 3);
+            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116), _buildPoints / 4, Math.Clamp(_buildPoints / 4f, 0f, 1f), _buildPoints >= 4);
+            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", "構築", false, Color.FromArgb(255, 208, 170, 104), 1, 1f, true);
         }
         else if (_phase == GamePhase.Bet)
         {
-            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "あなた", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "北班", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "南班", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", $"{_selectedBet}", false, Color.FromArgb(255, 208, 170, 104));
+            var launchReady = _weaponStats[_selectedWeapon].Cost + _selectedBet <= _credits;
+            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "あなた", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230), 1, 1f, true);
+            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "北班", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116), 1, 1f, true);
+            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "南班", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88), 1, 1f, true);
+            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", $"{_selectedBet}", false, Color.FromArgb(255, 208, 170, 104), Math.Max(1, _credits / 100), launchReady ? 1f : 0.25f, launchReady);
         }
         else
         {
-            DrawAbilitySlot(graphics, skillRects[0], "Q", "スキル1", "音紋", _player.Weapon == WeaponType.SMG, Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, skillRects[1], "W", "スキル2", "視界", _player.Weapon == WeaponType.Rifle, Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, skillRects[2], "E", "スキル3", "賭け", _player.IsBoss, Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, abilityRect, "R", "アビリティ", "コア", false, Color.FromArgb(255, 208, 170, 104));
+            var fireCharge = 1f - Math.Clamp(_player.FireCooldown / MathF.Max(0.01f, _weaponStats[_player.Weapon].FireCooldown), 0f, 1f);
+            var shieldCharge = _player.MaxShield <= 0f ? 0f : _player.Shield / _player.MaxShield;
+            var gambitCharge = _player.IsBoss ? 1f : 0.18f;
+            DrawAbilitySlot(graphics, skillRects[0], "Q", "スキル1", "音紋", _player.Weapon == WeaponType.SMG, Color.FromArgb(255, 230, 194, 88), 2, fireCharge, fireCharge >= 0.995f);
+            DrawAbilitySlot(graphics, skillRects[1], "W", "スキル2", "視界", _player.Weapon == WeaponType.Rifle, Color.FromArgb(255, 116, 212, 230), 1, shieldCharge, shieldCharge >= 0.55f);
+            DrawAbilitySlot(graphics, skillRects[2], "E", "スキル3", "賭け", _player.IsBoss, Color.FromArgb(255, 164, 220, 116), _player.IsBoss ? 1 : 0, gambitCharge, _player.IsBoss);
+            DrawAbilitySlot(graphics, abilityRect, "R", "アビリティ", "コア", false, Color.FromArgb(255, 208, 170, 104), 1, _coreHealth / 180f, _coreHealth > 0f);
         }
 
-        DrawLoadoutBox(graphics, weaponRect, "武器", WeaponDisplayName(DisplayedWeaponType()));
-        DrawLoadoutBox(graphics, subWeaponRect, "サブ", "ナイフ");
+        DrawLoadoutBox(graphics, mainWeaponRect, "メイン", WeaponLoadoutLabel(DisplayedWeaponType()));
+        DrawLoadoutBox(graphics, subWeaponRect, "サブ", "PST");
+        DrawLoadoutBox(graphics, knifeRect, "ナイフ", "KNF");
         DrawCenteredHudText(graphics, CurrentControlsHint(), 7.6f, FontStyle.Bold, Color.FromArgb(234, 214, 224, 232), footerRect);
     }
 
@@ -1459,16 +1510,32 @@ internal sealed class GameModel
         DrawHudText(graphics, valueText, 7.4f, FontStyle.Bold, Color.FromArgb(236, 240, 232, 214), bounds.Right - 48f, bounds.Top - 1f);
     }
 
-    private void DrawAbilitySlot(Graphics graphics, Rectangle bounds, string hotkey, string title, string subtitle, bool selected, Color accent)
+    private void DrawAbilitySlot(Graphics graphics, Rectangle bounds, string hotkey, string title, string subtitle, bool selected, Color accent, int charges, float chargeRatio, bool ready)
     {
-        using var fill = new LinearGradientBrush(bounds, selected ? Color.FromArgb(160, accent) : Color.FromArgb(82, 70, 76, 82), Color.FromArgb(68, 16, 20, 24), 90f);
-        using var border = new Pen(selected ? Color.FromArgb(248, accent) : Color.FromArgb(122, 154, 154, 154), selected ? 2.2f : 1.2f);
+        chargeRatio = Math.Clamp(chargeRatio, 0f, 1f);
+        var glow = ready ? 0.72f + (0.28f * (0.5f + (0.5f * MathF.Sin(_uiPulseTime * 6.4f)))) : 0f;
+        var accentFill = ready ? Color.FromArgb((int)(120 + (44 * glow)), accent) : Color.FromArgb(82, 70, 76, 82);
+        using var fill = new LinearGradientBrush(bounds, selected ? accentFill : Color.FromArgb(82, 70, 76, 82), Color.FromArgb(68, 16, 20, 24), 90f);
+        using var border = new Pen(ready ? Color.FromArgb((int)(172 + (48 * glow)), accent) : Color.FromArgb(122, 154, 154, 154), selected || ready ? 2f : 1.2f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
+
+        if (chargeRatio < 0.999f)
+        {
+            using var cooldownFill = new SolidBrush(Color.FromArgb(150, 10, 12, 16));
+            var coverHeight = (bounds.Height - 2) * (1f - chargeRatio);
+            graphics.FillRectangle(cooldownFill, bounds.Left + 1, bounds.Top + 1, bounds.Width - 2, coverHeight);
+        }
+
+        using (var chargeFill = new SolidBrush(ready ? Color.FromArgb(210, accent) : Color.FromArgb(160, 116, 126, 138)))
+        {
+            graphics.FillRectangle(chargeFill, bounds.Left + 2, bounds.Bottom - 5, (bounds.Width - 4) * chargeRatio, 3f);
+        }
 
         DrawHudText(graphics, hotkey, 8f, FontStyle.Bold, Color.FromArgb(246, 244, 228, 196), bounds.Left + 6, bounds.Top + 4);
         DrawCenteredHudText(graphics, title, 9f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(bounds.Left + 4, bounds.Top + 18, bounds.Width - 8, 14));
         DrawCenteredHudText(graphics, subtitle, 7.4f, FontStyle.Regular, Color.FromArgb(226, 208, 220, 228), new RectangleF(bounds.Left + 4, bounds.Top + 34, bounds.Width - 8, 14));
+        DrawHudText(graphics, $"x{Math.Max(0, charges)}", 7.2f, FontStyle.Bold, ready ? Color.FromArgb(246, 238, 244, 248) : Color.FromArgb(204, 182, 188, 196), bounds.Right - 20, bounds.Bottom - 16);
     }
 
     private void DrawItemSlot(Graphics graphics, Rectangle bounds, string label, Color accent, bool selected)
@@ -1482,8 +1549,8 @@ internal sealed class GameModel
 
     private void DrawLoadoutBox(Graphics graphics, Rectangle bounds, string title, string value)
     {
-        DrawHudText(graphics, title, 7.8f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), bounds.Left + 8, bounds.Top + 4);
-        DrawHudText(graphics, value, 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), bounds.Left + 8, bounds.Top + 14);
+        DrawCenteredHudText(graphics, title, 7.4f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), new RectangleF(bounds.Left + 2, bounds.Top + 4, bounds.Width - 4, 10));
+        DrawCenteredHudText(graphics, value, 7.6f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), new RectangleF(bounds.Left + 2, bounds.Top + 18, bounds.Width - 4, bounds.Height - 20));
     }
 
     private void DrawStatusEffects(Graphics graphics, Actor actor, PointF origin)
@@ -1510,6 +1577,30 @@ internal sealed class GameModel
         graphics.FillRectangle(fill, rect.X, rect.Y, rect.Width, rect.Height);
         graphics.DrawRectangle(border, rect.X, rect.Y, rect.Width, rect.Height);
         DrawCenteredHudText(graphics, text, 7.2f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), rect);
+    }
+
+    private void DrawEnemyTrackerPortrait(Graphics graphics, Rectangle bounds, int state)
+    {
+        var accent = state switch
+        {
+            0 => Color.FromArgb(255, 240, 128, 112),
+            1 => Color.FromArgb(160, 120, 132, 146),
+            _ => Color.FromArgb(120, 74, 80, 88),
+        };
+        using var bodyBrush = new SolidBrush(Color.FromArgb(state == 0 ? 212 : 108, accent));
+        using var ringPen = new Pen(Color.FromArgb(state == 0 ? 228 : 128, accent), 1.2f);
+        var head = new RectangleF(bounds.Left + 6f, bounds.Top + 2f, bounds.Width - 12f, bounds.Height * 0.44f);
+        var torso = new RectangleF(bounds.Left + 4f, bounds.Top + 11f, bounds.Width - 8f, bounds.Height - 13f);
+        graphics.FillEllipse(bodyBrush, head);
+        graphics.FillEllipse(bodyBrush, torso);
+        graphics.DrawEllipse(ringPen, bounds);
+
+        if (state == 2)
+        {
+            using var crossPen = new Pen(Color.FromArgb(220, 246, 238, 244), 1.8f);
+            graphics.DrawLine(crossPen, bounds.Left + 4, bounds.Top + 4, bounds.Right - 4, bounds.Bottom - 4);
+            graphics.DrawLine(crossPen, bounds.Right - 4, bounds.Top + 4, bounds.Left + 4, bounds.Bottom - 4);
+        }
     }
 
     private void DrawWeaponStatusCard(Graphics graphics, Rectangle bounds)
@@ -1710,6 +1801,16 @@ internal sealed class GameModel
         };
     }
 
+    private static string WeaponLoadoutLabel(WeaponType weaponType)
+    {
+        return weaponType switch
+        {
+            WeaponType.SMG => "SMG",
+            WeaponType.Sniper => "SR",
+            _ => "RFL",
+        };
+    }
+
     private int CurrentMagazineAmmo()
     {
         return DisplayedWeaponType() switch
@@ -1729,6 +1830,43 @@ internal sealed class GameModel
     private bool IsActorInStaticField(Actor actor)
     {
         return _structures.Any(structure => structure.Kind == StructureKind.StaticNest && Distance(actor.Position, CellCenter(structure.Cell)) <= 90f);
+    }
+
+    private void ApplyDamage(Actor actor, float damage)
+    {
+        if (!actor.IsAlive || damage <= 0f)
+        {
+            return;
+        }
+
+        actor.ShieldRegenDelay = 2.4f;
+        if (actor.Shield > 0f)
+        {
+            var absorbed = MathF.Min(actor.Shield, damage);
+            actor.Shield -= absorbed;
+            damage -= absorbed;
+        }
+
+        if (damage > 0f)
+        {
+            actor.Health = MathF.Max(0f, actor.Health - damage);
+        }
+    }
+
+    private static void UpdateShieldRegen(Actor actor, float deltaSeconds)
+    {
+        if (!actor.IsAlive || actor.MaxShield <= 0f)
+        {
+            return;
+        }
+
+        actor.ShieldRegenDelay = MathF.Max(0f, actor.ShieldRegenDelay - deltaSeconds);
+        if (actor.ShieldRegenDelay > 0f || actor.Shield >= actor.MaxShield)
+        {
+            return;
+        }
+
+        actor.Shield = MathF.Min(actor.MaxShield, actor.Shield + (actor.MaxShield * 0.22f * deltaSeconds) + (8f * deltaSeconds));
     }
 
     private void SetResultMessage(string message)
@@ -1805,14 +1943,19 @@ internal sealed class GameModel
 
         _credits -= totalCost;
         _coreHealth = 180f;
+        _roundEnemyTotal = 6 + (_currentRound * 3);
         _player.Weapon = _selectedWeapon;
         _player.Health = _player.MaxHealth;
+        _player.Shield = _player.MaxShield;
+        _player.ShieldRegenDelay = 0f;
         _player.Position = CellCenter(_player.HomeCell);
         _player.FireCooldown = 0f;
 
         foreach (var actor in _allies)
         {
             actor.Health = actor.MaxHealth;
+            actor.Shield = actor.MaxShield;
+            actor.ShieldRegenDelay = 0f;
             actor.Position = CellCenter(actor.HomeCell);
             actor.FireCooldown = 0f;
             actor.Path.Clear();
@@ -1825,7 +1968,7 @@ internal sealed class GameModel
 
         _enemies.Clear();
         _ripples.Clear();
-        _pendingEnemies = 6 + (_currentRound * 3);
+        _pendingEnemies = _roundEnemyTotal;
         _spawnCooldown = 0.4f;
         _roundTimer = 46f + (_currentRound * 3f);
         _pingCooldown = 0f;
@@ -1878,6 +2021,7 @@ internal sealed class GameModel
     private void BeginBetPhase()
     {
         _phase = GamePhase.Bet;
+        _roundEnemyTotal = 6 + (_currentRound * 3);
         _selectedBet = Math.Min(Math.Max(25, AffordableCredits()), 100);
         _resultDestination = GamePhase.Bet;
         SetResultMessage($"第{_currentRound}ラウンド準備。ボス、賭け金、武器を決めてください。");
@@ -1893,6 +2037,7 @@ internal sealed class GameModel
         _selectedBuildTool = BuildToolKind.BlastDoor;
         _selectedBossName = "あなた";
         _coreHealth = 180f;
+        _roundEnemyTotal = 6 + (_currentRound * 3);
         _phase = GamePhase.Construct;
         _resultDestination = GamePhase.Bet;
         _showBriefing = true;
@@ -1903,12 +2048,16 @@ internal sealed class GameModel
         SetResultMessage("陣地構築は一度だけ。この配置が全ラウンドを左右する。");
 
         _player.Health = _player.MaxHealth;
+        _player.Shield = _player.MaxShield;
+        _player.ShieldRegenDelay = 0f;
         _player.Position = CellCenter(_player.HomeCell);
         _player.Weapon = WeaponType.Rifle;
 
         foreach (var ally in _allies)
         {
             ally.Health = ally.MaxHealth;
+            ally.Shield = ally.MaxShield;
+            ally.ShieldRegenDelay = 0f;
             ally.Position = CellCenter(ally.HomeCell);
             ally.IsBoss = false;
             ally.Path.Clear();
@@ -1967,6 +2116,7 @@ internal sealed class GameModel
         };
 
         var enemyHealth = weapon == WeaponType.SMG ? 48f : weapon == WeaponType.Rifle ? 58f : 44f;
+        var enemyShield = weapon == WeaponType.SMG ? 18f : weapon == WeaponType.Rifle ? 24f : 14f;
         var enemy = new Actor
         {
             Name = "襲撃者",
@@ -1976,7 +2126,9 @@ internal sealed class GameModel
             Position = CellCenter(spawnCell),
             Radius = 13f,
             MaxHealth = enemyHealth,
+            MaxShield = enemyShield,
             Health = enemyHealth,
+            Shield = enemyShield,
             HearingRange = 260f,
             BaseMoveSpeed = weapon == WeaponType.SMG ? 155f : weapon == WeaponType.Rifle ? 130f : 118f,
         };
