@@ -117,10 +117,10 @@ internal sealed class GameModel
     private const int DefaultClientWidth = 1440;
     private const int DefaultClientHeight = 960;
     private const int WorldMargin = 24;
-    private const int TopBarHeight = 52;
+    private const int TopBarHeight = 56;
     private const int SidePanelGap = 20;
-    private const int SidePanelWidth = 364;
-    private const int BottomHudHeight = 208;
+    private const int SidePanelWidth = 280;
+    private const int BottomHudHeight = 132;
     private const int GridColumns = 18;
     private const int GridRows = 12;
     private const int CellSize = 56;
@@ -140,6 +140,7 @@ internal sealed class GameModel
     private readonly HashSet<Point> _permanentWalls = [];
     private readonly HashSet<Point> _buildSlots = [];
     private readonly List<Point> _spawnCells = [];
+    private readonly List<string> _activityFeed = [];
     private Size _layoutSize = new(DefaultClientWidth, DefaultClientHeight);
 
     private GamePhase _phase = GamePhase.Construct;
@@ -211,23 +212,27 @@ internal sealed class GameModel
         ResetCampaign();
     }
 
-    private Rectangle WorldBounds => new((((_layoutSize.Width - (GridColumns * CellSize)) / 2) - 20), 88, GridColumns * CellSize, GridRows * CellSize);
+    private Rectangle WorldBounds => new((((_layoutSize.Width - (GridColumns * CellSize)) / 2) - 96), 88, GridColumns * CellSize, GridRows * CellSize);
 
-    private Rectangle TopBarBounds => new((_layoutSize.Width - 560) / 2, 16, 560, TopBarHeight);
+    private Rectangle TopBarBounds => new((_layoutSize.Width - 340) / 2, 16, 340, TopBarHeight);
 
-    private Rectangle BottomHudBounds => new((_layoutSize.Width - 900) / 2, (int)MathF.Round(WorldVisualBounds.Bottom) + 42, 900, BottomHudHeight);
+    private Rectangle BottomHudBounds => new((_layoutSize.Width - 780) / 2, _layoutSize.Height - BottomHudHeight - 18, 780, BottomHudHeight);
 
     private Rectangle SidePanelBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, WorldBounds.Top, SidePanelWidth, WorldBounds.Height);
 
-    private Rectangle RosterBounds => new(Math.Max(WorldMargin, WorldBounds.Left - 172), WorldBounds.Top + 10, 168, 166);
+    private Rectangle RosterBounds => new(_layoutSize.Width - WorldMargin - SidePanelWidth, 18, SidePanelWidth, 74);
 
     private Rectangle IntelBounds => new(
-        Math.Min(_layoutSize.Width - WorldMargin - 210, (int)MathF.Round(WorldVisualBounds.Right) + SidePanelGap),
-        WorldBounds.Top + 10,
-        210,
-        104);
+        _layoutSize.Width - WorldMargin - SidePanelWidth,
+        RosterBounds.Bottom + 8,
+        SidePanelWidth,
+        246);
 
-    private Rectangle MinimapBounds => new(_layoutSize.Width - WorldMargin - 222, BottomHudBounds.Top - 8, 222, 222);
+    private Rectangle MinimapBounds => new(WorldMargin, 18, 176, 140);
+
+    private Rectangle TimerBounds => new(MinimapBounds.Left, MinimapBounds.Bottom + 6, 104, 30);
+
+    private Rectangle CreditsBounds => new(TimerBounds.Right + 4, MinimapBounds.Bottom + 6, MinimapBounds.Right - (TimerBounds.Right + 4), 30);
 
     private RectangleF WorldVisualBounds => new(
         WorldBounds.Left + ((WorldBounds.Width - ((WorldBounds.Width * WorldPerspectiveScaleX) + (WorldBounds.Height * WorldPerspectiveShearX))) / 2f),
@@ -1092,12 +1097,16 @@ internal sealed class GameModel
         DrawPanelFrame(graphics, RosterBounds);
         DrawPanelFrame(graphics, IntelBounds);
         DrawPanelFrame(graphics, MinimapBounds);
+        DrawPanelFrame(graphics, TimerBounds);
+        DrawPanelFrame(graphics, CreditsBounds);
         DrawPanelFrame(graphics, BottomHudBounds);
 
         DrawTopBar(graphics);
+        DrawMiniMap(graphics);
+        DrawInfoStatBox(graphics, TimerBounds, "残り時間", _phase == GamePhase.Hunt ? $"{_roundTimer:0.0}s" : PhaseLabel(), PhaseColor());
+        DrawInfoStatBox(graphics, CreditsBounds, "所持金", _credits.ToString(), Color.FromArgb(255, 238, 202, 112));
         DrawRosterPanel(graphics);
         DrawIntelPanel(graphics);
-        DrawMiniMap(graphics);
         DrawBottomBar(graphics);
     }
 
@@ -1121,81 +1130,82 @@ internal sealed class GameModel
     {
         var enemiesLeft = _pendingEnemies + _enemies.Count(enemy => enemy.IsAlive);
         var defendersLeft = LiveDefenders().Count();
-        var leftBlock = new RectangleF(TopBarBounds.Left + 8f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
-        var centerBlock = new RectangleF(leftBlock.Right + 6f, TopBarBounds.Top + 4f, TopBarBounds.Width - 300f, TopBarBounds.Height - 8f);
-        var rightBlock = new RectangleF(TopBarBounds.Right - 144f, TopBarBounds.Top + 4f, 136f, TopBarBounds.Height - 8f);
+        var leftBlock = new RectangleF(TopBarBounds.Left + 10f, TopBarBounds.Top + 6f, (TopBarBounds.Width / 2f) - 14f, 24f);
+        var rightBlock = new RectangleF(TopBarBounds.Left + (TopBarBounds.Width / 2f) + 4f, TopBarBounds.Top + 6f, (TopBarBounds.Width / 2f) - 14f, 24f);
+        var footer = new RectangleF(TopBarBounds.Left + 8f, TopBarBounds.Bottom - 22f, TopBarBounds.Width - 16f, 14f);
 
-        DrawCenteredHudText(graphics, "襲撃班", 10.2f, FontStyle.Bold, Color.FromArgb(220, 236, 122, 108), new RectangleF(leftBlock.Left, leftBlock.Top + 2f, leftBlock.Width, 14f));
-        DrawCenteredHudText(graphics, enemiesLeft.ToString(), 19f, FontStyle.Bold, Color.FromArgb(255, 240, 128, 112), new RectangleF(leftBlock.Left, leftBlock.Top + 14f, leftBlock.Width, 24f));
+        DrawCenteredHudText(graphics, $"攻 ({enemiesLeft})", 18f, FontStyle.Bold, Color.FromArgb(255, 240, 128, 112), leftBlock);
+        DrawCenteredHudText(graphics, $"防 ({defendersLeft})", 18f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), rightBlock);
 
-        DrawCenteredHudText(graphics, $"第{Math.Min(_currentRound, TotalRounds)}/{TotalRounds}ラウンド", 14f, FontStyle.Bold, Color.FromArgb(246, 238, 224, 188), new RectangleF(centerBlock.Left, centerBlock.Top + 1f, centerBlock.Width, 18f));
-        DrawCenteredHudText(graphics, $"フェーズ {PhaseLabel()}  |  残り {_roundTimer:0.0} 秒  |  資金 {_credits}", 9.2f, FontStyle.Bold, PhaseColor(), new RectangleF(centerBlock.Left, centerBlock.Top + 22f, centerBlock.Width, 16f));
-
-        DrawCenteredHudText(graphics, "防衛班", 10.2f, FontStyle.Bold, Color.FromArgb(220, 125, 230, 214), new RectangleF(rightBlock.Left, rightBlock.Top + 2f, rightBlock.Width, 14f));
-        DrawCenteredHudText(graphics, defendersLeft.ToString(), 19f, FontStyle.Bold, Color.FromArgb(255, 120, 236, 218), new RectangleF(rightBlock.Left, rightBlock.Top + 14f, rightBlock.Width, 24f));
+        using var divider = new Pen(Color.FromArgb(96, 146, 214, 224), 1.2f);
+        graphics.DrawLine(divider, TopBarBounds.Left + (TopBarBounds.Width / 2f), TopBarBounds.Top + 8f, TopBarBounds.Left + (TopBarBounds.Width / 2f), TopBarBounds.Top + 30f);
+        DrawCenteredHudText(graphics, $"第{Math.Min(_currentRound, TotalRounds)}/{TotalRounds}ラウンド  |  {PhaseLabel()}", 8.8f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), footer);
     }
 
     private void DrawRosterPanel(Graphics graphics)
     {
-        DrawPanelTitle(graphics, RosterBounds, "味方");
+        var actors = new[] { _player }.Concat(_allies).ToArray();
+        var slotWidth = (RosterBounds.Width - 16) / actors.Length;
 
-        var y = RosterBounds.Top + 38;
-        foreach (var actor in new[] { _player }.Concat(_allies))
+        for (var index = 0; index < actors.Length; index++)
         {
-            var row = new Rectangle(RosterBounds.Left + 10, y, RosterBounds.Width - 20, 38);
+            var actor = actors[index];
             var accent = actor.IsBoss ? Color.FromArgb(255, 245, 210, 110) : actor.Type == ActorType.Player ? Color.FromArgb(255, 95, 225, 245) : Color.FromArgb(255, 95, 225, 200);
-            using var fill = new SolidBrush(Color.FromArgb(96, 16, 24, 30));
-            using var border = new Pen(Color.FromArgb(160, accent), actor.IsBoss ? 2.2f : 1.4f);
-            graphics.FillRectangle(fill, row);
-            graphics.DrawRectangle(border, row);
+            var iconRect = new Rectangle(RosterBounds.Left + 8 + (index * slotWidth) + ((slotWidth - 38) / 2), RosterBounds.Top + 10, 38, 38);
+            using var coreBrush = new SolidBrush(actor.IsAlive ? accent : Color.FromArgb(120, 88, 88, 94));
+            using var ring = new Pen(Color.FromArgb(208, accent), actor.IsBoss ? 2.4f : 1.6f);
+            graphics.FillEllipse(coreBrush, iconRect);
+            graphics.DrawEllipse(ring, iconRect);
 
-            using var orbBrush = new SolidBrush(accent);
-            graphics.FillEllipse(orbBrush, row.Left + 8, row.Top + 6, 26, 26);
-
-            DrawHudText(graphics, actor.Name, 8.9f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), row.Left + 42, row.Top + 6);
-            DrawHudText(graphics, actor.IsBoss ? "ボス" : "防衛", 7.8f, FontStyle.Bold, Color.FromArgb(220, accent), row.Left + 42, row.Top + 20);
+            if (actor.IsBoss)
+            {
+                using var bossPen = new Pen(Color.FromArgb(244, 250, 224, 160), 1.4f);
+                graphics.DrawEllipse(bossPen, iconRect.Left - 4, iconRect.Top - 4, iconRect.Width + 8, iconRect.Height + 8);
+            }
 
             var hpRatio = actor.Health / actor.MaxHealth;
+            var hpRect = new RectangleF(iconRect.Left, iconRect.Bottom + 5, iconRect.Width, 5f);
             using var hpBack = new SolidBrush(Color.FromArgb(55, 0, 0, 0));
-            using var hpFill = new SolidBrush(Color.FromArgb(235, 82, 220, 170));
-            var hpRect = new RectangleF(row.Left + 90, row.Top + 14, row.Width - 102, 8f);
+            using var hpFill = new SolidBrush(Color.FromArgb(225, 82, 220, 170));
             graphics.FillRectangle(hpBack, hpRect);
             graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * Math.Clamp(hpRatio, 0f, 1f), hpRect.Height);
-
-            y += 44;
+            DrawCenteredHudText(graphics, actor.Name, 7.1f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), new RectangleF(iconRect.Left - 18, hpRect.Bottom + 1f, iconRect.Width + 36, 12f));
         }
     }
 
     private void DrawIntelPanel(Graphics graphics)
     {
-        DrawPanelTitle(graphics, IntelBounds, "ターゲット");
+        DrawPanelTitle(graphics, IntelBounds, "ターゲット / ログ");
 
-        var body = _phase switch
+        DrawHudText(graphics, CurrentObjectiveTitle(), 11f, FontStyle.Bold, PhaseColor(), IntelBounds.Left + 14, IntelBounds.Top + 36);
+        using (var objectiveFont = new Font(UiFontFamily, 8.8f, FontStyle.Regular))
+        using (var objectiveBrush = new SolidBrush(Color.FromArgb(232, 218, 228, 236)))
         {
-            GamePhase.Construct => $"構築候補\n{BuildToolLabel(_selectedBuildTool)}",
-            GamePhase.Bet => $"指名ボス\n{_selectedBossName}",
-            GamePhase.Hunt => $"防衛目標\nデータコア {(int)_coreHealth}/180",
-            GamePhase.RoundResult => "ラウンド精算",
-            GamePhase.Victory => "制圧完了",
-            _ => "防衛失敗",
-        };
+            graphics.DrawString(CurrentObjectiveBody(), objectiveFont, objectiveBrush, new RectangleF(IntelBounds.Left + 14, IntelBounds.Top + 54, IntelBounds.Width - 28, 44));
+        }
 
-        using var font = new Font(UiFontFamily, 10.2f, FontStyle.Bold);
-        using var brush = new SolidBrush(Color.FromArgb(228, 208, 220, 228));
-        var bodyRect = new RectangleF(IntelBounds.Left + 16, IntelBounds.Top + 38, IntelBounds.Width - 32, 36);
-        graphics.DrawString(body, font, brush, bodyRect);
+        using (var line = new Pen(Color.FromArgb(78, 140, 202, 212), 1f))
+        {
+            graphics.DrawLine(line, IntelBounds.Left + 14, IntelBounds.Top + 104, IntelBounds.Right - 14, IntelBounds.Top + 104);
+        }
 
-        using var feedFont = new Font(UiFontFamily, 8.8f, FontStyle.Regular);
-        using var feedBrush = new SolidBrush(Color.FromArgb(235, 248, 214, 130));
-        graphics.DrawString(_resultMessage, feedFont, feedBrush, new RectangleF(IntelBounds.Left + 16, IntelBounds.Top + 70, IntelBounds.Width - 32, 28));
+        DrawHudText(graphics, "最新ログ", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 14, IntelBounds.Top + 112);
+        using var feedFont = new Font(UiFontFamily, 8.4f, FontStyle.Regular);
+        using var feedBrush = new SolidBrush(Color.FromArgb(232, 214, 224, 232));
+        var lineY = IntelBounds.Top + 132f;
+        foreach (var entry in _activityFeed.Take(5))
+        {
+            graphics.DrawString($"- {entry}", feedFont, feedBrush, new RectangleF(IntelBounds.Left + 14, lineY, IntelBounds.Width - 28, 28));
+            lineY += 24f;
+        }
     }
 
     private void DrawMiniMap(Graphics graphics)
     {
-        DrawPanelTitle(graphics, MinimapBounds, "ミニマップ");
+        DrawCenteredHudText(graphics, "ミニマップ", 12f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), new RectangleF(MinimapBounds.Left + 10, MinimapBounds.Top + 8, MinimapBounds.Width - 20, 18));
 
-        var inner = Rectangle.Inflate(MinimapBounds, -12, -12);
-        inner = new Rectangle(inner.Left, inner.Top + 14, inner.Width, inner.Height - 14);
+        var inner = Rectangle.Inflate(MinimapBounds, -10, -10);
+        inner = new Rectangle(inner.Left, inner.Top + 22, inner.Width, inner.Height - 24);
 
         using var mapBrush = new SolidBrush(Color.FromArgb(188, 10, 16, 22));
         graphics.FillRectangle(mapBrush, inner);
@@ -1270,95 +1280,71 @@ internal sealed class GameModel
 
         using var border = new Pen(Color.FromArgb(146, 194, 170, 110), 2.2f);
         graphics.DrawRectangle(border, inner);
-        DrawHudText(graphics, "水色=味方  赤=敵  緑=コア", 8.2f, FontStyle.Regular, Color.FromArgb(220, 190, 210, 220), MinimapBounds.Left + 14, MinimapBounds.Bottom - 18);
     }
 
     private void DrawBottomBar(Graphics graphics)
     {
-        var portraitCenter = new PointF(BottomHudBounds.Left + 96f, BottomHudBounds.Top + 84f);
-        var portraitDiameter = 126f;
-        var commandRect = new Rectangle(BottomHudBounds.Left + 150, BottomHudBounds.Top + 18, 328, 150);
-        var skillsRect = new Rectangle(commandRect.Right + 14, BottomHudBounds.Top + 24, 270, 118);
-        var itemRect = new Rectangle(skillsRect.Right + 14, BottomHudBounds.Top + 24, 116, 118);
-        var weaponRect = new Rectangle(BottomHudBounds.Left + 18, BottomHudBounds.Bottom - 46, 214, 28);
-        var statusRect = new Rectangle(commandRect.Left, BottomHudBounds.Bottom - 46, BottomHudBounds.Right - commandRect.Left - 18, 28);
-
         DrawChampionHudFrame(graphics, BottomHudBounds);
-        DrawInsetPanel(graphics, commandRect);
-        DrawInsetPanel(graphics, skillsRect);
-        DrawInsetPanel(graphics, itemRect);
-        DrawInsetPanel(graphics, weaponRect);
-        DrawInsetPanel(graphics, statusRect);
 
-        DrawPortraitOrb(graphics, portraitCenter, portraitDiameter, Color.FromArgb(255, 88, 220, 245));
-        DrawCenteredHudText(graphics, "あなた", 12f, FontStyle.Bold, Color.FromArgb(242, 238, 244, 248), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 132, 164, 18));
-        DrawCenteredHudText(graphics, _weaponStats[_player.Weapon].Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 200, 214, 224), new RectangleF(BottomHudBounds.Left + 14, BottomHudBounds.Top + 150, 164, 16));
-
-        var hpBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 16, commandRect.Width - 28, 16);
-        var energyBar = new RectangleF(commandRect.Left + 14, commandRect.Top + 40, commandRect.Width - 28, 10);
-        DrawLabeledBar(graphics, hpBar, "HP", _player.Health / _player.MaxHealth, Color.FromArgb(255, 98, 196, 98), Color.FromArgb(50, 14, 34, 18), $"{(int)_player.Health}/{(int)_player.MaxHealth}");
-        DrawLabeledBar(graphics, energyBar, "SONIC", _weaponStats[_player.Weapon].HearingMultiplier / 1.35f, Color.FromArgb(255, 62, 180, 220), Color.FromArgb(42, 8, 26, 32), $"{_weaponStats[_player.Weapon].HearingMultiplier:0.0}x");
-
-        DrawHudText(graphics, CurrentModeTitle(), 10.2f, FontStyle.Bold, PhaseColor(), commandRect.Left + 14, commandRect.Top + 62);
-        using (var bodyFont = new Font(UiFontFamily, 9.5f, FontStyle.Regular))
-        using (var bodyBrush = new SolidBrush(Color.FromArgb(230, 210, 224, 232)))
+        var statusRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Top + 14, 230, 74);
+        var skillRects = new[]
         {
-            graphics.DrawString(CurrentModeBody(), bodyFont, bodyBrush, new RectangleF(commandRect.Left + 14, commandRect.Top + 82, commandRect.Width - 28, 38));
-        }
-        DrawHudText(graphics, CurrentControlsHint(), 7.4f, FontStyle.Bold, Color.FromArgb(250, 214, 196, 134), commandRect.Left + 14, commandRect.Bottom - 17);
-
-        var abilityRects = new[]
-        {
-            new Rectangle(skillsRect.Left + 10, skillsRect.Top + 18, 58, 58),
-            new Rectangle(skillsRect.Left + 74, skillsRect.Top + 18, 58, 58),
-            new Rectangle(skillsRect.Left + 138, skillsRect.Top + 18, 58, 58),
-            new Rectangle(skillsRect.Left + 202, skillsRect.Top + 18, 58, 58),
+            new Rectangle(statusRect.Right + 18, BottomHudBounds.Top + 18, 62, 58),
+            new Rectangle(statusRect.Right + 88, BottomHudBounds.Top + 18, 62, 58),
+            new Rectangle(statusRect.Right + 158, BottomHudBounds.Top + 18, 62, 58),
         };
+        var abilityRect = new Rectangle(skillRects[2].Right + 14, BottomHudBounds.Top + 18, 72, 58);
+        var weaponRect = new Rectangle(BottomHudBounds.Right - 118, BottomHudBounds.Top + 18, 102, 28);
+        var subWeaponRect = new Rectangle(BottomHudBounds.Right - 118, BottomHudBounds.Top + 52, 102, 28);
+        var footerRect = new Rectangle(BottomHudBounds.Left + 16, BottomHudBounds.Bottom - 28, BottomHudBounds.Width - 32, 16);
+
+        DrawInsetPanel(graphics, statusRect);
+        foreach (var rect in skillRects)
+        {
+            DrawInsetPanel(graphics, rect);
+        }
+
+        DrawInsetPanel(graphics, abilityRect);
+        DrawInsetPanel(graphics, weaponRect);
+        DrawInsetPanel(graphics, subWeaponRect);
+
+        DrawHudText(graphics, CurrentModeTitle(), 9.8f, FontStyle.Bold, PhaseColor(), statusRect.Left + 10, statusRect.Top + 8);
+        var hpBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 28, statusRect.Width - 20, 12);
+        var sonicBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 48, statusRect.Width - 20, 10);
+        DrawLabeledBar(graphics, hpBar, "体力", _player.Health / _player.MaxHealth, Color.FromArgb(255, 88, 196, 88), Color.FromArgb(36, 8, 14, 18), $"{(int)_player.Health}");
+        DrawLabeledBar(graphics, sonicBar, "SONIC", _weaponStats[DisplayedWeaponType()].HearingMultiplier / 1.35f, Color.FromArgb(255, 74, 186, 232), Color.FromArgb(36, 8, 14, 18), $"{_weaponStats[DisplayedWeaponType()].HearingMultiplier:0.0}x");
 
         if (_phase == GamePhase.Construct)
         {
-            DrawAbilitySlot(graphics, abilityRects[0], "1", "防壁", "封鎖", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, abilityRects[1], "2", "蜜罠", "鈍足", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, abilityRects[2], "3", "巣", "偽波", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, abilityRects[3], "Enter", "確定", "構築", false, Color.FromArgb(255, 208, 170, 104));
+            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230));
+            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88));
+            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116));
+            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", "構築", false, Color.FromArgb(255, 208, 170, 104));
         }
         else if (_phase == GamePhase.Bet)
         {
-            DrawAbilitySlot(graphics, abilityRects[0], "1", "ボス", "あなた", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, abilityRects[1], "2", "ボス", "北", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, abilityRects[2], "3", "ボス", "南", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, abilityRects[3], "Enter", "出撃", $"{_selectedBet}", false, Color.FromArgb(255, 208, 170, 104));
+            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "あなた", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230));
+            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "北班", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116));
+            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "南班", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88));
+            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", $"{_selectedBet}", false, Color.FromArgb(255, 208, 170, 104));
         }
         else
         {
-            DrawAbilitySlot(graphics, abilityRects[0], "Q", "音紋", "追跡", _player.Weapon == WeaponType.SMG, Color.FromArgb(255, 230, 194, 88));
-            DrawAbilitySlot(graphics, abilityRects[1], "W", "視界", $"{_weaponStats[_player.Weapon].VisionRange:0}", _player.Weapon == WeaponType.Rifle, Color.FromArgb(255, 116, 212, 230));
-            DrawAbilitySlot(graphics, abilityRects[2], "E", "賭け", $"{_selectedBet}", _player.IsBoss, Color.FromArgb(255, 164, 220, 116));
-            DrawAbilitySlot(graphics, abilityRects[3], "R", "コア", $"{(int)_coreHealth}", false, Color.FromArgb(255, 208, 170, 104));
+            DrawAbilitySlot(graphics, skillRects[0], "Q", "スキル1", "音紋", _player.Weapon == WeaponType.SMG, Color.FromArgb(255, 230, 194, 88));
+            DrawAbilitySlot(graphics, skillRects[1], "W", "スキル2", "視界", _player.Weapon == WeaponType.Rifle, Color.FromArgb(255, 116, 212, 230));
+            DrawAbilitySlot(graphics, skillRects[2], "E", "スキル3", "賭け", _player.IsBoss, Color.FromArgb(255, 164, 220, 116));
+            DrawAbilitySlot(graphics, abilityRect, "R", "アビリティ", "コア", false, Color.FromArgb(255, 208, 170, 104));
         }
 
-        DrawHudText(graphics, "スキル / コマンド", 8.5f, FontStyle.Bold, Color.FromArgb(236, 206, 216, 228), skillsRect.Left + 10, skillsRect.Top + 90);
+        DrawLoadoutBox(graphics, weaponRect, "武器", WeaponDisplayName(DisplayedWeaponType()));
+        DrawLoadoutBox(graphics, subWeaponRect, "サブ", "ナイフ");
+        DrawCenteredHudText(graphics, CurrentControlsHint(), 7.6f, FontStyle.Bold, Color.FromArgb(234, 214, 224, 232), footerRect);
+    }
 
-        var itemRects = new[]
-        {
-            new Rectangle(itemRect.Left + 10, itemRect.Top + 18, 28, 28),
-            new Rectangle(itemRect.Left + 44, itemRect.Top + 18, 28, 28),
-            new Rectangle(itemRect.Left + 78, itemRect.Top + 18, 28, 28),
-            new Rectangle(itemRect.Left + 10, itemRect.Top + 52, 28, 28),
-            new Rectangle(itemRect.Left + 44, itemRect.Top + 52, 28, 28),
-            new Rectangle(itemRect.Left + 78, itemRect.Top + 52, 28, 28),
-        };
-
-        DrawItemSlot(graphics, itemRects[0], _phase == GamePhase.Construct ? "AP" : "SMG", Color.FromArgb(255, 116, 212, 230), _phase == GamePhase.Construct);
-        DrawItemSlot(graphics, itemRects[1], _phase == GamePhase.Construct ? "蜜" : "RFL", Color.FromArgb(255, 230, 194, 88), _selectedWeapon == WeaponType.Rifle);
-        DrawItemSlot(graphics, itemRects[2], _phase == GamePhase.Construct ? "巣" : "SR", Color.FromArgb(255, 164, 220, 116), _selectedWeapon == WeaponType.Sniper);
-        DrawItemSlot(graphics, itemRects[3], "賭", Color.FromArgb(255, 208, 170, 104), _phase == GamePhase.Bet);
-        DrawItemSlot(graphics, itemRects[4], "音", Color.FromArgb(255, 84, 188, 228), _phase == GamePhase.Hunt);
-        DrawItemSlot(graphics, itemRects[5], "R", Color.FromArgb(255, 212, 104, 104), _phase is GamePhase.Victory or GamePhase.Defeat);
-
-        DrawCenteredHudText(graphics, $"G {_credits}", 11.5f, FontStyle.Bold, Color.FromArgb(255, 238, 202, 112), new RectangleF(itemRect.Left + 6, itemRect.Bottom - 24, itemRect.Width - 12, 18));
-        DrawWeaponStatusCard(graphics, weaponRect);
-        DrawQuickStatusStrip(graphics, statusRect);
+    private void DrawInfoStatBox(Graphics graphics, Rectangle bounds, string title, string value, Color valueColor)
+    {
+        DrawCenteredHudText(graphics, title, 7.4f, FontStyle.Bold, Color.FromArgb(228, 214, 224, 232), new RectangleF(bounds.Left + 2, bounds.Top + 4, bounds.Width - 4, 10));
+        DrawCenteredHudText(graphics, value, 9.8f, FontStyle.Bold, valueColor, new RectangleF(bounds.Left + 2, bounds.Top + 13, bounds.Width - 4, bounds.Height - 14));
     }
 
     private void DrawHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
@@ -1445,8 +1431,8 @@ internal sealed class GameModel
 
     private void DrawAbilitySlot(Graphics graphics, Rectangle bounds, string hotkey, string title, string subtitle, bool selected, Color accent)
     {
-        using var fill = new LinearGradientBrush(bounds, selected ? Color.FromArgb(164, accent) : Color.FromArgb(106, 18, 26, 32), Color.FromArgb(82, 8, 12, 18), 90f);
-        using var border = new Pen(selected ? Color.FromArgb(248, accent) : Color.FromArgb(128, 170, 146, 92), selected ? 2.2f : 1.4f);
+        using var fill = new LinearGradientBrush(bounds, selected ? Color.FromArgb(160, accent) : Color.FromArgb(82, 70, 76, 82), Color.FromArgb(68, 16, 20, 24), 90f);
+        using var border = new Pen(selected ? Color.FromArgb(248, accent) : Color.FromArgb(122, 154, 154, 154), selected ? 2.2f : 1.2f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
 
@@ -1462,6 +1448,12 @@ internal sealed class GameModel
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
         DrawCenteredHudText(graphics, label, 8.2f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), new RectangleF(bounds.Left + 2, bounds.Top + 2, bounds.Width - 4, bounds.Height - 4));
+    }
+
+    private void DrawLoadoutBox(Graphics graphics, Rectangle bounds, string title, string value)
+    {
+        DrawHudText(graphics, title, 7.8f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), bounds.Left + 8, bounds.Top + 4);
+        DrawHudText(graphics, value, 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), bounds.Left + 8, bounds.Top + 14);
     }
 
     private void DrawWeaponStatusCard(Graphics graphics, Rectangle bounds)
@@ -1507,21 +1499,21 @@ internal sealed class GameModel
 
     private void DrawPanelFrame(Graphics graphics, Rectangle bounds)
     {
-        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(188, 14, 20, 28), Color.FromArgb(160, 8, 12, 18), 90f);
-        using var border = new Pen(Color.FromArgb(166, 170, 146, 92), 2f);
+        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(118, 14, 20, 28), Color.FromArgb(92, 8, 12, 18), 90f);
+        using var border = new Pen(Color.FromArgb(144, 168, 150, 104), 1.6f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
-        using var inner = new Pen(Color.FromArgb(76, 90, 112, 120), 1f);
+        using var inner = new Pen(Color.FromArgb(54, 108, 126, 138), 1f);
         graphics.DrawRectangle(inner, Rectangle.Inflate(bounds, -6, -6));
     }
 
     private void DrawInsetPanel(Graphics graphics, Rectangle bounds)
     {
-        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(108, 18, 24, 30), Color.FromArgb(78, 8, 12, 18), 90f);
-        using var border = new Pen(Color.FromArgb(118, 166, 140, 88), 1.6f);
+        using var fill = new LinearGradientBrush(bounds, Color.FromArgb(94, 22, 28, 34), Color.FromArgb(70, 12, 16, 20), 90f);
+        using var border = new Pen(Color.FromArgb(112, 154, 154, 154), 1.2f);
         graphics.FillRectangle(fill, bounds);
         graphics.DrawRectangle(border, bounds);
-        using var inner = new Pen(Color.FromArgb(44, 96, 220, 232), 1f);
+        using var inner = new Pen(Color.FromArgb(36, 108, 196, 208), 1f);
         graphics.DrawRectangle(inner, Rectangle.Inflate(bounds, -4, -4));
     }
 
@@ -1596,6 +1588,32 @@ internal sealed class GameModel
         };
     }
 
+    private string CurrentObjectiveTitle()
+    {
+        return _phase switch
+        {
+            GamePhase.Construct => "構築中",
+            GamePhase.Bet => "作戦準備",
+            GamePhase.Hunt => "防衛中",
+            GamePhase.RoundResult => "ラウンド精算",
+            GamePhase.Victory => "作戦成功",
+            _ => "防衛失敗",
+        };
+    }
+
+    private string CurrentObjectiveBody()
+    {
+        return _phase switch
+        {
+            GamePhase.Construct => $"{BuildToolLabel(_selectedBuildTool)}\n残り AP {_buildPoints}",
+            GamePhase.Bet => $"ボス {_selectedBossName}\n賭け金 {_selectedBet} / 武器 {WeaponDisplayName(_selectedWeapon)}",
+            GamePhase.Hunt => $"コア耐久 {(int)_coreHealth}/180\n残敵 {_pendingEnemies + _enemies.Count(enemy => enemy.IsAlive)}",
+            GamePhase.RoundResult => _resultMessage,
+            GamePhase.Victory => $"最終資産 {_credits} クレジット",
+            _ => "コアが突破されました。",
+        };
+    }
+
     private string CurrentControlsHint()
     {
         return _phase switch
@@ -1621,6 +1639,16 @@ internal sealed class GameModel
         return _phase == GamePhase.Bet ? _selectedWeapon : _player.Weapon;
     }
 
+    private string WeaponDisplayName(WeaponType weaponType)
+    {
+        return weaponType switch
+        {
+            WeaponType.SMG => "SMG",
+            WeaponType.Sniper => "SR",
+            _ => "ライフル",
+        };
+    }
+
     private int CurrentMagazineAmmo()
     {
         return DisplayedWeaponType() switch
@@ -1629,6 +1657,25 @@ internal sealed class GameModel
             WeaponType.Sniper => 8,
             _ => 30,
         };
+    }
+
+    private void SetResultMessage(string message)
+    {
+        _resultMessage = message;
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        if (_activityFeed.Count == 0 || _activityFeed[0] != message)
+        {
+            _activityFeed.Insert(0, message);
+        }
+
+        if (_activityFeed.Count > 5)
+        {
+            _activityFeed.RemoveRange(5, _activityFeed.Count - 5);
+        }
     }
 
     private void TryPlaceStructure(Point location)
@@ -1652,7 +1699,7 @@ internal sealed class GameModel
 
         _buildPoints -= candidate.APCost;
         _structures.Add(candidate);
-        _resultMessage = $"{candidate.Label} を {cell.X},{cell.Y} に設置。";
+        SetResultMessage($"{candidate.Label} を {cell.X},{cell.Y} に設置。");
     }
 
     private void TryRemoveStructure(Point location)
@@ -1671,7 +1718,7 @@ internal sealed class GameModel
 
         _buildPoints += structure.APCost;
         _structures.Remove(structure);
-        _resultMessage = $"{structure.Label} を撤去して AP を返還。";
+        SetResultMessage($"{structure.Label} を撤去して AP を返還。");
     }
 
     private void StartRound()
@@ -1680,7 +1727,7 @@ internal sealed class GameModel
         var totalCost = weapon.Cost + _selectedBet;
         if (totalCost > _credits)
         {
-            _resultMessage = "所持クレジットが足りません。賭け金か装備を見直してください。";
+            SetResultMessage("所持クレジットが足りません。賭け金か装備を見直してください。");
             return;
         }
 
@@ -1715,7 +1762,7 @@ internal sealed class GameModel
         _phase = GamePhase.Hunt;
         _showBriefing = false;
         _resultDestination = GamePhase.Bet;
-        _resultMessage = $"第{_currentRound}ラウンド開始。{_selectedBossName}を生存させて防衛を完了してください。";
+        SetResultMessage($"第{_currentRound}ラウンド開始。{_selectedBossName}を生存させて防衛を完了してください。");
     }
 
     private void EndRound(bool won)
@@ -1728,18 +1775,18 @@ internal sealed class GameModel
             if (bossAlive)
             {
                 _credits += _selectedBet * 2;
-                _resultMessage = $"第{_currentRound}ラウンド防衛成功。ボス生存につき +{(_selectedBet * 2) + 150} クレジット。";
+                SetResultMessage($"第{_currentRound}ラウンド防衛成功。ボス生存につき +{(_selectedBet * 2) + 150} クレジット。");
             }
             else
             {
-                _resultMessage = $"第{_currentRound}ラウンドは勝利。ただしボスが倒れたため賭け金は没収。";
+                SetResultMessage($"第{_currentRound}ラウンドは勝利。ただしボスが倒れたため賭け金は没収。");
             }
 
             _currentRound++;
             if (_currentRound > TotalRounds)
             {
                 _resultDestination = GamePhase.Victory;
-                _resultMessage = $"全ラウンド制圧。最終資産 {_credits} クレジット。";
+                SetResultMessage($"全ラウンド制圧。最終資産 {_credits} クレジット。");
             }
             else
             {
@@ -1749,7 +1796,7 @@ internal sealed class GameModel
         else
         {
             _resultDestination = GamePhase.Defeat;
-            _resultMessage = "グリッド崩壊。コア突破、または防衛班壊滅。";
+            SetResultMessage("グリッド崩壊。コア突破、または防衛班壊滅。");
         }
 
         _phase = GamePhase.RoundResult;
@@ -1761,7 +1808,7 @@ internal sealed class GameModel
         _phase = GamePhase.Bet;
         _selectedBet = Math.Min(Math.Max(25, AffordableCredits()), 100);
         _resultDestination = GamePhase.Bet;
-        _resultMessage = $"第{_currentRound}ラウンド準備。ボス、賭け金、武器を決めてください。";
+        SetResultMessage($"第{_currentRound}ラウンド準備。ボス、賭け金、武器を決めてください。");
     }
 
     private void ResetCampaign()
@@ -1780,7 +1827,8 @@ internal sealed class GameModel
         _structures.Clear();
         _ripples.Clear();
         _enemies.Clear();
-        _resultMessage = "陣地構築は一度だけ。この配置が全ラウンドを左右する。";
+        _activityFeed.Clear();
+        SetResultMessage("陣地構築は一度だけ。この配置が全ラウンドを左右する。");
 
         _player.Health = _player.MaxHealth;
         _player.Position = CellCenter(_player.HomeCell);
