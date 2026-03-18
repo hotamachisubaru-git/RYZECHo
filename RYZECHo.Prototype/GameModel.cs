@@ -993,6 +993,7 @@ internal sealed class GameModel
         using var hpFill = new SolidBrush(Color.FromArgb(220, 70, 220, 165));
         graphics.FillRectangle(hpBack, center.X - 28f, center.Y + actor.Radius + 6f, 56f, 5f);
         graphics.FillRectangle(hpFill, center.X - 28f, center.Y + actor.Radius + 6f, 56f * Math.Clamp(hpRatio, 0f, 1f), 5f);
+        DrawStatusEffects(graphics, actor, new PointF(center.X, center.Y - actor.Radius - 42f));
 
         if (isPlayer && _phase == GamePhase.Hunt && actor.IsAlive)
         {
@@ -1044,6 +1045,7 @@ internal sealed class GameModel
         var ratio = enemy.Health / enemy.MaxHealth;
         graphics.FillRectangle(hpBack, enemy.Position.X - 24f, enemy.Position.Y + enemy.Radius + 8f, 48f, 5f);
         graphics.FillRectangle(hpFill, enemy.Position.X - 24f, enemy.Position.Y + enemy.Radius + 8f, 48f * ratio, 5f);
+        DrawStatusEffects(graphics, enemy, new PointF(enemy.Position.X, enemy.Position.Y - enemy.Radius - 26f));
     }
 
     private void DrawPlayerFov(Graphics graphics)
@@ -1095,7 +1097,6 @@ internal sealed class GameModel
     {
         DrawPanelFrame(graphics, TopBarBounds);
         DrawPanelFrame(graphics, RosterBounds);
-        DrawPanelFrame(graphics, IntelBounds);
         DrawPanelFrame(graphics, MinimapBounds);
         DrawPanelFrame(graphics, TimerBounds);
         DrawPanelFrame(graphics, CreditsBounds);
@@ -1175,27 +1176,31 @@ internal sealed class GameModel
 
     private void DrawIntelPanel(Graphics graphics)
     {
-        DrawPanelTitle(graphics, IntelBounds, "ターゲット / ログ");
-
-        DrawHudText(graphics, CurrentObjectiveTitle(), 11f, FontStyle.Bold, PhaseColor(), IntelBounds.Left + 14, IntelBounds.Top + 36);
+        DrawGhostHudText(graphics, "ターゲット", 10.6f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 8, IntelBounds.Top + 6);
+        DrawGhostHudText(graphics, CurrentObjectiveTitle(), 11f, FontStyle.Bold, PhaseColor(), IntelBounds.Left + 8, IntelBounds.Top + 30);
         using (var objectiveFont = new Font(UiFontFamily, 8.8f, FontStyle.Regular))
+        using (var shadowBrush = new SolidBrush(Color.FromArgb(170, 0, 0, 0)))
         using (var objectiveBrush = new SolidBrush(Color.FromArgb(232, 218, 228, 236)))
         {
-            graphics.DrawString(CurrentObjectiveBody(), objectiveFont, objectiveBrush, new RectangleF(IntelBounds.Left + 14, IntelBounds.Top + 54, IntelBounds.Width - 28, 44));
+            var rect = new RectangleF(IntelBounds.Left + 8, IntelBounds.Top + 48, IntelBounds.Width - 16, 44);
+            var shadowRect = rect;
+            shadowRect.Offset(1f, 1f);
+            graphics.DrawString(CurrentObjectiveBody(), objectiveFont, shadowBrush, shadowRect);
+            graphics.DrawString(CurrentObjectiveBody(), objectiveFont, objectiveBrush, rect);
         }
 
-        using (var line = new Pen(Color.FromArgb(78, 140, 202, 212), 1f))
-        {
-            graphics.DrawLine(line, IntelBounds.Left + 14, IntelBounds.Top + 104, IntelBounds.Right - 14, IntelBounds.Top + 104);
-        }
-
-        DrawHudText(graphics, "最新ログ", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 14, IntelBounds.Top + 112);
+        DrawGhostHudText(graphics, "ログ", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 8, IntelBounds.Top + 104);
         using var feedFont = new Font(UiFontFamily, 8.4f, FontStyle.Regular);
-        using var feedBrush = new SolidBrush(Color.FromArgb(232, 214, 224, 232));
+        using var shadow = new SolidBrush(Color.FromArgb(176, 0, 0, 0));
+        using var feedBrush = new SolidBrush(Color.FromArgb(236, 224, 232, 240));
         var lineY = IntelBounds.Top + 132f;
         foreach (var entry in _activityFeed.Take(5))
         {
-            graphics.DrawString($"- {entry}", feedFont, feedBrush, new RectangleF(IntelBounds.Left + 14, lineY, IntelBounds.Width - 28, 28));
+            var rect = new RectangleF(IntelBounds.Left + 8, lineY, IntelBounds.Width - 16, 28);
+            var shadowRect = rect;
+            shadowRect.Offset(1f, 1f);
+            graphics.DrawString($"- {entry}", feedFont, shadow, shadowRect);
+            graphics.DrawString($"- {entry}", feedFont, feedBrush, rect);
             lineY += 24f;
         }
     }
@@ -1225,15 +1230,26 @@ internal sealed class GameModel
             }
         }
 
-        var scaleX = inner.Width / (float)WorldBounds.Width;
-        var scaleY = inner.Height / (float)WorldBounds.Height;
+        var viewWidth = CellSize * 6.2f;
+        var viewHeight = viewWidth * (inner.Height / (float)inner.Width);
+        var viewCenter = _player.IsAlive ? _player.Position : CorePosition();
+        var viewLeft = Math.Clamp(viewCenter.X - (viewWidth / 2f), WorldBounds.Left, WorldBounds.Right - viewWidth);
+        var viewTop = Math.Clamp(viewCenter.Y - (viewHeight / 2f), WorldBounds.Top, WorldBounds.Bottom - viewHeight);
+        var viewRect = new RectangleF(viewLeft, viewTop, viewWidth, viewHeight);
+        var scaleX = inner.Width / viewRect.Width;
+        var scaleY = inner.Height / viewRect.Height;
 
         foreach (var cell in _permanentWalls)
         {
             var rect = CellRectangle(cell);
+            if (!viewRect.IntersectsWith(rect))
+            {
+                continue;
+            }
+
             var miniRect = new RectangleF(
-                inner.Left + ((rect.Left - WorldBounds.Left) * scaleX),
-                inner.Top + ((rect.Top - WorldBounds.Top) * scaleY),
+                inner.Left + ((rect.Left - viewRect.Left) * scaleX),
+                inner.Top + ((rect.Top - viewRect.Top) * scaleY),
                 rect.Width * scaleX,
                 rect.Height * scaleY);
             using var wallBrush = new SolidBrush(Color.FromArgb(160, 46, 62, 74));
@@ -1251,22 +1267,27 @@ internal sealed class GameModel
             };
 
             using var brush = new SolidBrush(color);
-            var point = new PointF(inner.Left + ((center.X - WorldBounds.Left) * scaleX), inner.Top + ((center.Y - WorldBounds.Top) * scaleY));
+            if (!viewRect.Contains(center))
+            {
+                continue;
+            }
+
+            var point = new PointF(inner.Left + ((center.X - viewRect.Left) * scaleX), inner.Top + ((center.Y - viewRect.Top) * scaleY));
             graphics.FillEllipse(brush, point.X - 3.5f, point.Y - 3.5f, 7f, 7f);
         }
 
-        DrawMiniMapActor(graphics, inner, scaleX, scaleY, _player, Color.FromArgb(255, 90, 225, 245));
+        DrawMiniMapActor(graphics, inner, viewRect, scaleX, scaleY, _player, Color.FromArgb(255, 90, 225, 245));
         foreach (var ally in _allies)
         {
-            DrawMiniMapActor(graphics, inner, scaleX, scaleY, ally, Color.FromArgb(255, 95, 225, 200));
+            DrawMiniMapActor(graphics, inner, viewRect, scaleX, scaleY, ally, Color.FromArgb(255, 95, 225, 200));
         }
 
         foreach (var enemy in _enemies.Where(actor => actor.IsAlive && PlayerCanPerceive(actor.Position, 0.72f)))
         {
-            DrawMiniMapActor(graphics, inner, scaleX, scaleY, enemy, Color.FromArgb(255, 235, 105, 90));
+            DrawMiniMapActor(graphics, inner, viewRect, scaleX, scaleY, enemy, Color.FromArgb(255, 235, 105, 90));
         }
 
-        var playerPoint = new PointF(inner.Left + ((_player.Position.X - WorldBounds.Left) * scaleX), inner.Top + ((_player.Position.Y - WorldBounds.Top) * scaleY));
+        var playerPoint = new PointF(inner.Left + ((_player.Position.X - viewRect.Left) * scaleX), inner.Top + ((_player.Position.Y - viewRect.Top) * scaleY));
         using (var pingPen = new Pen(Color.FromArgb(112, 98, 228, 242), 1.2f))
         {
             graphics.DrawEllipse(pingPen, playerPoint.X - 18f, playerPoint.Y - 18f, 36f, 36f);
@@ -1275,8 +1296,11 @@ internal sealed class GameModel
 
         var core = CorePosition();
         using var coreBrush = new SolidBrush(Color.FromArgb(255, 78, 220, 195));
-        var corePoint = new PointF(inner.Left + ((core.X - WorldBounds.Left) * scaleX), inner.Top + ((core.Y - WorldBounds.Top) * scaleY));
-        graphics.FillEllipse(coreBrush, corePoint.X - 5f, corePoint.Y - 5f, 10f, 10f);
+        if (viewRect.Contains(core))
+        {
+            var corePoint = new PointF(inner.Left + ((core.X - viewRect.Left) * scaleX), inner.Top + ((core.Y - viewRect.Top) * scaleY));
+            graphics.FillEllipse(coreBrush, corePoint.X - 5f, corePoint.Y - 5f, 10f, 10f);
+        }
 
         using var border = new Pen(Color.FromArgb(146, 194, 170, 110), 2.2f);
         graphics.DrawRectangle(border, inner);
@@ -1352,6 +1376,12 @@ internal sealed class GameModel
         using var font = new Font(UiFontFamily, size, style);
         using var brush = new SolidBrush(color);
         graphics.DrawString(text, font, brush, x, y);
+    }
+
+    private void DrawGhostHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
+    {
+        DrawHudText(graphics, text, size, style, Color.FromArgb(178, 0, 0, 0), x + 1f, y + 1f);
+        DrawHudText(graphics, text, size, style, color, x, y);
     }
 
     private void DrawCenteredHudText(Graphics graphics, string text, float size, FontStyle style, Color color, RectangleF bounds)
@@ -1456,6 +1486,32 @@ internal sealed class GameModel
         DrawHudText(graphics, value, 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), bounds.Left + 8, bounds.Top + 14);
     }
 
+    private void DrawStatusEffects(Graphics graphics, Actor actor, PointF origin)
+    {
+        var offsetY = 0f;
+        if (IsActorOnHoneyTrap(actor))
+        {
+            DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "鈍足", Color.FromArgb(255, 240, 188, 92));
+            offsetY -= 16f;
+        }
+
+        if (IsActorInStaticField(actor))
+        {
+            DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "妨害", Color.FromArgb(255, 136, 226, 140));
+        }
+    }
+
+    private void DrawEffectTag(Graphics graphics, PointF center, string text, Color accent)
+    {
+        var width = 44f;
+        var rect = new RectangleF(center.X - (width / 2f), center.Y, width, 14f);
+        using var fill = new SolidBrush(Color.FromArgb(170, 8, 12, 18));
+        using var border = new Pen(Color.FromArgb(188, accent), 1f);
+        graphics.FillRectangle(fill, rect.X, rect.Y, rect.Width, rect.Height);
+        graphics.DrawRectangle(border, rect.X, rect.Y, rect.Width, rect.Height);
+        DrawCenteredHudText(graphics, text, 7.2f, FontStyle.Bold, Color.FromArgb(246, 238, 244, 248), rect);
+    }
+
     private void DrawWeaponStatusCard(Graphics graphics, Rectangle bounds)
     {
         var weaponType = DisplayedWeaponType();
@@ -1549,15 +1605,20 @@ internal sealed class GameModel
         DrawChoiceCard(graphics, bounds, keyLabel, weapon.Label, $"{weapon.Cost}c / 視界 {weapon.VisionRange:0}", selected, accent);
     }
 
-    private void DrawMiniMapActor(Graphics graphics, Rectangle inner, float scaleX, float scaleY, Actor actor, Color color)
+    private void DrawMiniMapActor(Graphics graphics, Rectangle inner, RectangleF viewRect, float scaleX, float scaleY, Actor actor, Color color)
     {
         if (!actor.IsAlive)
         {
             return;
         }
 
+        if (!viewRect.Contains(actor.Position))
+        {
+            return;
+        }
+
         using var brush = new SolidBrush(color);
-        var point = new PointF(inner.Left + ((actor.Position.X - WorldBounds.Left) * scaleX), inner.Top + ((actor.Position.Y - WorldBounds.Top) * scaleY));
+        var point = new PointF(inner.Left + ((actor.Position.X - viewRect.Left) * scaleX), inner.Top + ((actor.Position.Y - viewRect.Top) * scaleY));
         var size = actor.IsBoss ? 8f : 6f;
         graphics.FillEllipse(brush, point.X - (size / 2f), point.Y - (size / 2f), size, size);
     }
@@ -1657,6 +1718,17 @@ internal sealed class GameModel
             WeaponType.Sniper => 8,
             _ => 30,
         };
+    }
+
+    private bool IsActorOnHoneyTrap(Actor actor)
+    {
+        var cell = WorldToCell(actor.Position);
+        return _structures.Any(structure => structure.Kind == StructureKind.HoneyTrap && structure.Cell == cell);
+    }
+
+    private bool IsActorInStaticField(Actor actor)
+    {
+        return _structures.Any(structure => structure.Kind == StructureKind.StaticNest && Distance(actor.Position, CellCenter(structure.Cell)) <= 90f);
     }
 
     private void SetResultMessage(string message)
