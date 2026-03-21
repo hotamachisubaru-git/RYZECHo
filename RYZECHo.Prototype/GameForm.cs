@@ -70,10 +70,12 @@ public partial class GameForm : Form
             _pressedThisFrame.Contains(Keys.D1),
             _pressedThisFrame.Contains(Keys.D2),
             _pressedThisFrame.Contains(Keys.D3),
+            _pressedThisFrame.Contains(Keys.D4),
             _pressedThisFrame.Contains(Keys.Q),
             _pressedThisFrame.Contains(Keys.E),
             _pressedThisFrame.Contains(Keys.R),
             _leftMouseDown,
+            _keysDown.Contains(Keys.F),
             _mousePosition);
     }
 
