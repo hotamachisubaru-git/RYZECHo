@@ -378,6 +378,7 @@ internal sealed partial class GameModel
 
     public void Update(float deltaSeconds, InputSnapshot input)
     {
+        PrepareIntegrityFrame(deltaSeconds);
         _uiPulseTime += deltaSeconds;
         UpdateRipples(deltaSeconds);
 
@@ -400,6 +401,8 @@ internal sealed partial class GameModel
                 UpdateEndState(input);
                 break;
         }
+
+        FinalizeIntegrityFrame(deltaSeconds);
     }
 
 }

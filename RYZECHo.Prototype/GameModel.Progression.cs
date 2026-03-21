@@ -19,6 +19,8 @@ internal sealed class ProgressProfile
     public List<string> UnlockedBanners { get; set; } = ["SIGNAL//STANDARD"];
     public string SelectedStructureSkin { get; set; } = "シグナル標準";
     public string SelectedAdTheme { get; set; } = "NEO CORE";
+    public string IntegritySalt { get; set; } = string.Empty;
+    public string IntegrityStamp { get; set; } = string.Empty;
 }
 
 internal sealed partial class GameModel
@@ -38,7 +40,12 @@ internal sealed partial class GameModel
                 var profile = JsonSerializer.Deserialize<ProgressProfile>(json, ProgressJsonOptions);
                 if (profile is not null)
                 {
-                    return profile;
+                    if (HasValidProgressIntegrity(profile))
+                    {
+                        return profile;
+                    }
+
+                    ForceTerminateForIntegrityViolation("保存データ整合性", "prototype-profile.json の署名検証に失敗しました。");
                 }
             }
         }
@@ -71,15 +78,23 @@ internal sealed partial class GameModel
 
     private void NormalizeProgressProfile()
     {
-        _profile.AccountLevel = Math.Max(1, _profile.AccountLevel);
-        _profile.AgentCredits = Math.Max(0, _profile.AgentCredits);
-        _profile.RankRating = Math.Max(0, _profile.RankRating);
+        _profile.AccountLevel = Math.Clamp(_profile.AccountLevel, 1, IntegrityMaxAccountLevel);
+        _profile.AgentCredits = Math.Clamp(_profile.AgentCredits, 0, IntegrityMaxCareerStat);
+        _profile.RankRating = Math.Clamp(_profile.RankRating, 0, IntegrityMaxCareerStat);
         _profile.CurrentXp = Math.Max(0, _profile.CurrentXp);
-        _profile.ActiveContractProgress = Math.Max(0, _profile.ActiveContractProgress);
+        _profile.MatchesPlayed = Math.Clamp(_profile.MatchesPlayed, 0, IntegrityMaxCareerStat);
+        _profile.MatchesWon = Math.Clamp(_profile.MatchesWon, 0, _profile.MatchesPlayed);
+        _profile.ContractsCompleted = Math.Clamp(_profile.ContractsCompleted, 0, IntegrityMaxCareerStat);
+        _profile.ActiveContractProgress = Math.Clamp(_profile.ActiveContractProgress, 0, 11);
         _profile.UnlockedAgents ??= [];
         _profile.UnlockedStructureSkins ??= [];
         _profile.UnlockedAdThemes ??= [];
         _profile.UnlockedBanners ??= [];
+
+        NormalizeProgressList(_profile.UnlockedAgents, ContractOrder());
+        NormalizeProgressList(_profile.UnlockedStructureSkins, StructureSkinCatalog());
+        NormalizeProgressList(_profile.UnlockedAdThemes, AdThemeCatalog());
+        NormalizeLooseProgressList(_profile.UnlockedBanners);
 
         EnsureUnlocked(_profile.UnlockedAgents, "ヴェール");
         EnsureUnlocked(_profile.UnlockedStructureSkins, "シグナル標準");
@@ -101,6 +116,8 @@ internal sealed partial class GameModel
         {
             _profile.ActiveContract = ContractOrder()[0];
         }
+
+        _profile.IntegritySalt = EnsureProgressSalt(_profile.IntegritySalt);
     }
 
     private static void EnsureUnlocked(List<string> unlockedList, string reward)
@@ -154,6 +171,7 @@ internal sealed partial class GameModel
         try
         {
             NormalizeProgressProfile();
+            _profile.IntegrityStamp = CreateProgressIntegrityStamp(_profile);
             var json = JsonSerializer.Serialize(_profile, ProgressJsonOptions);
             File.WriteAllText(ProgressProfilePath(), json);
         }
@@ -164,6 +182,12 @@ internal sealed partial class GameModel
 
     private void AwardMatchProgression(bool won)
     {
+        if (IsIntegrityRewardsLocked())
+        {
+            _lastProgressionSummary = IntegrityRewardLockSummary();
+            return;
+        }
+
         NormalizeProgressProfile();
 
         var roundGap = _playerRoundWins - _enemyRoundWins;

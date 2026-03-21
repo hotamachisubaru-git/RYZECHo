@@ -273,6 +273,7 @@ internal sealed partial class GameModel
         CreateEnemySquad();
         _roundTimer = RoundDurationSeconds;
         _pingCooldown = 0f;
+        ArmIntegrityGrace();
 
         RestoreBossFlags();
         _phase = GamePhase.Hunt;
@@ -288,6 +289,7 @@ internal sealed partial class GameModel
         var bossAlive = SelectedBoss()?.IsAlive ?? false;
         var bossQualifiedDividend = bossAlive && _roundBossKillCount > 0;
         var completedRound = _currentRound;
+        var integrityLocked = IsIntegrityRewardsLocked();
 
         if (won)
         {
@@ -298,28 +300,34 @@ internal sealed partial class GameModel
             _enemyRoundWins++;
         }
 
-        var economySummary = won
-            ? $"勝利報酬 +{WinRewardCredits}c"
-            : $"敗北補償 +{LossRewardCredits}c";
-        _credits += won ? WinRewardCredits : LossRewardCredits;
+        var economySummary = integrityLocked
+            ? "整合性違反検知によりラウンド報酬凍結"
+            : won
+                ? $"勝利報酬 +{WinRewardCredits}c"
+                : $"敗北補償 +{LossRewardCredits}c";
 
-        if (_selectedBet > 0)
+        if (!integrityLocked)
         {
-            if (won && bossQualifiedDividend)
+            _credits += won ? WinRewardCredits : LossRewardCredits;
+
+            if (_selectedBet > 0)
             {
-                var returnCredits = _selectedBet * 2;
-                _credits += returnCredits;
-                economySummary += $" / 投資返還 +{returnCredits}c";
-            }
-            else if (bossAlive)
-            {
-                economySummary += won
-                    ? " / ボス無撃破のため投資返還なし"
-                    : " / ボス生存も敗北のため投資返還なし";
-            }
-            else
-            {
-                economySummary += " / ボス撃破により投資没収";
+                if (won && bossQualifiedDividend)
+                {
+                    var returnCredits = _selectedBet * 2;
+                    _credits += returnCredits;
+                    economySummary += $" / 投資返還 +{returnCredits}c";
+                }
+                else if (bossAlive)
+                {
+                    economySummary += won
+                        ? " / ボス無撃破のため投資返還なし"
+                        : " / ボス生存も敗北のため投資返還なし";
+                }
+                else
+                {
+                    economySummary += " / ボス撃破により投資没収";
+                }
             }
         }
 
@@ -447,6 +455,8 @@ internal sealed partial class GameModel
         }
 
         _player.IsBoss = true;
+        ResetIntegrityRewardsLock();
+        ResetIntegritySession();
     }
 
     private void EnterSideSwapConstructPhase()
@@ -454,6 +464,7 @@ internal sealed partial class GameModel
         _phase = GamePhase.Construct;
         _resultDestination = GamePhase.Bet;
         _showBriefing = false;
+        ArmIntegrityGrace();
         if (string.IsNullOrWhiteSpace(_resultMessage))
         {
             SetResultMessage("攻守交代。再エディットで後半戦の配置を調整してください。");
