@@ -22,7 +22,7 @@ internal sealed partial class GameModel
             GamePhase.Construct => _sideSwapConstructPending
                 ? $"{BuildToolLabel(_selectedBuildTool)} を選択中。攻守交代に向けた再エディット中です。スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。"
                 : $"{BuildToolLabel(_selectedBuildTool)} を選択中。初期配置は前半ラウンドを支えます。スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。",
-            GamePhase.Bet => $"{PlayerRoleLabel()}。ボス {_selectedBossName} は残り {BossSelectionsRemaining(_selectedBossName)} 回。投資 {_selectedBet}c、武器 {_weaponStats[_selectedWeapon].Label}、{BossBuffSummary(_selectedBet)}。",
+            GamePhase.Bet => $"{PlayerRoleLabel()}。ボス {_selectedBossName} は残り {BossSelectionsRemaining(_selectedBossName)} 回。個別投資 {SelectedBossInvestment()}c / 総投資 {_selectedBet}c、メイン {_weaponStats[_selectedWeapon].Label}、サブ {_weaponStats[_selectedSidearmWeapon].Label}。",
             GamePhase.Hunt => HuntStatusSummary(),
             GamePhase.RoundResult => _resultMessage,
             GamePhase.Victory => "7 ラウンド先取、または OT 2 本差でマッチに勝利しました。",
@@ -50,7 +50,7 @@ internal sealed partial class GameModel
             GamePhase.Construct => _sideSwapConstructPending
                 ? $"{BuildToolLabel(_selectedBuildTool)}\n後半戦 AP {_buildPoints}\n{SelectedStructureSkinName()} / {SelectedAdThemeName()}"
                 : $"{BuildToolLabel(_selectedBuildTool)}\n残り AP {_buildPoints}\n{SelectedStructureSkinName()} / {SelectedAdThemeName()}",
-            GamePhase.Bet => $"{PlayerRoleLabel()}\nボス {_selectedBossName} / 投資 {_selectedBet}c\n{WeaponLoadoutLabel(_selectedWeapon)} / {BossBuffSummary(_selectedBet)}",
+            GamePhase.Bet => $"{PlayerRoleLabel()}\nボス {_selectedBossName} / 個別 {SelectedBossInvestment()}c / 総額 {_selectedBet}c\n{WeaponLoadoutLabel(_selectedWeapon)} + {WeaponLoadoutLabel(_selectedSidearmWeapon)} / ULT {SelectedBossUltPoints()}/{MaxUltPoints}",
             GamePhase.Hunt => HuntObjectiveBody(),
             GamePhase.RoundResult => $"{_resultMessage}\nSCORE {_playerRoundWins}-{_enemyRoundWins}\n{ProfileSummaryLine()}",
             GamePhase.Victory => $"最終スコア {_playerRoundWins}-{_enemyRoundWins}\n最終資産 {_credits} クレジット",
@@ -62,8 +62,8 @@ internal sealed partial class GameModel
     {
         return _phase switch
         {
-            GamePhase.Construct => _sideSwapConstructPending ? "1/2/3 選択  Q/Eスキン  R広告  左設置  右撤去  Enter後半戦へ" : "1/2/3 選択  Q/Eスキン  R広告  左設置  右撤去  Enter確定",
-            GamePhase.Bet => "1/2/3/4 ボス  Q/E武器  A/D投資  Enter出撃",
+            GamePhase.Construct => _sideSwapConstructPending ? "1-5設置物  Q/Eスキン  R広告  左設置  右撤去  Enter後半戦へ" : "1-5設置物  Q/Eスキン  R広告  左設置  右撤去  Enter確定",
+            GamePhase.Bet => "1-4 ボス兼投資先  Q/E選択  Rメイン/サブ切替  A/D個別投資  Enter出撃",
             GamePhase.Hunt => HuntControlsHint(),
             _ => "Enter進行  R再挑戦",
         };
@@ -84,18 +84,18 @@ internal sealed partial class GameModel
         if (_bombPlanted)
         {
             return IsPlayerTeamAttacking()
-                ? $"ボム設置済み。爆破まで {Math.Max(0f, _roundTimer):0.0} 秒、敵解除進行 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}s。"
-                : $"ボム設置済み。爆破まで {Math.Max(0f, _roundTimer):0.0} 秒、解除進行 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}s。";
+                ? $"サイト {CurrentObjectiveSiteLabel()} にボム設置済み。爆破まで {Math.Max(0f, _roundTimer):0.0} 秒、敵解除進行 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}s。"
+                : $"サイト {CurrentObjectiveSiteLabel()} にボム設置済み。爆破まで {Math.Max(0f, _roundTimer):0.0} 秒、解除進行 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}s。";
         }
 
         if (_bombPlantProgress > 0f && _activePlanter is not null)
         {
             return IsPlayerTeamAttacking()
-                ? $"{_activePlanter.Name} が設置中。{BombPlantSeconds - Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds):0.0} 秒で設置完了。"
-                : $"{_activePlanter.Name} が設置中。{BombPlantSeconds - Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds):0.0} 秒で起爆準備完了。";
+                ? $"{_activePlanter.Name} がサイト {CurrentObjectiveSiteLabel()} で設置中。{BombPlantSeconds - Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds):0.0} 秒で設置完了。"
+                : $"{_activePlanter.Name} がサイト {CurrentObjectiveSiteLabel()} で設置中。{BombPlantSeconds - Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds):0.0} 秒で起爆準備完了。";
         }
 
-        return $"{GetFovDegrees(_player.Weapon):0} 度視界で{PlayerRoleShortLabel()}中。設置猶予 {Math.Max(0f, _roundTimer):0.0} 秒、敵編成 {LiveEnemyCount()}/{TeamSize}。{(IsPlayerBreathingExposed() ? " 呼吸音が漏れています。" : string.Empty)}";
+        return $"{GetFovDegrees(_player.Weapon):0} 度視界で{PlayerRoleShortLabel()}中。注力サイト {GetBombSite(_attackFocusSite).Label}、設置猶予 {Math.Max(0f, _roundTimer):0.0} 秒、敵編成 {LiveEnemyCount()}/{TeamSize}。{(IsPlayerBreathingExposed() ? " 呼吸音が漏れています。" : string.Empty)}";
     }
 
     private string HuntObjectiveBody()
@@ -103,18 +103,18 @@ internal sealed partial class GameModel
         if (_bombPlanted)
         {
             return IsPlayerTeamAttacking()
-                ? $"ボム稼働中 {_roundTimer:0.0}s\n敵解除 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}"
-                : $"ボム稼働中 {_roundTimer:0.0}s\n解除 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}";
+                ? $"サイト {CurrentObjectiveSiteLabel()}\n敵解除 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}"
+                : $"サイト {CurrentObjectiveSiteLabel()}\n解除 {_bombDefuseProgress:0.0}/{BombDefuseSeconds:0}";
         }
 
         if (_bombPlantProgress > 0f && _activePlanter is not null)
         {
-            return $"設置中 {_activePlanter.Name}\n進行 {_bombPlantProgress:0.0}/{BombPlantSeconds:0}";
+            return $"設置中 {_activePlanter.Name}\nサイト {CurrentObjectiveSiteLabel()} / 進行 {_bombPlantProgress:0.0}/{BombPlantSeconds:0}";
         }
 
         return IsPlayerTeamAttacking()
-            ? $"サイト侵攻中\n敵残数 {LiveEnemyCount()}/{TeamSize}"
-            : $"サイト防衛中\n敵残数 {LiveEnemyCount()}/{TeamSize}";
+            ? $"A/B サイト侵攻中\n注力 {GetBombSite(_attackFocusSite).Label} / 敵残数 {LiveEnemyCount()}/{TeamSize}"
+            : $"A/B サイト防衛中\n敵残数 {LiveEnemyCount()}/{TeamSize}";
     }
 
     private string CurrentHuntObjectiveTitle()
@@ -126,30 +126,30 @@ internal sealed partial class GameModel
 
         if (_bombPlantProgress > 0f)
         {
-            return IsPlayerTeamAttacking() ? "設置中" : "設置阻止";
+            return IsPlayerTeamAttacking() ? $"設置中 {CurrentObjectiveSiteLabel()}" : $"設置阻止 {CurrentObjectiveSiteLabel()}";
         }
 
-        return IsPlayerTeamAttacking() ? "攻撃中" : "防衛中";
+        return IsPlayerTeamAttacking() ? "攻撃中 A/B" : "防衛中 A/B";
     }
 
     private string HuntControlsHint()
     {
         if (_bombPlanted)
         {
-            return IsPlayerTeamAttacking() ? "WASD移動  左クリック射撃  サイト防衛" : "WASD移動  左クリック射撃  F長押し解除";
+            return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  左クリック射撃  サイト防衛" : "WASD移動  Q/E武器切替  左クリック射撃  F長押し解除";
         }
 
-        return IsPlayerTeamAttacking() ? "WASD移動  左クリック射撃  F長押し設置" : "WASD移動  マウス照準  左クリック射撃";
+        return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  左クリック射撃  F長押し設置" : "WASD移動  Q/E武器切替  マウス照準  左クリック射撃";
     }
 
     private string CurrentSiteActionLabel()
     {
         if (_bombPlanted)
         {
-            return IsPlayerTeamAttacking() ? "維持" : "解除";
+            return IsPlayerTeamAttacking() ? $"維持 {CurrentObjectiveSiteLabel()}" : $"解除 {CurrentObjectiveSiteLabel()}";
         }
 
-        return IsPlayerTeamAttacking() ? "設置" : "サイト";
+        return IsPlayerTeamAttacking() ? "設置 A/B" : "監視 A/B";
     }
 
 }

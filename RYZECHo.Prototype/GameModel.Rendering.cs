@@ -342,61 +342,113 @@ internal sealed partial class GameModel
                         graphics.DrawEllipse(auraPen, rectangle.Left - 34, rectangle.Top - 34, rectangle.Width + 68, rectangle.Height + 68);
                     }
                     break;
+                case StructureKind.ReconBeacon:
+                    using (var shadow = new SolidBrush(Color.FromArgb(60, 0, 0, 0)))
+                    {
+                        graphics.FillEllipse(shadow, rectangle.Left + 6, rectangle.Top + 12, rectangle.Width, rectangle.Height);
+                    }
+                    using (var fill = new SolidBrush(Color.FromArgb(172, 112, 220, 252)))
+                    using (var pen = new Pen(Color.FromArgb(255, 210, 246, 255), 2f))
+                    using (var pingPen = new Pen(Color.FromArgb(92, 122, 228, 255), 1.4f))
+                    {
+                        graphics.FillEllipse(fill, rectangle);
+                        graphics.DrawEllipse(pen, rectangle);
+                        graphics.DrawEllipse(pingPen, rectangle.Left - 18, rectangle.Top - 18, rectangle.Width + 36, rectangle.Height + 36);
+                    }
+                    break;
+                case StructureKind.ShieldRelay:
+                    using (var shadow = new SolidBrush(Color.FromArgb(68, 0, 0, 0)))
+                    {
+                        graphics.FillEllipse(shadow, rectangle.Left + 8, rectangle.Top + 16, rectangle.Width, rectangle.Height);
+                    }
+                    using (var fill = new SolidBrush(Color.FromArgb(164, 104, 236, 168)))
+                    using (var pen = new Pen(Color.FromArgb(255, 218, 255, 232), 2.2f))
+                    {
+                        graphics.FillRectangle(fill, rectangle);
+                        graphics.DrawRectangle(pen, rectangle);
+                    }
+
+                    using (var arcPen = new Pen(Color.FromArgb(92, 180, 255, 214), 1.4f))
+                    {
+                        graphics.DrawArc(arcPen, rectangle.Left - 16, rectangle.Top - 12, rectangle.Width + 32, rectangle.Height + 24, 210f, 120f);
+                        graphics.DrawArc(arcPen, rectangle.Left - 16, rectangle.Top - 12, rectangle.Width + 32, rectangle.Height + 24, 30f, 120f);
+                    }
+
+                    var relayRatio = structure.Health / structure.MaxHealth;
+                    using (var hpBack = new SolidBrush(Color.FromArgb(36, 0, 0, 0)))
+                    using (var hpFill = new SolidBrush(Color.FromArgb(220, 142, 255, 194)))
+                    {
+                        var hpRect = new RectangleF(rectangle.Left, rectangle.Bottom + 3f, rectangle.Width, 5f);
+                        graphics.FillRectangle(hpBack, hpRect);
+                        graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * relayRatio, hpRect.Height);
+                    }
+                    break;
             }
         }
     }
 
     private void DrawCore(Graphics graphics)
     {
-        var coreCenter = BombSitePosition();
-        var coreRect = new RectangleF(coreCenter.X - 24f, coreCenter.Y - 24f, 48f, 48f);
-
-        var siteGlow = _bombPlanted ? Color.FromArgb(72, 255, 126, 96) : Color.FromArgb(56, 76, 228, 242);
-        using var glow = new SolidBrush(siteGlow);
-        graphics.FillEllipse(glow, coreCenter.X - 64f, coreCenter.Y - 64f, 128f, 128f);
-
-        using var fill = new SolidBrush(_bombPlanted ? Color.FromArgb(228, 218, 92, 78) : Color.FromArgb(220, 48, 168, 198));
-        using var border = new Pen(Color.FromArgb(238, 214, 255, 255), 2.5f);
-        using var outerRing = new Pen(_bombPlanted ? Color.FromArgb(104, 255, 174, 116) : Color.FromArgb(88, 118, 236, 246), 1.8f);
-        graphics.FillEllipse(fill, coreRect);
-        graphics.DrawEllipse(border, coreRect);
-        graphics.DrawEllipse(outerRing, coreCenter.X - 42f, coreCenter.Y - 42f, 84f, 84f);
-        graphics.DrawEllipse(outerRing, coreCenter.X - 78f, coreCenter.Y - 78f, 156f, 156f);
-
-        var diamond = new[]
+        foreach (var site in GetBombSites())
         {
-            new PointF(coreCenter.X, coreCenter.Y - 14f),
-            new PointF(coreCenter.X + 14f, coreCenter.Y),
-            new PointF(coreCenter.X, coreCenter.Y + 14f),
-            new PointF(coreCenter.X - 14f, coreCenter.Y),
-        };
-        using var diamondPen = new Pen(Color.FromArgb(248, 232, 255, 255), 1.8f);
-        graphics.DrawPolygon(diamondPen, diamond);
+            var coreCenter = BombSitePosition(site.Id);
+            var coreRect = new RectangleF(coreCenter.X - 22f, coreCenter.Y - 22f, 44f, 44f);
+            var isActive = CurrentObjectiveSiteId() == site.Id;
+            var isArmed = _bombPlanted && _armedBombSiteId == site.Id;
+            var isPlanting = !_bombPlanted && _activePlanter is not null && TryGetBombSiteAt(_activePlanter.Position, out var planterSite, 10f) && planterSite.Id == site.Id;
 
-        var ratio = _bombPlanted
-            ? Math.Clamp(_roundTimer / BombFuseSeconds, 0f, 1f)
-            : Math.Clamp(_bombPlantProgress / BombPlantSeconds, 0f, 1f);
-        using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
-        using var hpFill = new SolidBrush(_bombPlanted ? Color.FromArgb(232, 255, 134, 112) : Color.FromArgb(225, 70, 220, 210));
-        var hpRect = new RectangleF(coreCenter.X - 50f, coreCenter.Y + 30f, 100f, 8f);
-        graphics.FillRectangle(hpBack, hpRect);
-        graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * ratio, hpRect.Height);
+            var siteGlow = isArmed
+                ? Color.FromArgb(78, 255, 126, 96)
+                : isActive
+                    ? Color.FromArgb(64, 76, 228, 242)
+                    : Color.FromArgb(28, 76, 228, 242);
+            using var glow = new SolidBrush(siteGlow);
+            graphics.FillEllipse(glow, coreCenter.X - 60f, coreCenter.Y - 60f, 120f, 120f);
 
-        var secondaryRatio = _bombPlanted ? Math.Clamp(_bombDefuseProgress / BombDefuseSeconds, 0f, 1f) : 0f;
-        if (secondaryRatio > 0f)
-        {
-            using var defuseFill = new SolidBrush(Color.FromArgb(228, 108, 228, 210));
-            graphics.FillRectangle(defuseFill, hpRect.Left, hpRect.Top - 11f, hpRect.Width * secondaryRatio, 6f);
+            using var fill = new SolidBrush(isArmed ? Color.FromArgb(228, 218, 92, 78) : isActive ? Color.FromArgb(220, 48, 168, 198) : Color.FromArgb(164, 32, 118, 148));
+            using var border = new Pen(Color.FromArgb(238, 214, 255, 255), isActive ? 2.5f : 1.8f);
+            using var outerRing = new Pen(isArmed ? Color.FromArgb(104, 255, 174, 116) : Color.FromArgb(72, 118, 236, 246), 1.6f);
+            graphics.FillEllipse(fill, coreRect);
+            graphics.DrawEllipse(border, coreRect);
+            graphics.DrawEllipse(outerRing, coreCenter.X - 40f, coreCenter.Y - 40f, 80f, 80f);
+
+            var diamond = new[]
+            {
+                new PointF(coreCenter.X, coreCenter.Y - 12f),
+                new PointF(coreCenter.X + 12f, coreCenter.Y),
+                new PointF(coreCenter.X, coreCenter.Y + 12f),
+                new PointF(coreCenter.X - 12f, coreCenter.Y),
+            };
+            using var diamondPen = new Pen(Color.FromArgb(248, 232, 255, 255), 1.6f);
+            graphics.DrawPolygon(diamondPen, diamond);
+
+            var ratio = isArmed
+                ? Math.Clamp(_roundTimer / BombFuseSeconds, 0f, 1f)
+                : isPlanting
+                    ? Math.Clamp(_bombPlantProgress / BombPlantSeconds, 0f, 1f)
+                    : 0f;
+            using var hpBack = new SolidBrush(Color.FromArgb(40, 0, 0, 0));
+            using var hpFill = new SolidBrush(isArmed ? Color.FromArgb(232, 255, 134, 112) : Color.FromArgb(225, 70, 220, 210));
+            var hpRect = new RectangleF(coreCenter.X - 40f, coreCenter.Y + 28f, 80f, 7f);
+            graphics.FillRectangle(hpBack, hpRect);
+            if (ratio > 0f)
+            {
+                graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * ratio, hpRect.Height);
+            }
+
+            if (isArmed)
+            {
+                var secondaryRatio = Math.Clamp(_bombDefuseProgress / BombDefuseSeconds, 0f, 1f);
+                if (secondaryRatio > 0f)
+                {
+                    using var defuseFill = new SolidBrush(Color.FromArgb(228, 108, 228, 210));
+                    graphics.FillRectangle(defuseFill, hpRect.Left, hpRect.Top - 10f, hpRect.Width * secondaryRatio, 5f);
+                }
+            }
+
+            DrawHudText(graphics, site.Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), coreCenter.X - 7f, coreCenter.Y - 42f);
+            DrawHudText(graphics, isArmed ? "ARMED" : isPlanting ? "PLANT" : "SITE", 6.8f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), coreCenter.X - 18f, coreCenter.Y - 30f);
         }
-
-        DrawHudText(
-            graphics,
-            _bombPlanted ? "ARMED" : _bombPlantProgress > 0f ? "PLANT" : "SITE",
-            7.6f,
-            FontStyle.Bold,
-            Color.FromArgb(236, 238, 244, 248),
-            coreCenter.X - 18f,
-            coreCenter.Y - 44f);
     }
 
     private void DrawRipples(Graphics graphics)
@@ -408,22 +460,24 @@ internal sealed partial class GameModel
                 continue;
             }
 
-            if (_phase == GamePhase.Hunt && !PlayerCanPerceive(ripple.Position, ripple.Strength))
+            if (_phase == GamePhase.Hunt && !TeamCanPerceive(ripple.Position, ripple.Strength))
             {
                 continue;
             }
 
             var progress = ripple.Age / ripple.Lifetime;
             var soundAlpha = GetSoundAlphaMultiplier(ripple.Position);
+            var sharedOnly = _phase == GamePhase.Hunt && !PlayerCanPerceive(ripple.Position, ripple.Strength);
 
             if (ripple.Kind == RippleKind.Footstep)
             {
                 var radius = 16f + (progress * 84f * ripple.Strength);
-                var alpha = (int)(150f * (1f - progress) * soundAlpha);
-                var color = Color.FromArgb(Math.Clamp(alpha, 12, 165), ripple.Color);
+                var alpha = (int)((sharedOnly ? 92f : 150f) * (1f - progress) * soundAlpha);
+                var baseColor = sharedOnly ? Color.FromArgb(180, 124, 214, 255) : ripple.Color;
+                var color = Color.FromArgb(Math.Clamp(alpha, 12, 165), baseColor);
 
                 using var pen = new Pen(color, 2f);
-                using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 8, 80), ripple.Color), 1f);
+                using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 8, 80), baseColor), 1f);
                 graphics.DrawEllipse(pen, ripple.Position.X - radius, ripple.Position.Y - radius, radius * 2f, radius * 2f);
                 graphics.DrawEllipse(halo, ripple.Position.X - radius - 8f, ripple.Position.Y - radius - 8f, (radius * 2f) + 16f, (radius * 2f) + 16f);
                 continue;
@@ -434,7 +488,7 @@ internal sealed partial class GameModel
                 continue;
             }
 
-            DrawDirectionalCue(graphics, ripple, progress, soundAlpha);
+            DrawDirectionalCue(graphics, ripple, progress, soundAlpha, sharedOnly);
         }
     }
 
@@ -521,6 +575,8 @@ internal sealed partial class GameModel
             return;
         }
 
+        var sharedOnly = IsEnemySharedVisible(enemy) && !PlayerHasDirectSightTo(enemy.Position);
+
         var points = new[]
         {
             new PointF(enemy.Position.X, enemy.Position.Y - enemy.Radius - 2f),
@@ -531,12 +587,12 @@ internal sealed partial class GameModel
 
         using var shadow = new SolidBrush(Color.FromArgb(82, 0, 0, 0));
         graphics.FillEllipse(shadow, enemy.Position.X - enemy.Radius - 5f, enemy.Position.Y - (enemy.Radius * 0.1f), (enemy.Radius * 2f) + 10f, enemy.Radius + 12f);
-        using var ringPen = new Pen(Color.FromArgb(205, 236, 105, 90), 2f);
-        using var glowPen = new Pen(Color.FromArgb(92, 255, 164, 112), 1.2f);
+        using var ringPen = new Pen(sharedOnly ? Color.FromArgb(210, 124, 214, 255) : Color.FromArgb(205, 236, 105, 90), 2f);
+        using var glowPen = new Pen(sharedOnly ? Color.FromArgb(92, 164, 228, 255) : Color.FromArgb(92, 255, 164, 112), 1.2f);
         graphics.DrawEllipse(ringPen, enemy.Position.X - enemy.Radius - 8f, enemy.Position.Y - 6f, (enemy.Radius * 2f) + 16f, (enemy.Radius * 1.18f) + 14f);
         graphics.DrawEllipse(glowPen, enemy.Position.X - enemy.Radius - 18f, enemy.Position.Y - 16f, (enemy.Radius * 2f) + 36f, (enemy.Radius * 2f) + 24f);
 
-        using var fill = new SolidBrush(Color.FromArgb(235, 230, 95, 85));
+        using var fill = new SolidBrush(sharedOnly ? Color.FromArgb(210, 124, 214, 255) : Color.FromArgb(235, 230, 95, 85));
         using var border = new Pen(Color.FromArgb(255, 255, 220, 210), 2f);
         graphics.FillPolygon(fill, points);
         graphics.DrawPolygon(border, points);
@@ -576,6 +632,11 @@ internal sealed partial class GameModel
 
     private void DrawDirectionalCue(Graphics graphics, Ripple ripple, float progress, float soundAlpha)
     {
+        DrawDirectionalCue(graphics, ripple, progress, soundAlpha, false);
+    }
+
+    private void DrawDirectionalCue(Graphics graphics, Ripple ripple, float progress, float soundAlpha, bool sharedOnly)
+    {
         if (!_player.IsAlive)
         {
             return;
@@ -592,8 +653,9 @@ internal sealed partial class GameModel
         var side = new PointF(-direction.Y, direction.X);
         var fade = Math.Clamp(1f - progress, 0f, 1f);
         var alpha = (int)(225f * fade * soundAlpha);
-        var color = Color.FromArgb(Math.Clamp(alpha, 18, 225), ripple.Color);
-        var glow = Color.FromArgb(Math.Clamp(alpha / 3, 8, 72), ripple.Color);
+        var sourceColor = sharedOnly ? Color.FromArgb(180, 124, 214, 255) : ripple.Color;
+        var color = Color.FromArgb(Math.Clamp(alpha, 18, 225), sourceColor);
+        var glow = Color.FromArgb(Math.Clamp(alpha / 3, 8, 72), sourceColor);
 
         var bodyStart = new PointF(anchor.X - (direction.X * tail * 0.35f), anchor.Y - (direction.Y * tail * 0.35f));
         var bodyEnd = new PointF(anchor.X + (direction.X * tail), anchor.Y + (direction.Y * tail));
@@ -653,6 +715,7 @@ internal sealed partial class GameModel
         DrawRosterPanel(graphics);
         DrawIntelPanel(graphics);
         DrawBottomBar(graphics);
+        DrawSoundEdgeIndicators(graphics);
     }
 
     private void DrawBriefingOverlay(Graphics graphics)
@@ -687,7 +750,8 @@ internal sealed partial class GameModel
 
         using var divider = new Pen(Color.FromArgb(96, 146, 214, 224), 1.2f);
         graphics.DrawLine(divider, TopBarBounds.Left + (TopBarBounds.Width / 2f), TopBarBounds.Top + 8f, TopBarBounds.Left + (TopBarBounds.Width / 2f), TopBarBounds.Top + 30f);
-        DrawCenteredHudText(graphics, $"第{_currentRound}ラウンド  |  {PlayerRoleLabel()}  |  SCORE {_playerRoundWins}-{_enemyRoundWins}{(_isOvertime ? " OT" : string.Empty)}  |  {ProfileSummaryLine()}", 8.3f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), footer);
+        var siteState = _bombPlanted ? $"ARMED {CurrentObjectiveSiteLabel()}" : $"SITE {_attackFocusSite switch { ObjectiveSiteId.Alpha => "A", _ => "B" }}";
+        DrawCenteredHudText(graphics, $"第{_currentRound}ラウンド  |  {PlayerRoleLabel()}  |  {siteState}  |  SCORE {_playerRoundWins}-{_enemyRoundWins}{(_isOvertime ? " OT" : string.Empty)}  |  {ProfileSummaryLine()}", 8.3f, FontStyle.Bold, Color.FromArgb(236, 214, 224, 232), footer);
     }
 
     private void DrawRosterPanel(Graphics graphics)
@@ -735,6 +799,30 @@ internal sealed partial class GameModel
         DrawHudText(graphics, ProfileSummaryLine(), 8.4f, FontStyle.Bold, Color.FromArgb(236, 224, 232, 240), IntelBounds.Left + 8, IntelBounds.Top + 124);
         DrawHudText(graphics, ContractSummaryLine(), 8.2f, FontStyle.Regular, Color.FromArgb(220, 198, 212, 222), IntelBounds.Left + 8, IntelBounds.Top + 144);
         DrawHudText(graphics, $"SKIN {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}", 7.8f, FontStyle.Regular, Color.FromArgb(208, 198, 212, 222), IntelBounds.Left + 8, IntelBounds.Top + 162);
+
+        if (_phase == GamePhase.Bet)
+        {
+            DrawGhostHudText(graphics, "投資パネル", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 8, IntelBounds.Top + 186);
+            var actorLines = new[]
+            {
+                ("1 あなた", "あなた", Color.FromArgb(255, 116, 212, 230)),
+                ("2 北班", "北アンカー", Color.FromArgb(255, 164, 220, 116)),
+                ("3 南班", "南アンカー", Color.FromArgb(255, 230, 194, 88)),
+                ("4 中班", "中央リンク", Color.FromArgb(255, 208, 170, 104)),
+            };
+
+            var investLineY = IntelBounds.Top + 208f;
+            foreach (var (label, actorName, accent) in actorLines)
+            {
+                var selected = _selectedBossName == actorName;
+                DrawHudText(graphics, $"{label}  {GetFriendlyInvestment(actorName)}c  ULT {GetUltPoints(actorName)}/{MaxUltPoints}", 8.2f, selected ? FontStyle.Bold : FontStyle.Regular, selected ? accent : Color.FromArgb(228, 214, 224, 232), IntelBounds.Left + 10, investLineY);
+                investLineY += 19f;
+            }
+
+            DrawGhostHudText(graphics, "ショップ", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 8, IntelBounds.Top + 286);
+            DrawBetShopList(graphics, new Rectangle(IntelBounds.Left + 8, IntelBounds.Top + 304, IntelBounds.Width - 16, 120));
+            return;
+        }
 
         DrawGhostHudText(graphics, "ログ", 8.8f, FontStyle.Bold, Color.FromArgb(255, 245, 220, 155), IntelBounds.Left + 8, IntelBounds.Top + 186);
         using var feedFont = new Font(UiFontFamily, 8.4f, FontStyle.Regular);
@@ -805,7 +893,9 @@ internal sealed partial class GameModel
             {
                 StructureKind.BlastDoor => Color.FromArgb(255, 105, 235, 240),
                 StructureKind.HoneyTrap => Color.FromArgb(255, 255, 196, 82),
-                _ => Color.FromArgb(255, 180, 235, 120),
+                StructureKind.StaticNest => Color.FromArgb(255, 180, 235, 120),
+                StructureKind.ReconBeacon => Color.FromArgb(255, 110, 224, 255),
+                _ => Color.FromArgb(255, 142, 255, 194),
             };
 
             using var brush = new SolidBrush(color);
@@ -824,7 +914,7 @@ internal sealed partial class GameModel
             DrawMiniMapActor(graphics, inner, viewRect, scaleX, scaleY, ally, Color.FromArgb(255, 95, 225, 200));
         }
 
-        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && PlayerCanSee(actor)))
+        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && (PlayerCanSee(actor) || IsEnemySharedVisible(actor))))
         {
             DrawMiniMapActor(graphics, inner, viewRect, scaleX, scaleY, enemy, Color.FromArgb(255, 235, 105, 90));
         }
@@ -855,12 +945,16 @@ internal sealed partial class GameModel
             graphics.DrawLine(centerPen, playerPoint.X, playerPoint.Y - 8f, playerPoint.X, playerPoint.Y + 8f);
         }
 
-        var core = BombSitePosition();
-        using var coreBrush = new SolidBrush(_bombPlanted ? Color.FromArgb(255, 255, 128, 106) : Color.FromArgb(255, 78, 220, 195));
-        if (viewRect.Contains(core))
+        foreach (var site in GetBombSites())
         {
-            var corePoint = new PointF(inner.Left + ((core.X - viewRect.Left) * scaleX), inner.Top + ((core.Y - viewRect.Top) * scaleY));
-            graphics.FillEllipse(coreBrush, corePoint.X - 5f, corePoint.Y - 5f, 10f, 10f);
+            var core = BombSitePosition(site.Id);
+            using var coreBrush = new SolidBrush(_bombPlanted && _armedBombSiteId == site.Id ? Color.FromArgb(255, 255, 128, 106) : site.Id == _attackFocusSite ? Color.FromArgb(255, 78, 220, 195) : Color.FromArgb(210, 92, 174, 188));
+            if (viewRect.Contains(core))
+            {
+                var corePoint = new PointF(inner.Left + ((core.X - viewRect.Left) * scaleX), inner.Top + ((core.Y - viewRect.Top) * scaleY));
+                graphics.FillEllipse(coreBrush, corePoint.X - 5f, corePoint.Y - 5f, 10f, 10f);
+                DrawHudText(graphics, site.Label, 7f, FontStyle.Bold, Color.FromArgb(240, 238, 244, 248), corePoint.X + 6f, corePoint.Y - 8f);
+            }
         }
 
         using var border = new Pen(Color.FromArgb(146, 194, 170, 110), 2.2f);
@@ -901,10 +995,10 @@ internal sealed partial class GameModel
         var sonicBar = new RectangleF(statusRect.Left + 10, statusRect.Top + 60, statusRect.Width - 20, 9);
         if (_phase == GamePhase.Bet)
         {
-            var investDenominator = Math.Max(OptimalBossInvestment, Math.Max(1, AffordableCredits()));
-            DrawLabeledBar(graphics, hpBar, "投資", _selectedBet / (float)investDenominator, Color.FromArgb(255, 238, 202, 112), Color.FromArgb(36, 8, 14, 18), $"{_selectedBet}c");
-            DrawLabeledBar(graphics, shieldBar, "移動", Math.Clamp(BossMoveBonusPercent(_selectedBet) / 0.15f, 0f, 1f), Color.FromArgb(255, 92, 168, 232), Color.FromArgb(36, 8, 14, 18), $"+{BossMoveBonusPercent(_selectedBet) * 100f:0}%");
-            DrawLabeledBar(graphics, sonicBar, "射撃", Math.Clamp(BossReloadBonusPercent(_selectedBet) / 0.22f, 0f, 1f), Color.FromArgb(255, 120, 214, 160), Color.FromArgb(36, 8, 14, 18), $"+{BossReloadBonusPercent(_selectedBet) * 100f:0}%");
+            var investDenominator = Math.Max(OptimalBossInvestment * 2, Math.Max(1, AffordableCredits() + _selectedBet));
+            DrawLabeledBar(graphics, hpBar, "総投資", _selectedBet / (float)investDenominator, Color.FromArgb(255, 238, 202, 112), Color.FromArgb(36, 8, 14, 18), $"{_selectedBet}c");
+            DrawLabeledBar(graphics, shieldBar, "ボス投資", Math.Clamp(SelectedBossInvestment() / (float)OptimalBossInvestment, 0f, 1f), Color.FromArgb(255, 92, 168, 232), Color.FromArgb(36, 8, 14, 18), $"{SelectedBossInvestment()}c");
+            DrawLabeledBar(graphics, sonicBar, "ULT", SelectedBossUltPoints() / (float)MaxUltPoints, Color.FromArgb(255, 120, 214, 160), Color.FromArgb(36, 8, 14, 18), $"{SelectedBossUltPoints()}/{MaxUltPoints}");
         }
         else
         {
@@ -918,14 +1012,14 @@ internal sealed partial class GameModel
             DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230), _buildPoints / 2, Math.Clamp(_buildPoints / 2f, 0f, 1f), _buildPoints >= 2);
             DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88), _buildPoints / 3, Math.Clamp(_buildPoints / 3f, 0f, 1f), _buildPoints >= 3);
             DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116), _buildPoints / 4, Math.Clamp(_buildPoints / 4f, 0f, 1f), _buildPoints >= 4);
-            DrawAbilitySlot(graphics, abilityRect, "Enter", "アビリティ", "構築", false, Color.FromArgb(255, 208, 170, 104), 1, 1f, true);
+            DrawAbilitySlot(graphics, abilityRect, "4", "スキル4", "索敵", _selectedBuildTool == BuildToolKind.ReconBeacon, Color.FromArgb(255, 124, 228, 255), _buildPoints / 4, Math.Clamp(_buildPoints / 4f, 0f, 1f), _buildPoints >= 4);
         }
         else if (_phase == GamePhase.Bet)
         {
-            DrawAbilitySlot(graphics, skillRects[0], "1", "ボス枠", "あなた", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230), BossSelectionsRemaining("あなた"), 1f, CanSelectBoss("あなた"));
-            DrawAbilitySlot(graphics, skillRects[1], "2", "ボス枠", "北班", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116), BossSelectionsRemaining("北アンカー"), 1f, CanSelectBoss("北アンカー"));
-            DrawAbilitySlot(graphics, skillRects[2], "3", "ボス枠", "南班", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88), BossSelectionsRemaining("南アンカー"), 1f, CanSelectBoss("南アンカー"));
-            DrawAbilitySlot(graphics, abilityRect, "4", "ボス枠", "中班", _selectedBossName == "中央リンク", Color.FromArgb(255, 208, 170, 104), BossSelectionsRemaining("中央リンク"), 1f, CanSelectBoss("中央リンク"));
+            DrawAbilitySlot(graphics, skillRects[0], "1", "投資枠", $"{GetFriendlyInvestment("あなた")}c / U{GetUltPoints("あなた")}", _selectedBossName == "あなた", Color.FromArgb(255, 116, 212, 230), BossSelectionsRemaining("あなた"), Math.Clamp(GetFriendlyInvestment("あなた") / (float)OptimalBossInvestment, 0f, 1f), CanSelectBoss("あなた"));
+            DrawAbilitySlot(graphics, skillRects[1], "2", "投資枠", $"{GetFriendlyInvestment("北アンカー")}c / U{GetUltPoints("北アンカー")}", _selectedBossName == "北アンカー", Color.FromArgb(255, 164, 220, 116), BossSelectionsRemaining("北アンカー"), Math.Clamp(GetFriendlyInvestment("北アンカー") / (float)OptimalBossInvestment, 0f, 1f), CanSelectBoss("北アンカー"));
+            DrawAbilitySlot(graphics, skillRects[2], "3", "投資枠", $"{GetFriendlyInvestment("南アンカー")}c / U{GetUltPoints("南アンカー")}", _selectedBossName == "南アンカー", Color.FromArgb(255, 230, 194, 88), BossSelectionsRemaining("南アンカー"), Math.Clamp(GetFriendlyInvestment("南アンカー") / (float)OptimalBossInvestment, 0f, 1f), CanSelectBoss("南アンカー"));
+            DrawAbilitySlot(graphics, abilityRect, "4", "投資枠", $"{GetFriendlyInvestment("中央リンク")}c / U{GetUltPoints("中央リンク")}", _selectedBossName == "中央リンク", Color.FromArgb(255, 208, 170, 104), BossSelectionsRemaining("中央リンク"), Math.Clamp(GetFriendlyInvestment("中央リンク") / (float)OptimalBossInvestment, 0f, 1f), CanSelectBoss("中央リンク"));
         }
         else
         {
@@ -937,15 +1031,24 @@ internal sealed partial class GameModel
             var interactReady = !_bombPlanted
                 ? (!IsPlayerTeamAttacking() || (_player.IsAlive && IsInsideBombSite(_player.Position, 10f)))
                 : (!IsPlayerTeamAttacking() && CanPlayerDefuse());
-            DrawAbilitySlot(graphics, skillRects[0], "FOV", weapon.ShortLabel, $"{weapon.VisionClass}視界", false, WeaponAccent(weapon.Type), 1, Math.Clamp(weapon.VisionRange / 500f, 0f, 1f), true);
+            DrawAbilitySlot(graphics, skillRects[0], _player.Weapon == _playerPrimaryWeapon ? "Q" : "E", weapon.ShortLabel, $"{weapon.VisionClass}視界", false, WeaponAccent(weapon.Type), 1, Math.Clamp(weapon.VisionRange / 500f, 0f, 1f), true);
             DrawAbilitySlot(graphics, skillRects[1], "MAG", "弾数", $"{weapon.MagazineAmmo}/{weapon.ReserveAmmo}", false, Color.FromArgb(255, 116, 212, 230), 1, fireCharge, fireCharge >= 0.995f);
-            DrawAbilitySlot(graphics, skillRects[2], "BOS", "投資", _player.IsBoss ? $"K {_roundBossKillCount} / +{BossMoveBonusPercent(_selectedBet) * 100f:0}%" : "非ボス", _player.IsBoss, Color.FromArgb(255, 164, 220, 116), _player.IsBoss ? Math.Max(1, _roundBossKillCount) : 0, BossInvestmentProgress(CurrentBossInvestment(_player)), _player.IsBoss);
+            DrawAbilitySlot(graphics, skillRects[2], "ULT", "ボス", _player.IsBoss ? $"K {_roundBossKillCount} / U{SelectedBossUltPoints()}" : "非ボス", _player.IsBoss, Color.FromArgb(255, 164, 220, 116), _player.IsBoss ? Math.Max(1, SelectedBossUltPoints()) : 0, BossInvestmentProgress(CurrentBossInvestment(_player)), _player.IsBoss);
             DrawAbilitySlot(graphics, abilityRect, IsPlayerTeamAttacking() && _bombPlanted ? "-" : "F", "アクション", CurrentSiteActionLabel(), false, Color.FromArgb(255, 208, 170, 104), 1, interactRatio, interactReady);
         }
 
-        DrawLoadoutBox(graphics, mainWeaponRect, "メイン", WeaponLoadoutLabel(DisplayedWeaponType()));
-        DrawLoadoutBox(graphics, subWeaponRect, "サブ", SidearmLoadoutLabel(DisplayedWeaponType()));
-        DrawLoadoutBox(graphics, knifeRect, "ナイフ", "KNF");
+        if (_phase == GamePhase.Construct)
+        {
+            DrawLoadoutBox(graphics, mainWeaponRect, "5", "RELAY");
+            DrawLoadoutBox(graphics, subWeaponRect, "選択", _selectedBuildTool == BuildToolKind.ShieldRelay ? "RELAY" : BuildToolLabel(_selectedBuildTool));
+            DrawLoadoutBox(graphics, knifeRect, "AP", _buildPoints.ToString());
+        }
+        else
+        {
+            DrawLoadoutBox(graphics, mainWeaponRect, "メイン", WeaponLoadoutLabel(_phase == GamePhase.Bet ? _selectedWeapon : _playerPrimaryWeapon));
+            DrawLoadoutBox(graphics, subWeaponRect, "サブ", WeaponLoadoutLabel(_phase == GamePhase.Bet ? _selectedSidearmWeapon : _playerSidearmWeapon));
+            DrawLoadoutBox(graphics, knifeRect, "サイト", CurrentObjectiveSiteLabel());
+        }
         DrawCenteredHudText(graphics, CurrentControlsHint(), 7.6f, FontStyle.Bold, Color.FromArgb(234, 214, 224, 232), footerRect);
     }
 
@@ -1217,6 +1320,36 @@ internal sealed partial class GameModel
         DrawHudText(graphics, subtitle, 8.8f, FontStyle.Regular, Color.FromArgb(225, 204, 218, 226), bounds.Left + 10, bounds.Top + 56);
     }
 
+    private void DrawBetShopList(Graphics graphics, Rectangle bounds)
+    {
+        var catalog = _selectedLoadoutFocus == LoadoutFocus.Primary ? PrimaryWeaponSelectionOrder() : SidearmSelectionOrder();
+        var selected = SelectedLoadoutWeapon();
+        var selectedIndex = Array.IndexOf(catalog, selected);
+        if (selectedIndex < 0)
+        {
+            selectedIndex = 0;
+        }
+
+        DrawHudText(graphics, _selectedLoadoutFocus == LoadoutFocus.Primary ? "メインショップ" : "サブショップ", 8.2f, FontStyle.Bold, Color.FromArgb(236, 224, 232, 240), bounds.Left, bounds.Top);
+        var cardHeight = 42;
+        var visible = Math.Clamp((bounds.Height - 18) / (cardHeight + 8), 1, Math.Min(3, catalog.Length));
+        var cardWidth = bounds.Width;
+        var start = Math.Clamp(selectedIndex - 1, 0, Math.Max(0, catalog.Length - visible));
+        for (var offset = 0; offset < visible; offset++)
+        {
+            var weaponType = catalog[start + offset];
+            var rect = new Rectangle(bounds.Left, bounds.Top + 18 + (offset * (cardHeight + 8)), cardWidth, cardHeight);
+            DrawChoiceCard(
+                graphics,
+                rect,
+                start + offset == selectedIndex ? "SEL" : $"{start + offset + 1}",
+                _weaponStats[weaponType].Label,
+                $"{_weaponStats[weaponType].Cost}c / {_weaponStats[weaponType].MagazineAmmo}+{_weaponStats[weaponType].ReserveAmmo} / {_weaponStats[weaponType].Category}",
+                weaponType == selected,
+                WeaponAccent(weaponType));
+        }
+    }
+
     private void DrawWeaponChoice(Graphics graphics, Rectangle bounds, string keyLabel, WeaponType weaponType, bool selected)
     {
         var weapon = _weaponStats[weaponType];
@@ -1229,6 +1362,7 @@ internal sealed partial class GameModel
         {
             "近距離特化" => Color.FromArgb(255, 255, 196, 82),
             "遠距離特化" => Color.FromArgb(255, 245, 170, 120),
+            "サブウェポン" => Color.FromArgb(255, 170, 214, 255),
             _ => Color.FromArgb(255, 92, 220, 235),
         };
     }
@@ -1290,6 +1424,45 @@ internal sealed partial class GameModel
             "SUNSET GRID" => Color.FromArgb(255, 248, 184, 118),
             _ => Color.FromArgb(255, 98, 228, 242),
         };
+    }
+
+    private void DrawSoundEdgeIndicators(Graphics graphics)
+    {
+        if (_phase != GamePhase.Hunt || !_player.IsAlive)
+        {
+            return;
+        }
+
+        var indicators = _ripples
+            .Where(ripple => TeamCanPerceive(ripple.Position, ripple.Strength))
+            .Where(ripple => !PlayerHasDirectSightTo(ripple.Position))
+            .OrderByDescending(ripple => ripple.Strength)
+            .Take(3)
+            .ToArray();
+
+        if (indicators.Length == 0)
+        {
+            return;
+        }
+
+        var center = new PointF(WorldBounds.Left + (WorldBounds.Width / 2f), WorldBounds.Top + (WorldBounds.Height / 2f));
+        foreach (var ripple in indicators)
+        {
+            var direction = new PointF(ripple.Position.X - _player.Position.X, ripple.Position.Y - _player.Position.Y);
+            var length = MathF.Max(1f, MathF.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y)));
+            direction = new PointF(direction.X / length, direction.Y / length);
+            var anchor = new PointF(center.X + (direction.X * 220f), center.Y + (direction.Y * 140f));
+            var side = new PointF(-direction.Y, direction.X);
+            var color = TeamCanPerceive(ripple.Position, ripple.Strength) && !PlayerCanPerceive(ripple.Position, ripple.Strength)
+                ? Color.FromArgb(210, 124, 214, 255)
+                : Color.FromArgb(220, ripple.Color);
+
+            var tip = new PointF(anchor.X + (direction.X * 14f), anchor.Y + (direction.Y * 14f));
+            var left = new PointF(anchor.X - (direction.X * 8f) + (side.X * 8f), anchor.Y - (direction.Y * 8f) + (side.Y * 8f));
+            var right = new PointF(anchor.X - (direction.X * 8f) - (side.X * 8f), anchor.Y - (direction.Y * 8f) - (side.Y * 8f));
+            using var brush = new SolidBrush(color);
+            graphics.FillPolygon(brush, [tip, left, right]);
+        }
     }
 
     private void DrawMiniMapActor(Graphics graphics, Rectangle inner, RectangleF viewRect, float scaleX, float scaleY, Actor actor, Color color)

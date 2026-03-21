@@ -71,6 +71,7 @@ public partial class GameForm : Form
             _pressedThisFrame.Contains(Keys.D2),
             _pressedThisFrame.Contains(Keys.D3),
             _pressedThisFrame.Contains(Keys.D4),
+            _pressedThisFrame.Contains(Keys.D5),
             _pressedThisFrame.Contains(Keys.Q),
             _pressedThisFrame.Contains(Keys.E),
             _pressedThisFrame.Contains(Keys.R),

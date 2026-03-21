@@ -16,6 +16,14 @@ internal sealed partial class GameModel
         {
             _selectedBuildTool = BuildToolKind.StaticNest;
         }
+        else if (input.Press4)
+        {
+            _selectedBuildTool = BuildToolKind.ReconBeacon;
+        }
+        else if (input.Press5)
+        {
+            _selectedBuildTool = BuildToolKind.ShieldRelay;
+        }
 
         if (input.PressQ)
         {
@@ -40,6 +48,8 @@ internal sealed partial class GameModel
 
     public void UpdateBetPhase(InputSnapshot input)
     {
+        EnsureFriendlyEconomyState();
+
         if (input.Press1)
         {
             TrySelectBoss("あなた");
@@ -59,23 +69,28 @@ internal sealed partial class GameModel
 
         if (input.PressQ)
         {
-            CycleWeapon(-1);
+            CycleLoadoutWeapon(-1);
         }
         else if (input.PressE)
         {
-            CycleWeapon(1);
+            CycleLoadoutWeapon(1);
+        }
+
+        if (input.PressR)
+        {
+            ToggleLoadoutFocus();
         }
 
         if (input.AdjustBetLeft)
         {
-            _selectedBet = Math.Max(0, _selectedBet - 25);
+            AdjustSelectedInvestment(-25);
         }
         else if (input.AdjustBetRight)
         {
-            _selectedBet = Math.Min(AffordableCredits(), _selectedBet + 25);
+            AdjustSelectedInvestment(25);
         }
 
-        _selectedBet = Math.Min(_selectedBet, AffordableCredits());
+        SyncSelectedBetTotal();
 
         if (input.Confirm)
         {
@@ -87,6 +102,7 @@ internal sealed partial class GameModel
     {
         _roundTimer -= deltaSeconds;
         _pingCooldown -= deltaSeconds;
+        UpdateSharedVision(deltaSeconds);
 
         RestoreBossFlags();
         UpdatePlayer(deltaSeconds, input);
@@ -210,7 +226,7 @@ internal sealed partial class GameModel
 
         var planter = _enemies
             .Where(enemy => enemy.IsAlive && IsInsideBombSite(enemy.Position, 10f))
-            .OrderBy(enemy => Distance(enemy.Position, BombSitePosition()))
+            .OrderBy(enemy => Distance(enemy.Position, BombSitePosition(_attackFocusSite)))
             .FirstOrDefault();
 
         _activePlanter = planter;
@@ -226,7 +242,10 @@ internal sealed partial class GameModel
             return false;
         }
 
-        ArmBomb(planter, false);
+        var site = TryGetBombSiteAt(planter.Position, out var activeSite, 10f)
+            ? activeSite.Id
+            : FindClosestSite(planter.Position).Id;
+        ArmBomb(planter, false, site);
         return false;
     }
 
@@ -241,7 +260,7 @@ internal sealed partial class GameModel
         {
             planter = _allies
                 .Where(ally => ally.IsAlive && IsInsideBombSite(ally.Position, 10f))
-                .OrderBy(ally => Distance(ally.Position, BombSitePosition()))
+                .OrderBy(ally => Distance(ally.Position, BombSitePosition(_attackFocusSite)))
                 .FirstOrDefault();
         }
 
@@ -258,12 +277,16 @@ internal sealed partial class GameModel
             return;
         }
 
-        ArmBomb(planter, true);
+        var site = TryGetBombSiteAt(planter.Position, out var activeSite, 10f)
+            ? activeSite.Id
+            : FindClosestSite(planter.Position).Id;
+        ArmBomb(planter, true, site);
     }
 
-    private void ArmBomb(Actor planter, bool plantedByPlayerTeam)
+    private void ArmBomb(Actor planter, bool plantedByPlayerTeam, ObjectiveSiteId siteId)
     {
         _bombPlanted = true;
+        _armedBombSiteId = siteId;
         _bombPlantProgress = BombPlantSeconds;
         _bombDefuseProgress = 0f;
         _roundTimer = BombFuseSeconds;
@@ -271,12 +294,13 @@ internal sealed partial class GameModel
         {
             _credits += ObjectiveRewardCredits;
             PushActivityFeed($"設置成功。+{ObjectiveRewardCredits}c。");
+            AwardUltPoints(_selectedBossName, 1, $"サイト {GetBombSite(siteId).Label} 設置");
         }
 
-        EmitRipple(BombSitePosition(), 0.92f, RippleKind.Skill, Color.FromArgb(245, 208, 96));
+        EmitRipple(BombSitePosition(siteId), 0.92f, RippleKind.Skill, Color.FromArgb(245, 208, 96));
         SetResultMessage(plantedByPlayerTeam
-            ? $"{planter.Name} がボムを設置。35 秒守り切ってください。"
-            : $"{planter.Name} がボムを設置。35 秒以内に解除してください。");
+            ? $"{planter.Name} がサイト {GetBombSite(siteId).Label} にボムを設置。35 秒守り切ってください。"
+            : $"{planter.Name} がサイト {GetBombSite(siteId).Label} にボムを設置。35 秒以内に解除してください。");
     }
 
     private void UpdatePlayerTeamDefuse(float deltaSeconds, InputSnapshot input)
@@ -306,16 +330,25 @@ internal sealed partial class GameModel
         _bombDefuseProgress = BombDefuseSeconds;
         _credits += ObjectiveRewardCredits;
         PushActivityFeed($"解除成功。+{ObjectiveRewardCredits}c。");
-        EmitRipple(BombSitePosition(), 0.88f, RippleKind.Skill, Color.FromArgb(120, 228, 208));
+        AwardUltPoints(_selectedBossName, 1, "ボム解除");
+        var defusedSite = _armedBombSiteId ?? _attackFocusSite;
+        _armedBombSiteId = null;
+        EmitRipple(BombSitePosition(defusedSite), 0.88f, RippleKind.Skill, Color.FromArgb(120, 228, 208));
         EndRound(true, remoteFailSafe ? "味方班が遠隔停止に成功。ボムを解除しました。" : "ボム解除成功。サイトを守り切りました。");
     }
 
     private void UpdateEnemyDefuse(float deltaSeconds)
     {
+        if (_armedBombSiteId is null)
+        {
+            return;
+        }
+
+        var sitePosition = BombSitePosition(_armedBombSiteId.Value);
         var defuser = _enemies
-            .Where(enemy => enemy.IsAlive && IsInsideBombSite(enemy.Position, 10f))
-            .Where(enemy => !LivePlayerTeam().Any(attacker => attacker.IsAlive && Distance(attacker.Position, BombSitePosition()) <= 110f))
-            .OrderBy(enemy => Distance(enemy.Position, BombSitePosition()))
+            .Where(enemy => enemy.IsAlive && IsInsideBombSite(enemy.Position, _armedBombSiteId.Value, 10f))
+            .Where(enemy => !LivePlayerTeam().Any(attacker => attacker.IsAlive && Distance(attacker.Position, sitePosition) <= 110f))
+            .OrderBy(enemy => Distance(enemy.Position, sitePosition))
             .FirstOrDefault();
 
         _activePlanter = defuser;
@@ -333,7 +366,8 @@ internal sealed partial class GameModel
 
         _bombPlanted = false;
         _bombDefuseProgress = BombDefuseSeconds;
-        EmitRipple(BombSitePosition(), 0.88f, RippleKind.Skill, Color.FromArgb(255, 132, 108));
+        _armedBombSiteId = null;
+        EmitRipple(sitePosition, 0.88f, RippleKind.Skill, Color.FromArgb(255, 132, 108));
         EndRound(false, $"{defuser.Name} がボムを解除。攻撃に失敗しました。");
     }
 
@@ -372,6 +406,15 @@ internal sealed partial class GameModel
         {
             UpdatePlayerIdleState(deltaSeconds, true);
             return;
+        }
+
+        if (input.PressQ)
+        {
+            _player.Weapon = _playerPrimaryWeapon;
+        }
+        else if (input.PressE)
+        {
+            _player.Weapon = _playerSidearmWeapon;
         }
 
         UpdateShieldRegen(_player, deltaSeconds);
@@ -436,6 +479,11 @@ internal sealed partial class GameModel
         if (input.InteractHeld && IsInsideBombSite(_player.Position, 10f))
         {
             acted = true;
+        }
+
+        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && PlayerHasDirectSightTo(actor.Position)))
+        {
+            RevealEnemyToTeam(enemy);
         }
 
         UpdatePlayerIdleState(deltaSeconds, acted);
@@ -516,10 +564,10 @@ internal sealed partial class GameModel
                 RebuildEnemyPath(enemy);
             }
 
-            if (EnemyTeamAttacking() && !_bombPlanted && IsInsideBombSite(enemy.Position, 10f))
+            if (EnemyTeamAttacking() && !_bombPlanted && IsInsideBombSite(enemy.Position, _attackFocusSite, 10f))
             {
                 enemy.Path.Clear();
-                enemy.FacingAngle = MathF.Atan2(BombSitePosition().Y - enemy.Position.Y, BombSitePosition().X - enemy.Position.X);
+                enemy.FacingAngle = MathF.Atan2(BombSitePosition(_attackFocusSite).Y - enemy.Position.Y, BombSitePosition(_attackFocusSite).X - enemy.Position.X);
                 continue;
             }
 
@@ -531,7 +579,7 @@ internal sealed partial class GameModel
     {
         foreach (var structure in _structures)
         {
-            if (structure.Kind != StructureKind.StaticNest)
+            if (structure.Kind is not StructureKind.StaticNest and not StructureKind.ReconBeacon and not StructureKind.ShieldRelay)
             {
                 continue;
             }
@@ -539,8 +587,31 @@ internal sealed partial class GameModel
             structure.PulseCooldown -= deltaSeconds;
             if (structure.PulseCooldown <= 0f)
             {
-                structure.PulseCooldown = 1.05f;
-                EmitRipple(CellCenter(structure.Cell), 0.72f, RippleKind.Skill, Color.FromArgb(236, 212, 98));
+                switch (structure.Kind)
+                {
+                    case StructureKind.StaticNest:
+                        structure.PulseCooldown = 1.05f;
+                        EmitRipple(CellCenter(structure.Cell), 0.72f, RippleKind.Skill, Color.FromArgb(236, 212, 98));
+                        break;
+                    case StructureKind.ReconBeacon:
+                        structure.PulseCooldown = 1.2f;
+                        EmitRipple(CellCenter(structure.Cell), 0.82f, RippleKind.Skill, Color.FromArgb(124, 228, 255));
+                        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && Distance(actor.Position, CellCenter(structure.Cell)) <= 150f))
+                        {
+                            RevealEnemyToTeam(enemy, SharedVisionDurationSeconds + 0.8f);
+                        }
+
+                        break;
+                    case StructureKind.ShieldRelay:
+                        structure.PulseCooldown = 1.5f;
+                        EmitRipple(CellCenter(structure.Cell), 0.68f, RippleKind.Skill, Color.FromArgb(124, 255, 204));
+                        foreach (var ally in LivePlayerTeam().Where(actor => Distance(actor.Position, CellCenter(structure.Cell)) <= 130f))
+                        {
+                            ally.Shield = MathF.Min(ally.MaxShield, ally.Shield + 6f);
+                        }
+
+                        break;
+                }
             }
         }
 

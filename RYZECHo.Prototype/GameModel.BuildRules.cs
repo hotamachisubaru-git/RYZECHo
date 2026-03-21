@@ -9,7 +9,7 @@ internal sealed partial class GameModel
             return "そのセルはノー・ビルド・ゾーンです。";
         }
 
-        if (candidate.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest && ViolatesTrapDensity(candidate))
+        if (candidate.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon && ViolatesTrapDensity(candidate))
         {
             return "同カテゴリのトラップが近すぎます。デッドゾーンを空けてください。";
         }
@@ -19,9 +19,14 @@ internal sealed partial class GameModel
             return "強化扉の連結上限を超えます。";
         }
 
-        if (candidate.Kind == StructureKind.BlastDoor && !PreservesAttackRoute(candidate.Cell))
+        if (candidate.Kind == StructureKind.BlastDoor && !PreservesAttackRoutes(candidate.Cell))
         {
-            return "主要ルートを全封鎖する配置はできません。";
+            return "A/B サイトへの主要ルートを全封鎖する配置はできません。";
+        }
+
+        if (candidate.Kind == StructureKind.BlastDoor && !PreservesThreeLaneAccess(candidate.Cell))
+        {
+            return "上中下 3 レーンのいずれかを完全封鎖しています。";
         }
 
         return null;
@@ -35,7 +40,7 @@ internal sealed partial class GameModel
     private bool ViolatesTrapDensity(Structure candidate)
     {
         return _structures.Any(structure =>
-            structure.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest &&
+            structure.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon &&
             Distance(CellCenter(structure.Cell), CellCenter(candidate.Cell)) < CellSize * 2.2f);
     }
 
@@ -68,7 +73,7 @@ internal sealed partial class GameModel
         return visited.Count > 2;
     }
 
-    private bool PreservesAttackRoute(Point? candidateDoorCell = null)
+    private HashSet<Point> BuildBlockedCells(Point? candidateDoorCell = null)
     {
         var blocked = _permanentWalls.ToHashSet();
         foreach (var door in _structures.Where(structure => structure.Kind == StructureKind.BlastDoor && structure.Health > 0f))
@@ -81,7 +86,17 @@ internal sealed partial class GameModel
             blocked.Add(candidateDoorCell.Value);
         }
 
-        var target = GetBombSiteCell();
+        return blocked;
+    }
+
+    private bool PreservesAttackRoutes(Point? candidateDoorCell = null)
+    {
+        var blocked = BuildBlockedCells(candidateDoorCell);
+        return GetBombSites().All(site => HasPathToTarget(CurrentAttackerEntryCells(), site.Cell, blocked));
+    }
+
+    private bool HasPathToTarget(IEnumerable<Point> entries, Point target, HashSet<Point> blocked)
+    {
         if (blocked.Contains(target))
         {
             return false;
@@ -89,7 +104,7 @@ internal sealed partial class GameModel
 
         var frontier = new Queue<Point>();
         var visited = new HashSet<Point>();
-        foreach (var entry in CurrentAttackerEntryCells())
+        foreach (var entry in entries)
         {
             if (blocked.Contains(entry) || !visited.Add(entry))
             {
@@ -119,6 +134,70 @@ internal sealed partial class GameModel
         }
 
         return false;
+    }
+
+    private bool PreservesThreeLaneAccess(Point? candidateDoorCell = null)
+    {
+        var blocked = BuildBlockedCells(candidateDoorCell);
+        return HasLaneTraverse(blocked, 1, 3) &&
+               HasLaneTraverse(blocked, 4, 7) &&
+               HasLaneTraverse(blocked, 8, 10);
+    }
+
+    private bool HasLaneTraverse(HashSet<Point> blocked, int minY, int maxY)
+    {
+        var entries = CurrentAttackerEntryCells()
+            .Where(cell => cell.Y >= minY && cell.Y <= maxY)
+            .ToArray();
+
+        if (entries.Length == 0)
+        {
+            var startX = IsPlayerTeamAttacking() ? GridColumns - 2 : 1;
+            entries = Enumerable.Range(minY, (maxY - minY) + 1)
+                .Select(y => new Point(startX, y))
+                .Where(cell => !blocked.Contains(cell))
+                .ToArray();
+        }
+
+        var frontier = new Queue<Point>();
+        var visited = new HashSet<Point>();
+        foreach (var entry in entries)
+        {
+            if (blocked.Contains(entry) || !visited.Add(entry))
+            {
+                continue;
+            }
+
+            frontier.Enqueue(entry);
+        }
+
+        while (frontier.Count > 0)
+        {
+            var current = frontier.Dequeue();
+            if (IsLaneTraverseGoal(current))
+            {
+                return true;
+            }
+
+            foreach (var neighbor in Neighbors(current))
+            {
+                if (neighbor.Y < minY || neighbor.Y > maxY || blocked.Contains(neighbor) || !visited.Add(neighbor))
+                {
+                    continue;
+                }
+
+                frontier.Enqueue(neighbor);
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsLaneTraverseGoal(Point cell)
+    {
+        return IsPlayerTeamAttacking()
+            ? cell.X <= (GridColumns / 2)
+            : cell.X >= (GridColumns / 2) - 1;
     }
 
     private IEnumerable<Point> CurrentAttackerEntryCells()

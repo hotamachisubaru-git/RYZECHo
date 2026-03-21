@@ -11,22 +11,6 @@ internal sealed partial class GameModel
         }
     }
 
-    private static WeaponType[] WeaponSelectionOrder()
-    {
-        return
-        [
-            WeaponType.Blitz,
-            WeaponType.Monster,
-            WeaponType.Melt,
-            WeaponType.Fairy,
-            WeaponType.Giant,
-            WeaponType.Juggernaut,
-            WeaponType.Violet,
-            WeaponType.Changer,
-            WeaponType.Howl,
-        ];
-    }
-
     private string[] BossCandidateNames()
     {
         return [_player.Name, .. _allies.Select(actor => actor.Name)];
@@ -137,7 +121,7 @@ internal sealed partial class GameModel
             return 0;
         }
 
-        return actor.Type == ActorType.Enemy ? _enemyBossInvestment : _selectedBet;
+        return actor.Type == ActorType.Enemy ? _enemyBossInvestment : GetFriendlyInvestment(actor.Name);
     }
 
     private float GetActorMoveSpeedMultiplier(Actor actor)
@@ -161,16 +145,9 @@ internal sealed partial class GameModel
         return weapon is WeaponType.Fairy or WeaponType.Giant or WeaponType.Juggernaut;
     }
 
-    private void CycleWeapon(int direction)
-    {
-        var order = WeaponSelectionOrder();
-        var index = Array.IndexOf(order, _selectedWeapon);
-        _selectedWeapon = order[(index + direction + order.Length) % order.Length];
-    }
-
     private int AffordableCredits()
     {
-        return Math.Max(0, _credits - _weaponStats[_selectedWeapon].Cost);
+        return Math.Max(0, _credits - _weaponStats[_selectedWeapon].Cost - _weaponStats[_selectedSidearmWeapon].Cost);
     }
 
     private Actor? SelectedBoss()
@@ -267,7 +244,7 @@ internal sealed partial class GameModel
 
     private Point PickPathGoal(Actor enemy)
     {
-        var siteCell = WorldToCell(BombSitePosition());
+        var siteCell = GetBombSite(_bombPlanted && _armedBombSiteId is not null ? _armedBombSiteId.Value : _attackFocusSite).Cell;
         var playerTeam = LivePlayerTeam()
             .OrderBy(actor => Distance(enemy.Position, actor.Position))
             .ToList();
@@ -347,7 +324,7 @@ internal sealed partial class GameModel
 
     private Point PickAllyAttackGoal(Actor ally)
     {
-        var siteCell = WorldToCell(BombSitePosition());
+        var siteCell = GetBombSite(_bombPlanted && _armedBombSiteId is not null ? _armedBombSiteId.Value : _attackFocusSite).Cell;
         var direction = AttackApproachDirection();
         var candidates = ally.Name switch
         {
@@ -423,10 +400,17 @@ internal sealed partial class GameModel
             ? LivePlayerTeam()
             : _enemies.Where(actor => actor.IsAlive);
 
-        return candidates
+        var target = candidates
             .Where(actor => Distance(origin, actor.Position) <= range && HasLineOfSight(origin, actor.Position))
             .OrderBy(actor => Distance(origin, actor.Position))
             .FirstOrDefault();
+
+        if (target is not null && sourceType != ActorType.Enemy && target.Type == ActorType.Enemy)
+        {
+            RevealEnemyToTeam(target);
+        }
+
+        return target;
     }
 
     private Actor? PickEnemyTarget(Actor enemy)
@@ -505,6 +489,11 @@ internal sealed partial class GameModel
 
     private bool PlayerCanSee(Actor enemy)
     {
+        if (IsEnemySharedVisible(enemy))
+        {
+            return true;
+        }
+
         if (!PlayerHasDirectSightTo(enemy.Position))
         {
             return false;
@@ -773,7 +762,7 @@ internal sealed partial class GameModel
 
     private int AttackApproachDirection()
     {
-        return GetBombSiteCell().X < GridColumns / 2 ? 1 : -1;
+        return GetBombSite(_bombPlanted && _armedBombSiteId is not null ? _armedBombSiteId.Value : _attackFocusSite).Cell.X < GridColumns / 2 ? 1 : -1;
     }
 
     private Point[] GetEnemySetupCells()

@@ -6,12 +6,20 @@ internal sealed partial class GameModel
 {
     private bool CanPlayerDefuse()
     {
-        return _bombPlanted && _player.IsAlive && IsInsideBombSite(_player.Position, 10f);
+        return _bombPlanted &&
+               _player.IsAlive &&
+               _armedBombSiteId is not null &&
+               IsInsideBombSite(_player.Position, _armedBombSiteId.Value, 10f);
     }
 
     private bool IsInsideBombSite(PointF position, float padding = 0f)
     {
-        return Distance(position, BombSitePosition()) <= BombSiteRadius + padding;
+        return GetBombSites().Any(site => IsInsideBombSite(position, site.Id, padding));
+    }
+
+    private bool IsInsideBombSite(PointF position, ObjectiveSiteId siteId, float padding = 0f)
+    {
+        return Distance(position, BombSitePosition(siteId)) <= BombSiteRadius + padding;
     }
 
     private void BuildMapGeometry()
@@ -59,8 +67,10 @@ internal sealed partial class GameModel
 
         foreach (var protectedCell in new[]
         {
-            new Point(14, 6), new Point(13, 6), new Point(14, 5), new Point(14, 7),
-            MirrorCellHorizontally(new Point(14, 6)), MirrorCellHorizontally(new Point(13, 6)), MirrorCellHorizontally(new Point(14, 5)), MirrorCellHorizontally(new Point(14, 7)),
+            new Point(14, 4), new Point(13, 4), new Point(14, 5), new Point(14, 3),
+            new Point(14, 8), new Point(13, 8), new Point(14, 7), new Point(14, 9),
+            MirrorCellHorizontally(new Point(14, 4)), MirrorCellHorizontally(new Point(13, 4)), MirrorCellHorizontally(new Point(14, 5)), MirrorCellHorizontally(new Point(14, 3)),
+            MirrorCellHorizontally(new Point(14, 8)), MirrorCellHorizontally(new Point(13, 8)), MirrorCellHorizontally(new Point(14, 7)), MirrorCellHorizontally(new Point(14, 9)),
             new Point(1, 2), new Point(2, 2), new Point(1, 4), new Point(2, 4), new Point(1, 7), new Point(2, 7), new Point(1, 9), new Point(2, 9),
             new Point(13, 6), new Point(13, 4), new Point(13, 8), new Point(12, 6),
             new Point(12, 6), new Point(12, 4), new Point(12, 8), new Point(11, 6),
@@ -113,7 +123,7 @@ internal sealed partial class GameModel
                 MaxHealth = 1f,
                 PulseCooldown = 0f,
             },
-            _ => new Structure
+            BuildToolKind.StaticNest => new Structure
             {
                 Kind = StructureKind.StaticNest,
                 Cell = cell,
@@ -122,6 +132,26 @@ internal sealed partial class GameModel
                 Health = 1f,
                 MaxHealth = 1f,
                 PulseCooldown = 0.3f,
+            },
+            BuildToolKind.ReconBeacon => new Structure
+            {
+                Kind = StructureKind.ReconBeacon,
+                Cell = cell,
+                APCost = 4,
+                Label = "リコンビーコン",
+                Health = 1f,
+                MaxHealth = 1f,
+                PulseCooldown = 0.45f,
+            },
+            _ => new Structure
+            {
+                Kind = StructureKind.ShieldRelay,
+                Cell = cell,
+                APCost = 5,
+                Label = "シールドリレー",
+                Health = 90f,
+                MaxHealth = 90f,
+                PulseCooldown = 0.6f,
             },
         };
     }
@@ -301,6 +331,44 @@ internal sealed partial class GameModel
                 ProjectileRange = 375f,
                 ScopedFov = false,
             },
+            [WeaponType.Pulse] = new()
+            {
+                Type = WeaponType.Pulse,
+                Label = "パルス / 安定型 HG",
+                ShortLabel = "パルス",
+                Code = "PLS",
+                Category = "サブウェポン",
+                VisionClass = "中",
+                Cost = 90,
+                MagazineAmmo = 12,
+                ReserveAmmo = 36,
+                VisionRange = 260f,
+                HearingMultiplier = 1.05f,
+                FireCooldown = 0.24f,
+                Damage = 12f,
+                MoveSpeed = 238f,
+                ProjectileRange = 230f,
+                ScopedFov = false,
+            },
+            [WeaponType.Shard] = new()
+            {
+                Type = WeaponType.Shard,
+                Label = "シャード / 速射型 HG",
+                ShortLabel = "シャード",
+                Code = "SHD",
+                Category = "サブウェポン",
+                VisionClass = "中",
+                Cost = 130,
+                MagazineAmmo = 18,
+                ReserveAmmo = 54,
+                VisionRange = 250f,
+                HearingMultiplier = 1.1f,
+                FireCooldown = 0.18f,
+                Damage = 9f,
+                MoveSpeed = 244f,
+                ProjectileRange = 215f,
+                ScopedFov = false,
+            },
         };
     }
 
@@ -368,12 +436,17 @@ internal sealed partial class GameModel
 
     private Point GetBombSiteCell()
     {
-        return IsPlayerTeamAttacking() ? MirrorCellHorizontally(new Point(14, 6)) : new Point(14, 6);
+        return GetBombSite(CurrentObjectiveSiteId()).Cell;
     }
 
     private PointF BombSitePosition()
     {
-        return CellCenter(GetBombSiteCell());
+        return BombSitePosition(CurrentObjectiveSiteId());
+    }
+
+    private PointF BombSitePosition(ObjectiveSiteId siteId)
+    {
+        return CellCenter(GetBombSite(siteId).Cell);
     }
 
     private static Point MirrorCellHorizontally(Point cell)
@@ -435,7 +508,9 @@ internal sealed partial class GameModel
         {
             BuildToolKind.BlastDoor => "防壁ドア / 2AP",
             BuildToolKind.HoneyTrap => "ハチミツトラップ / 3AP",
-            _ => "スタティックネスト / 4AP",
+            BuildToolKind.StaticNest => "スタティックネスト / 4AP",
+            BuildToolKind.ReconBeacon => "リコンビーコン / 4AP",
+            _ => "シールドリレー / 5AP",
         };
     }
 

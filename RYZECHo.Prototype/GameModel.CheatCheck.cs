@@ -131,6 +131,10 @@ internal sealed partial class GameModel
         _currentRound = Math.Clamp(_currentRound, 1, 99);
         _playerRoundWins = Math.Clamp(_playerRoundWins, 0, 99);
         _enemyRoundWins = Math.Clamp(_enemyRoundWins, 0, 99);
+        _selectedWeapon = SanitizeWeaponType(_selectedWeapon, WeaponType.Giant);
+        _selectedSidearmWeapon = SanitizeWeaponType(_selectedSidearmWeapon, WeaponType.Pulse);
+        _playerPrimaryWeapon = SanitizeWeaponType(_playerPrimaryWeapon, WeaponType.Giant);
+        _playerSidearmWeapon = SanitizeWeaponType(_playerSidearmWeapon, WeaponType.Pulse);
         _selectedBet = Math.Clamp(_selectedBet, 0, IntegrityHardCreditsCap);
         _enemyBossInvestment = Math.Clamp(_enemyBossInvestment, 0, 1_200);
         _matchTeamEliminations = Math.Clamp(_matchTeamEliminations, 0, 999);
@@ -263,6 +267,8 @@ internal sealed partial class GameModel
             StructureKind.BlastDoor => CreateStructure(BuildToolKind.BlastDoor, structure.Cell),
             StructureKind.HoneyTrap => CreateStructure(BuildToolKind.HoneyTrap, structure.Cell),
             StructureKind.StaticNest => CreateStructure(BuildToolKind.StaticNest, structure.Cell),
+            StructureKind.ReconBeacon => CreateStructure(BuildToolKind.ReconBeacon, structure.Cell),
+            StructureKind.ShieldRelay => CreateStructure(BuildToolKind.ShieldRelay, structure.Cell),
             _ => structure,
         };
 

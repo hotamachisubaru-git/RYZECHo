@@ -6,14 +6,14 @@ internal sealed partial class GameModel
     {
         return _phase switch
         {
-            GamePhase.Bet => _selectedWeapon == weaponType,
+            GamePhase.Bet => SelectedLoadoutWeapon() == weaponType,
             _ => _player.Weapon == weaponType,
         };
     }
 
     private WeaponType DisplayedWeaponType()
     {
-        return _phase == GamePhase.Bet ? _selectedWeapon : _player.Weapon;
+        return _phase == GamePhase.Bet ? SelectedLoadoutWeapon() : _player.Weapon;
     }
 
     private string WeaponDisplayName(WeaponType weaponType)
@@ -128,6 +128,7 @@ internal sealed partial class GameModel
             _matchTeamEliminations++;
             _credits += KillRewardCredits;
             PushActivityFeed($"{attacker.Name} が {victim.Name} を撃破。+{KillRewardCredits}c。");
+            AwardUltPoints(attacker.Name, 1, "撃破");
 
             if (attacker.IsBoss)
             {
@@ -145,6 +146,7 @@ internal sealed partial class GameModel
             {
                 _credits += BossEliminationBonusCredits;
                 PushActivityFeed($"敵ボス {victim.Name} を撃破。+{BossEliminationBonusCredits}c を獲得。");
+                AwardUltPoints(_selectedBossName, 2, "敵ボス撃破");
             }
 
             return;
@@ -220,9 +222,12 @@ internal sealed partial class GameModel
     private void StartRound()
     {
         EnsureBossSelectionAvailable();
+        EnsureFriendlyEconomyState();
+        SyncSelectedBetTotal();
 
-        var weapon = _weaponStats[_selectedWeapon];
-        var totalCost = weapon.Cost + _selectedBet;
+        var primaryWeapon = _weaponStats[_selectedWeapon];
+        var sidearmWeapon = _weaponStats[_selectedSidearmWeapon];
+        var totalCost = primaryWeapon.Cost + sidearmWeapon.Cost + _selectedBet;
         if (totalCost > _credits)
         {
             SetResultMessage("所持クレジットが足りません。投資額か装備を見直してください。");
@@ -236,10 +241,15 @@ internal sealed partial class GameModel
         _playerIdleSeconds = 0f;
         _coreHealth = 180f;
         _bombPlanted = false;
+        _armedBombSiteId = null;
+        _attackFocusSite = ChooseAttackFocusSite();
         _bombPlantProgress = 0f;
         _bombDefuseProgress = 0f;
         _activePlanter = null;
-        _player.Weapon = _selectedWeapon;
+        _playerPrimaryWeapon = _selectedWeapon;
+        _playerSidearmWeapon = _selectedSidearmWeapon;
+        _selectedLoadoutFocus = LoadoutFocus.Primary;
+        _player.Weapon = _playerPrimaryWeapon;
         _player.Health = _player.MaxHealth;
         _player.Shield = _player.MaxShield;
         _player.ShieldRegenDelay = 0f;
@@ -270,6 +280,7 @@ internal sealed partial class GameModel
 
         _enemies.Clear();
         _ripples.Clear();
+        ResetSharedVision();
         CreateEnemySquad();
         _roundTimer = RoundDurationSeconds;
         _pingCooldown = 0f;
@@ -280,8 +291,8 @@ internal sealed partial class GameModel
         _showBriefing = false;
         _resultDestination = GamePhase.Bet;
         SetResultMessage(IsPlayerTeamAttacking()
-            ? $"第{_currentRound}ラウンド開始。攻撃側としてサイトへ進入し、ボムを設置してください。投資 {_selectedBet}c で {BossBuffSummary(_selectedBet)}。"
-            : $"第{_currentRound}ラウンド開始。防衛側としてサイトを守り、設置を阻止してください。投資 {_selectedBet}c で {BossBuffSummary(_selectedBet)}。");
+            ? $"第{_currentRound}ラウンド開始。攻撃側としてサイト {_attackFocusSite switch { ObjectiveSiteId.Alpha => "A", _ => "B" }} を主軸に進入し、ボムを設置してください。総投資 {_selectedBet}c / ボス投資 {SelectedBossInvestment()}c。"
+            : $"第{_currentRound}ラウンド開始。防衛側として A/B サイトを守り、設置を阻止してください。総投資 {_selectedBet}c / ボス投資 {SelectedBossInvestment()}c。");
     }
 
     private void EndRound(bool won, string? outcomeSummary = null)
@@ -379,9 +390,12 @@ internal sealed partial class GameModel
     {
         _phase = GamePhase.Bet;
         EnsureBossSelectionAvailable();
-        _selectedBet = Math.Min(OptimalBossInvestment, AffordableCredits());
+        EnsureFriendlyEconomyState();
+        SyncSelectedBetTotal();
+        _selectedLoadoutFocus = LoadoutFocus.Primary;
         _resultDestination = GamePhase.Bet;
         _bombPlanted = false;
+        _armedBombSiteId = null;
         _bombPlantProgress = 0f;
         _bombDefuseProgress = 0f;
         _activePlanter = null;
@@ -397,10 +411,15 @@ internal sealed partial class GameModel
         _enemyRoundWins = 0;
         _selectedBet = OptimalBossInvestment;
         _selectedWeapon = WeaponType.Giant;
+        _selectedSidearmWeapon = WeaponType.Pulse;
+        _playerPrimaryWeapon = WeaponType.Giant;
+        _playerSidearmWeapon = WeaponType.Pulse;
+        _selectedLoadoutFocus = LoadoutFocus.Primary;
         _selectedBuildTool = BuildToolKind.BlastDoor;
         _selectedBossName = "あなた";
         _coreHealth = 180f;
         _bombPlanted = false;
+        _armedBombSiteId = null;
         _bombPlantProgress = 0f;
         _bombDefuseProgress = 0f;
         _activePlanter = null;
@@ -418,13 +437,20 @@ internal sealed partial class GameModel
         _structures.Clear();
         _ripples.Clear();
         _enemies.Clear();
+        _sharedVisionTimers.Clear();
         _activityFeed.Clear();
         _bossSelectionCounts.Clear();
+        _bossInvestments.Clear();
+        _ultPoints.Clear();
 
         foreach (var name in BossCandidateNames())
         {
             _bossSelectionCounts[name] = 0;
+            _bossInvestments[name] = name == _player.Name ? OptimalBossInvestment : 0;
+            _ultPoints[name] = 0;
         }
+
+        SyncSelectedBetTotal();
 
         SetResultMessage("陣地構築は一度だけ。第1-4ラウンドは防衛、第5ラウンド以降は攻撃へ切り替わります。ボス投資は 300 円付近が最効率です。");
 
@@ -432,7 +458,7 @@ internal sealed partial class GameModel
         _player.Shield = _player.MaxShield;
         _player.ShieldRegenDelay = 0f;
         _player.Position = CellCenter(_player.HomeCell);
-        _player.Weapon = WeaponType.Giant;
+        _player.Weapon = _playerPrimaryWeapon;
         _player.PathCooldown = 0f;
         _player.Path.Clear();
 

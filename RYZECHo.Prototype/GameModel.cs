@@ -12,6 +12,7 @@ public readonly record struct InputSnapshot(
     bool Press2,
     bool Press3,
     bool Press4,
+    bool Press5,
     bool PressQ,
     bool PressE,
     bool PressR,
@@ -34,6 +35,8 @@ internal enum BuildToolKind
     BlastDoor,
     HoneyTrap,
     StaticNest,
+    ReconBeacon,
+    ShieldRelay,
 }
 
 internal enum WeaponType
@@ -47,6 +50,8 @@ internal enum WeaponType
     Violet,
     Changer,
     Howl,
+    Pulse,
+    Shard,
 }
 
 internal enum RippleKind
@@ -74,7 +79,23 @@ internal enum StructureKind
     BlastDoor,
     HoneyTrap,
     StaticNest,
+    ReconBeacon,
+    ShieldRelay,
 }
+
+internal enum ObjectiveSiteId
+{
+    Alpha,
+    Bravo,
+}
+
+internal enum LoadoutFocus
+{
+    Primary,
+    Sidearm,
+}
+
+internal readonly record struct ObjectiveSite(ObjectiveSiteId Id, string Label, Point Cell);
 
 internal sealed class WeaponStats
 {
@@ -168,9 +189,11 @@ internal sealed partial class GameModel
     private const int BossEliminationBonusCredits = 800;
     private const int MaxBossSelectionsPerActor = 2;
     private const int OptimalBossInvestment = 300;
+    private const int MaxUltPoints = 7;
     private const float DefaultFovDegrees = 120f;
     private const float SniperFovDegrees = 100f;
     private const float SoundCueLifetimeSeconds = 0.3f;
+    private const float SharedVisionDurationSeconds = 1.4f;
     private const float RoundDurationSeconds = 50f;
     private const float BombPlantSeconds = 3f;
     private const float BombFuseSeconds = 35f;
@@ -196,12 +219,19 @@ internal sealed partial class GameModel
     private readonly List<Point> _spawnCells = [];
     private readonly List<string> _activityFeed = [];
     private readonly Dictionary<string, int> _bossSelectionCounts = [];
+    private readonly Dictionary<string, int> _bossInvestments = [];
+    private readonly Dictionary<string, int> _ultPoints = [];
+    private readonly Dictionary<string, float> _sharedVisionTimers = [];
     private readonly ProgressProfile _profile = LoadProgressProfile();
     private Size _layoutSize = new(DefaultClientWidth, DefaultClientHeight);
 
     private GamePhase _phase = GamePhase.Construct;
     private BuildToolKind _selectedBuildTool = BuildToolKind.BlastDoor;
     private WeaponType _selectedWeapon = WeaponType.Giant;
+    private WeaponType _selectedSidearmWeapon = WeaponType.Pulse;
+    private WeaponType _playerPrimaryWeapon = WeaponType.Giant;
+    private WeaponType _playerSidearmWeapon = WeaponType.Pulse;
+    private LoadoutFocus _selectedLoadoutFocus = LoadoutFocus.Primary;
     private int _buildPoints = 12;
     private int _credits = StartingCredits;
     private int _currentRound = 1;
@@ -224,6 +254,8 @@ internal sealed partial class GameModel
     private string _selectedBossName = "あなた";
     private string _lastProgressionSummary = string.Empty;
     private string _resultMessage = "最初の構築が、全ラウンドを支配する。";
+    private ObjectiveSiteId _attackFocusSite = ObjectiveSiteId.Alpha;
+    private ObjectiveSiteId? _armedBombSiteId;
     private bool _showBriefing = true;
     private bool _bombPlanted;
     private bool _isOvertime;
@@ -351,6 +383,8 @@ internal sealed partial class GameModel
         {
             BuildToolKind.BlastDoor => BuildToolKind.HoneyTrap,
             BuildToolKind.HoneyTrap => BuildToolKind.StaticNest,
+            BuildToolKind.StaticNest => BuildToolKind.ReconBeacon,
+            BuildToolKind.ReconBeacon => BuildToolKind.ShieldRelay,
             _ => BuildToolKind.BlastDoor,
         };
     }
