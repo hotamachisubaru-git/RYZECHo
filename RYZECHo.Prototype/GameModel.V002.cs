@@ -92,8 +92,6 @@ internal sealed partial class GameModel
                 _ultPoints[actorName] = 0;
             }
         }
-
-        SyncSelectedBetTotal();
     }
 
     private int GetFriendlyInvestment(string actorName)
