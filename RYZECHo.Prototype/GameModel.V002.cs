@@ -98,7 +98,7 @@ internal sealed partial class GameModel
 
     private int GetFriendlyInvestment(string actorName)
     {
-        EnsureFriendlyEconomyState();
+        
         return _bossInvestments.TryGetValue(actorName, out var amount) ? amount : 0;
     }
 
@@ -122,7 +122,7 @@ internal sealed partial class GameModel
 
     private int TotalSelectedInvestment()
     {
-        EnsureFriendlyEconomyState();
+        
         return BossCandidateNames().Sum(GetFriendlyInvestment);
     }
 
