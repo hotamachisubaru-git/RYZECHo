@@ -3,13 +3,13 @@
 `RYZECHØ` は、120 度の限定視界、音の可視化、初期マップエディット、ボス投資経済を核にした 4v4 タクティカルシューターのプロジェクトです。  
 このリポジトリには、WinForms 製のプレイアブルプロトタイプと、今後の実装基準になる仕様書を置いています。
 
-現在の公開版は `RYZECHo.Prototype v0.0.2` です。完成版 FPS ではなく、A/B 2 サイト構成のタクティカルスライスを先に触れるための Windows 向けプロトタイプとして扱います。
+現在の公開版は `RYZECHo.Prototype v0.0.3` です。完成版 FPS ではなく、A/B 2 サイト構成のタクティカルスライスを先に触れるための Windows 向けプロトタイプとして扱います。
 
 ## まず見る場所
 
 - [ゲーム仕様書](docs/game-spec.md)
 - [プロトタイプ差分メモ](docs/prototype-alignment.md)
-- [v0.0.2 リリースノート](docs/release-v0.0.2.md)
+- [v0.0.3 リリースノート](docs/release-v0.0.3.md)
 
 `docs/game-spec.md` を正本仕様として扱います。現行プロトタイプと仕様が食い違う場合は、コードより仕様書を優先してください。
 
@@ -80,7 +80,7 @@ dotnet run --project .\RYZECHo.Prototype\RYZECHo.Prototype.csproj
 - 構築レギュレーションは 3 レーンを保つ近似判定で、最終的なマップ審査ツールではありません
 - プロフィール保存はローカル JSON ベースで、アカウント同期やサーバー権威の進行管理は未実装です
 
-詳細は [v0.0.2 リリースノート](docs/release-v0.0.2.md) と [プロトタイプ差分メモ](docs/prototype-alignment.md) を参照してください。
+詳細は [v0.0.3 リリースノート](docs/release-v0.0.3.md) と [プロトタイプ差分メモ](docs/prototype-alignment.md) を参照してください。
 
 ## Assets
 
