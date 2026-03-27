@@ -45,7 +45,9 @@ internal sealed partial class GameModel
                         return profile;
                     }
 
-                    ForceTerminateForIntegrityViolation("保存データ整合性", "prototype-profile.json の署名検証に失敗しました。");
+                    profile.IntegritySalt = string.Empty;
+                    profile.IntegrityStamp = string.Empty;
+                    return profile;
                 }
             }
         }

@@ -92,8 +92,6 @@ internal sealed partial class GameModel
                 _ultPoints[actorName] = 0;
             }
         }
-
-        SyncSelectedBetTotal();
     }
 
     private int GetFriendlyInvestment(string actorName)
@@ -123,7 +121,8 @@ internal sealed partial class GameModel
     private int TotalSelectedInvestment()
     {
         EnsureFriendlyEconomyState();
-        return BossCandidateNames().Sum(GetFriendlyInvestment);
+        return BossCandidateNames()
+            .Sum(actorName => _bossInvestments.TryGetValue(actorName, out var amount) ? amount : 0);
     }
 
     private int SelectedBossInvestment()

@@ -33,7 +33,7 @@ partial class GameForm
         MinimumSize = new Size(1456, 999);
         Name = "GameForm";
         StartPosition = FormStartPosition.CenterScreen;
-        Text = "RYZECHØ Prototype v0.0.2";
+        Text = "RYZECHØ Prototype v0.0.3";
         ResumeLayout(false);
     }
 }
