@@ -41,6 +41,8 @@ internal sealed partial class GameModel
     private const float WorldPerspectiveShearX = GameLayout.WorldPerspectiveShearX;
     private const float WorldPerspectiveTopInset = GameLayout.WorldPerspectiveTopInset;
     private const float HuntCameraZoom = GameLayout.HuntCameraZoom;
+    private const float HuntVisibleWorldFractionX = GameLayout.HuntVisibleWorldFractionX;
+    private const float HuntVisibleWorldFractionY = GameLayout.HuntVisibleWorldFractionY;
     private const float HuntCameraTargetX = GameLayout.HuntCameraTargetX;
     private const float HuntCameraTargetY = GameLayout.HuntCameraTargetY;
 

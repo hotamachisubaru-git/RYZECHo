@@ -16,9 +16,11 @@ internal static class GameLayout
     public const float WorldPerspectiveScaleY = 0.78f;
     public const float WorldPerspectiveShearX = 0.22f;
     public const float WorldPerspectiveTopInset = 10f;
-    public const float HuntCameraZoom = 1.82f;
+    public const float HuntCameraZoom = 3.15f;
+    public const float HuntVisibleWorldFractionX = 0.55f;
+    public const float HuntVisibleWorldFractionY = 0.62f;
     public const float HuntCameraTargetX = 0.5f;
-    public const float HuntCameraTargetY = 0.52f;
+    public const float HuntCameraTargetY = 0.54f;
 }
 
 internal static class GameRules

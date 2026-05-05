@@ -23,7 +23,7 @@ internal sealed partial class GameModel
         332);
 
     private Rectangle MinimapBounds => _phase == GamePhase.Hunt
-        ? new(_layoutSize.Width - 268, _layoutSize.Height - 236, 244, 212)
+        ? new(_layoutSize.Width - 198, _layoutSize.Height - 174, 174, 150)
         : new(WorldMargin, 18, 176, 140);
 
     private Rectangle TimerBounds => _phase == GamePhase.Hunt

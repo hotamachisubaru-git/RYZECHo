@@ -100,11 +100,19 @@ internal sealed partial class GameModel
             cameraBounds.Left + (cameraBounds.Width * HuntCameraTargetX),
             cameraBounds.Top + (cameraBounds.Height * HuntCameraTargetY));
 
+        var zoom = ActiveHuntCameraZoom(cameraBounds);
         matrix.Translate(-focusScreen.X, -focusScreen.Y, MatrixOrder.Append);
-        matrix.Scale(HuntCameraZoom, HuntCameraZoom, MatrixOrder.Append);
+        matrix.Scale(zoom, zoom, MatrixOrder.Append);
         matrix.Translate(focusScreen.X, focusScreen.Y, MatrixOrder.Append);
         matrix.Translate(targetScreen.X - focusScreen.X, targetScreen.Y - focusScreen.Y, MatrixOrder.Append);
         return matrix;
+    }
+
+    private float ActiveHuntCameraZoom(RectangleF cameraBounds)
+    {
+        var zoomForWidth = cameraBounds.Width / MathF.Max(1f, WorldVisualBounds.Width * HuntVisibleWorldFractionX);
+        var zoomForHeight = cameraBounds.Height / MathF.Max(1f, WorldVisualBounds.Height * HuntVisibleWorldFractionY);
+        return MathF.Max(HuntCameraZoom, MathF.Max(zoomForWidth, zoomForHeight));
     }
 
     private Matrix CreateWorldProjectionMatrix()

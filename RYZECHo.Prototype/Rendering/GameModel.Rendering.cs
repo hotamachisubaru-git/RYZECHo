@@ -11,7 +11,10 @@ internal sealed partial class GameModel
         using var vignette = new LinearGradientBrush(clientBounds, Color.FromArgb(0, 86, 229, 247), Color.FromArgb(26, 20, 54, 84), 22f);
         graphics.FillRectangle(vignette, clientBounds);
 
-        DrawWorldDropShadow(graphics);
+        if (_phase != GamePhase.Hunt || !_player.IsAlive)
+        {
+            DrawWorldDropShadow(graphics);
+        }
 
         var worldMousePosition = ScreenToWorldPoint(mousePosition);
         var graphicsState = graphics.Save();
@@ -21,11 +24,13 @@ internal sealed partial class GameModel
             DrawWorldPanel(graphics);
             DrawStructures(graphics);
             DrawCore(graphics);
+            DrawCombatFog(graphics);
             DrawRipples(graphics);
             DrawActors(graphics, worldMousePosition);
         }
 
         graphics.Restore(graphicsState);
+        DrawCombatScreenVignette(graphics, clientBounds);
         DrawHud(graphics);
 
         if (_showBriefing)
