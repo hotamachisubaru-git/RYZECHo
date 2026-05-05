@@ -1,7 +1,7 @@
 # RYZECHØ
 
 `RYZECHØ` は、120 度の限定視界、音の可視化、初期マップエディット、ボス投資経済を核にした 4v4 タクティカルシューターのプロジェクトです。  
-このリポジトリには、WinForms 製のプレイアブルプロトタイプと、今後の実装基準になる仕様書を置いています。
+このリポジトリには、MonoGame 製のプレイアブルプロトタイプと、今後の実装基準になる仕様書を置いています。
 
 現在の公開版は `RYZECHo.Prototype v0.0.3` です。完成版 FPS ではなく、A/B 2 サイト構成のタクティカルスライスを先に触れるための Windows 向けプロトタイプとして扱います。
 
@@ -9,6 +9,7 @@
 
 - [ゲーム仕様書](docs/game-spec.md)
 - [プロトタイプ差分メモ](docs/prototype-alignment.md)
+- [プロジェクト再設計メモ](docs/architecture-redesign.md)
 - [v0.0.3 リリースノート](docs/release-v0.0.3.md)
 
 `docs/game-spec.md` を正本仕様として扱います。現行プロトタイプと仕様が食い違う場合は、コードより仕様書を優先してください。
@@ -29,9 +30,14 @@
 
 ## 技術構成
 
-- `.NET 10`
-- `Windows Forms`
-- C# と GDI+ による描画
+- `.NET 9`
+- `MonoGame.Framework.DesktopGL`
+- `FontStashSharp.MonoGame`
+- C# と MonoGame プリミティブによる描画
+
+### 再設計方針
+
+現在の MonoGame プロトタイプは、プレイ可能状態を保ちながら段階的に責務分離しています。画面寸法、グリッド、試合ルール、経済、視野、固定ロスターは `Domain` 側の `GameLayout` / `GameRules` / `RosterCatalog` に集約し、`GameModel` はシミュレーション状態とフェーズ進行に寄せていきます。
 
 ## 起動
 
@@ -74,7 +80,7 @@ dotnet run --project .\RYZECHo.Prototype\RYZECHo.Prototype.csproj
 
 ## 既知の制限
 
-- WinForms のトップダウン戦術スライスで、完成版の 3D FPS や本番向けフロントエンドではありません
+- MonoGame のトップダウン戦術スライスで、完成版の 3D FPS や本番向けフロントエンドではありません
 - エージェント 6 名の固有スキルと、ULT を消費する本実装は Unity 側で行う前提です
 - マップは固定の A/B 2 サイト構成で、完全な本番マッププールやオンライン対戦は未実装です
 - 構築レギュレーションは 3 レーンを保つ近似判定で、最終的なマップ審査ツールではありません

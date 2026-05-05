@@ -1,0 +1,142 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using XnaColor = Microsoft.Xna.Framework.Color;
+
+namespace RYZECHo.Prototype;
+
+public class Game1 : Game
+{
+    private readonly GameModel _game = new();
+    private readonly GraphicsDeviceManager _graphics;
+    private KeyboardState _previousKeyboard;
+    private MouseState _previousMouse;
+    private SpriteBatch? _spriteBatch;
+    private Graphics? _renderer;
+
+    public Game1()
+    {
+        _graphics = new GraphicsDeviceManager(this);
+        Content.RootDirectory = "Assets";
+        IsMouseVisible = true;
+
+        _graphics.PreferredBackBufferWidth = GameLayout.DefaultClientWidth;
+        _graphics.PreferredBackBufferHeight = GameLayout.DefaultClientHeight;
+        Window.AllowUserResizing = true;
+        Window.Title = "RYZECHØ Prototype v0.0.3";
+    }
+
+    protected override void Initialize()
+    {
+        _previousKeyboard = Keyboard.GetState();
+        _previousMouse = Mouse.GetState();
+        base.Initialize();
+    }
+
+    protected override void LoadContent()
+    {
+        _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _renderer = new Graphics(GraphicsDevice, _spriteBatch);
+    }
+
+    protected override void Update(GameTime gameTime)
+    {
+        var keyboard = Keyboard.GetState();
+        var mouse = Mouse.GetState();
+
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyboard.IsKeyDown(Keys.Escape))
+        {
+            Exit();
+            return;
+        }
+
+        var mousePosition = new Point(mouse.X, mouse.Y);
+
+        if (IsNewLeftClick(mouse))
+        {
+            _game.HandleLeftClick(mousePosition);
+        }
+
+        if (IsNewRightClick(mouse))
+        {
+            _game.HandleRightClick(mousePosition);
+        }
+
+        if (IsNewKeyPress(keyboard, Keys.Tab))
+        {
+            _game.CycleBuildTool();
+        }
+
+        if (IsNewKeyPress(keyboard, Keys.Space))
+        {
+            _game.ToggleBriefing();
+        }
+
+        var deltaSeconds = Math.Clamp((float)gameTime.ElapsedGameTime.TotalSeconds, 0.001f, 0.05f);
+        _game.Update(deltaSeconds, CaptureInput(keyboard, mouse, mousePosition));
+
+        _previousKeyboard = keyboard;
+        _previousMouse = mouse;
+        base.Update(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        GraphicsDevice.Clear(XnaColor.Black);
+
+        if (_renderer is not null)
+        {
+            var viewport = GraphicsDevice.Viewport;
+            _renderer.BeginFrame();
+            _game.Render(
+                _renderer,
+                new Rectangle(0, 0, viewport.Width, viewport.Height),
+                new Point(Mouse.GetState().X, Mouse.GetState().Y));
+            _renderer.EndFrame();
+        }
+
+        base.Draw(gameTime);
+    }
+
+    protected override void UnloadContent()
+    {
+        _renderer?.Dispose();
+        _renderer = null;
+        base.UnloadContent();
+    }
+
+    private InputSnapshot CaptureInput(KeyboardState keyboard, MouseState mouse, Point mousePosition)
+    {
+        return new InputSnapshot(
+            keyboard.IsKeyDown(Keys.W),
+            keyboard.IsKeyDown(Keys.A),
+            keyboard.IsKeyDown(Keys.S),
+            keyboard.IsKeyDown(Keys.D),
+            IsNewKeyPress(keyboard, Keys.A),
+            IsNewKeyPress(keyboard, Keys.D),
+            IsNewKeyPress(keyboard, Keys.Enter),
+            IsNumberPressed(keyboard, Keys.D1, Keys.NumPad1),
+            IsNumberPressed(keyboard, Keys.D2, Keys.NumPad2),
+            IsNumberPressed(keyboard, Keys.D3, Keys.NumPad3),
+            IsNumberPressed(keyboard, Keys.D4, Keys.NumPad4),
+            IsNumberPressed(keyboard, Keys.D5, Keys.NumPad5),
+            IsNewKeyPress(keyboard, Keys.Q),
+            IsNewKeyPress(keyboard, Keys.E),
+            IsNewKeyPress(keyboard, Keys.R),
+            mouse.LeftButton == ButtonState.Pressed,
+            keyboard.IsKeyDown(Keys.F),
+            mousePosition);
+    }
+
+    private bool IsNumberPressed(KeyboardState keyboard, Keys topRow, Keys numberPad) =>
+        IsNewKeyPress(keyboard, topRow) || IsNewKeyPress(keyboard, numberPad);
+
+    private bool IsNewKeyPress(KeyboardState keyboard, Keys key) =>
+        keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
+
+    private bool IsNewLeftClick(MouseState mouse) =>
+        mouse.LeftButton == ButtonState.Pressed && _previousMouse.LeftButton == ButtonState.Released;
+
+    private bool IsNewRightClick(MouseState mouse) =>
+        mouse.RightButton == ButtonState.Pressed && _previousMouse.RightButton == ButtonState.Released;
+}

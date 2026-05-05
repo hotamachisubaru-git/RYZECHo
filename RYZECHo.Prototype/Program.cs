@@ -1,11 +1,2 @@
-namespace RYZECHo.Prototype;
-
-static class Program
-{
-    [STAThread]
-    static void Main()
-    {
-        ApplicationConfiguration.Initialize();
-        Application.Run(new GameForm());
-    }
-}
+using var game = new RYZECHo.Prototype.Game1();
+game.Run();

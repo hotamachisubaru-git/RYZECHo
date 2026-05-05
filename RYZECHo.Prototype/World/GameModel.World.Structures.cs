@@ -1,0 +1,62 @@
+namespace RYZECHo.Prototype;
+
+internal sealed partial class GameModel
+{
+    private Structure CreateStructure(BuildToolKind tool, Point cell)
+    {
+        return tool switch
+        {
+            BuildToolKind.BlastDoor => new Structure
+            {
+                Kind = StructureKind.BlastDoor,
+                Cell = cell,
+                APCost = 2,
+                Label = "防壁ドア",
+                Health = 120f,
+                MaxHealth = 120f,
+                PulseCooldown = 0f,
+            },
+            BuildToolKind.HoneyTrap => new Structure
+            {
+                Kind = StructureKind.HoneyTrap,
+                Cell = cell,
+                APCost = 3,
+                Label = "ハチミツトラップ",
+                Health = 1f,
+                MaxHealth = 1f,
+                PulseCooldown = 0f,
+            },
+            BuildToolKind.StaticNest => new Structure
+            {
+                Kind = StructureKind.StaticNest,
+                Cell = cell,
+                APCost = 4,
+                Label = "スタティックネスト",
+                Health = 1f,
+                MaxHealth = 1f,
+                PulseCooldown = 0.3f,
+            },
+            BuildToolKind.ReconBeacon => new Structure
+            {
+                Kind = StructureKind.ReconBeacon,
+                Cell = cell,
+                APCost = 4,
+                Label = "リコンビーコン",
+                Health = 1f,
+                MaxHealth = 1f,
+                PulseCooldown = 0.45f,
+            },
+            _ => new Structure
+            {
+                Kind = StructureKind.ShieldRelay,
+                Cell = cell,
+                APCost = 5,
+                Label = "シールドリレー",
+                Health = 90f,
+                MaxHealth = 90f,
+                PulseCooldown = 0.6f,
+            },
+        };
+    }
+
+}

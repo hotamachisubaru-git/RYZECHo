@@ -416,7 +416,7 @@ internal sealed partial class GameModel
         _playerSidearmWeapon = WeaponType.Pulse;
         _selectedLoadoutFocus = LoadoutFocus.Primary;
         _selectedBuildTool = BuildToolKind.BlastDoor;
-        _selectedBossName = "あなた";
+        _selectedBossName = RosterCatalog.PlayerName;
         _coreHealth = 180f;
         _bombPlanted = false;
         _armedBombSiteId = null;
@@ -464,9 +464,9 @@ internal sealed partial class GameModel
 
         if (_allies.Count >= 3)
         {
-            _allies[0].Weapon = WeaponType.Violet;
-            _allies[1].Weapon = WeaponType.Blitz;
-            _allies[2].Weapon = WeaponType.Fairy;
+            _allies[0].Weapon = RosterCatalog.DefaultFriendlyWeaponFor(_allies[0].Name);
+            _allies[1].Weapon = RosterCatalog.DefaultFriendlyWeaponFor(_allies[1].Name);
+            _allies[2].Weapon = RosterCatalog.DefaultFriendlyWeaponFor(_allies[2].Name);
         }
 
         foreach (var ally in _allies)
