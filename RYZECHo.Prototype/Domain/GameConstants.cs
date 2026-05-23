@@ -25,25 +25,27 @@ internal static class GameLayout
 
 internal static class GameRules
 {
-    public const int RoundsToWin = 7;
+    public const int RoundsToWin = GameSettings.RoundsToWin;
     public const int RegulationSideSwitchRound = 4;
     public const int OvertimeTriggerScore = 6;
-    public const int TeamSize = 4;
-    public const int StartingCredits = 1000;
-    public const int WinRewardCredits = 2200;
-    public const int LossRewardCredits = 1200;
-    public const int KillRewardCredits = 400;
+    public const int TeamSize = GameSettings.TeamSize;
+    public const int StartingCredits = GameSettings.InitialMoney;
+    public const int WinRewardCredits = GameSettings.WinReward;
+    public const int LossRewardCredits = GameSettings.LossReward;
+    public const int KillRewardCredits = GameSettings.KillReward;
     public const int ObjectiveRewardCredits = 350;
-    public const int BossKillDividendCredits = 200;
-    public const int BossEliminationBonusCredits = 800;
+    public const int BossKillDividendCredits = GameSettings.BossKillBonusForTeam;
+    public const int BossEliminationBonusCredits = GameSettings.BossEliminatedReward;
     public const int MaxBossSelectionsPerActor = 2;
-    public const int OptimalBossInvestment = 300;
-    public const int MaxUltPoints = 7;
-    public const float DefaultFovDegrees = 120f;
-    public const float SniperFovDegrees = 100f;
-    public const float SoundCueLifetimeSeconds = 0.3f;
-    public const float SharedVisionDurationSeconds = 1.4f;
-    public const float RoundDurationSeconds = 50f;
+    public const int OptimalBossInvestment = GameSettings.BossInvestmentSoftCap;
+    public const int MaxUltPoints = GameSettings.MaxUltPoints;
+    public const float DefaultFovDegrees = GameSettings.StandardFovDegrees;
+    public const float SniperFovDegrees = GameSettings.SniperFovDegrees;
+    public const float SoundCueLifetimeSeconds = GameSettings.RippleDurationSeconds;
+    public const float SharedVisionDurationSeconds = GameSettings.SharedVisionDurationSeconds;
+    public const float IdleBreathExposeSeconds = GameSettings.IdleBreathExposeSeconds;
+    public const float BreathingRippleIntervalSeconds = GameSettings.BreathingRippleIntervalSeconds;
+    public const float RoundDurationSeconds = 100f;
     public const float BombPlantSeconds = 3f;
     public const float BombFuseSeconds = 35f;
     public const float BombDefuseSeconds = 8f;

@@ -9,24 +9,24 @@ internal sealed partial class GameModel
             return "そのセルはノー・ビルド・ゾーンです。";
         }
 
-        if (candidate.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon && ViolatesTrapDensity(candidate))
+        if (candidate.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon or StructureKind.HoloDecoy && ViolatesTrapDensity(candidate))
         {
             return "同カテゴリのトラップが近すぎます。デッドゾーンを空けてください。";
         }
 
         if (candidate.Kind == StructureKind.BlastDoor && WouldExceedBlastDoorClusterLimit(candidate.Cell))
         {
-            return "強化扉の連結上限を超えます。";
+            return "強化扉は 2 連結までです。";
         }
 
-        if (candidate.Kind == StructureKind.BlastDoor && !PreservesAttackRoutes(candidate.Cell))
+        if (IsRouteBlockingStructure(candidate.Kind) && !PreservesAttackRoutes(candidate.Cell))
         {
-            return "A/B サイトへの主要ルートを全封鎖する配置はできません。";
+            return "禁止：全ルートの封鎖。最低 1 つのサイト到達経路が必要です。";
         }
 
-        if (candidate.Kind == StructureKind.BlastDoor && !PreservesThreeLaneAccess(candidate.Cell))
+        if (IsRouteBlockingStructure(candidate.Kind) && !PreservesThreeLaneAccess(candidate.Cell))
         {
-            return "上中下 3 レーンのいずれかを完全封鎖しています。";
+            return "レギュレーション違反：3 レーン（上下中）のいずれかが完全に塞がれています。";
         }
 
         return null;
@@ -40,8 +40,8 @@ internal sealed partial class GameModel
     private bool ViolatesTrapDensity(Structure candidate)
     {
         return _structures.Any(structure =>
-            structure.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon &&
-            Distance(CellCenter(structure.Cell), CellCenter(candidate.Cell)) < CellSize * 2.2f);
+            structure.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon or StructureKind.HoloDecoy &&
+            Distance(CellCenter(structure.Cell), CellCenter(candidate.Cell)) < CellSize * 2.5f);
     }
 
     private bool WouldExceedBlastDoorClusterLimit(Point newDoorCell)
@@ -76,7 +76,7 @@ internal sealed partial class GameModel
     private HashSet<Point> BuildBlockedCells(Point? candidateDoorCell = null)
     {
         var blocked = _permanentWalls.ToHashSet();
-        foreach (var door in _structures.Where(structure => structure.Kind == StructureKind.BlastDoor && structure.Health > 0f))
+        foreach (var door in _structures.Where(structure => IsRouteBlockingStructure(structure.Kind) && structure.Health > 0f))
         {
             blocked.Add(door.Cell);
         }
@@ -134,6 +134,11 @@ internal sealed partial class GameModel
         }
 
         return false;
+    }
+
+    private static bool IsRouteBlockingStructure(StructureKind kind)
+    {
+        return kind is StructureKind.BlastDoor or StructureKind.PortableCover or StructureKind.VisorWall;
     }
 
     private bool PreservesThreeLaneAccess(Point? candidateDoorCell = null)
@@ -225,6 +230,7 @@ internal sealed partial class GameModel
         if (_phase != GamePhase.Hunt || !_player.IsAlive)
         {
             _playerIdleSeconds = 0f;
+            _breathingRippleCooldown = 0f;
             return;
         }
 
@@ -232,6 +238,7 @@ internal sealed partial class GameModel
         if (acted)
         {
             _playerIdleSeconds = 0f;
+            _breathingRippleCooldown = 0f;
             return;
         }
 
@@ -240,10 +247,37 @@ internal sealed partial class GameModel
         {
             PushActivityFeed("10 秒以上静止したため呼吸音が増幅。近距離の敵に位置が漏れやすくなります。");
         }
+
+        if (IsPlayerBreathingExposed() && !IsPlayerSilenced())
+        {
+            _breathingRippleCooldown -= deltaSeconds;
+            if (_breathingRippleCooldown <= 0f)
+            {
+                EmitRipple(_player.Position, 0.42f, RippleKind.Breathing, Color.FromArgb(255, 255, 132, 108));
+                _breathingRippleCooldown = BreathingRippleIntervalSeconds;
+            }
+        }
     }
 
     private bool IsPlayerBreathingExposed()
     {
-        return _phase == GamePhase.Hunt && _player.IsAlive && _playerIdleSeconds >= 10f;
+        return _phase == GamePhase.Hunt && _player.IsAlive && _playerIdleSeconds >= IdleBreathExposeSeconds;
+    }
+
+    /// <summary>
+    /// AI が構築物を攻撃すべきか判断するためのヘルパー
+    /// </summary>
+    private Structure? GetBlockingStructure(Actor actor, float checkRange)
+    {
+        if (actor.Path.Count == 0) return null;
+        var nextTarget = actor.Path.Peek();
+        
+        return _structures.FirstOrDefault(s => 
+            StructureCatalog.Get(s.Kind).BlocksMovement && 
+            s.Health > 0 &&
+            Distance(actor.Position, CellCenter(s.Cell)) < checkRange &&
+            // 経路上のセルにあるか簡易チェック
+            WorldToCell(nextTarget) == s.Cell
+        );
     }
 }

@@ -6,6 +6,7 @@ internal sealed partial class GameModel
     {
         PrepareIntegrityFrame(deltaSeconds);
         _uiPulseTime += deltaSeconds;
+        UpdateMonetizationRuntime(deltaSeconds);
         UpdateRipples(deltaSeconds);
 
         switch (_phase)

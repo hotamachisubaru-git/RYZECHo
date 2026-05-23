@@ -46,7 +46,7 @@ internal sealed partial class GameModel
                 MaxHealth = 1f,
                 PulseCooldown = 0.45f,
             },
-            _ => new Structure
+            BuildToolKind.ShieldRelay => new Structure
             {
                 Kind = StructureKind.ShieldRelay,
                 Cell = cell,
@@ -55,6 +55,36 @@ internal sealed partial class GameModel
                 Health = 90f,
                 MaxHealth = 90f,
                 PulseCooldown = 0.6f,
+            },
+            BuildToolKind.PortableCover => new Structure
+            {
+                Kind = StructureKind.PortableCover,
+                Cell = cell,
+                APCost = 3,
+                Label = "ポータブルカバー",
+                Health = 70f,
+                MaxHealth = 70f,
+                PulseCooldown = 0f,
+            },
+            BuildToolKind.VisorWall => new Structure
+            {
+                Kind = StructureKind.VisorWall,
+                Cell = cell,
+                APCost = 4,
+                Label = "一方向バイザー壁",
+                Health = 55f,
+                MaxHealth = 55f,
+                PulseCooldown = 0.8f,
+            },
+            _ => new Structure
+            {
+                Kind = StructureKind.HoloDecoy,
+                Cell = cell,
+                APCost = 2,
+                Label = "ホログラムデコイ",
+                Health = 1f,
+                MaxHealth = 1f,
+                PulseCooldown = 0.7f,
             },
         };
     }

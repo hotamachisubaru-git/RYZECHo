@@ -19,6 +19,7 @@ internal sealed partial class GameModel
         _selectedSidearmWeapon = SanitizeWeaponType(_selectedSidearmWeapon, WeaponType.Pulse);
         _playerPrimaryWeapon = SanitizeWeaponType(_playerPrimaryWeapon, WeaponType.Giant);
         _playerSidearmWeapon = SanitizeWeaponType(_playerSidearmWeapon, WeaponType.Pulse);
+        _selectedAgent = SanitizeAgentKind(_selectedAgent);
         _selectedBet = Math.Clamp(_selectedBet, 0, IntegrityHardCreditsCap);
         _enemyBossInvestment = Math.Clamp(_enemyBossInvestment, 0, 1_200);
         _matchTeamEliminations = Math.Clamp(_matchTeamEliminations, 0, 999);
@@ -31,7 +32,17 @@ internal sealed partial class GameModel
         _bombPlantProgress = Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds);
         _bombDefuseProgress = Math.Clamp(_bombDefuseProgress, 0f, BombDefuseSeconds);
         _playerIdleSeconds = Math.Clamp(_playerIdleSeconds, 0f, 60f);
+        _breathingRippleCooldown = Math.Clamp(_breathingRippleCooldown, 0f, BreathingRippleIntervalSeconds);
+        _agentSkillOneCooldown = Math.Clamp(_agentSkillOneCooldown, 0f, AgentSkillOneCooldownSeconds);
+        _agentSkillTwoCooldown = Math.Clamp(_agentSkillTwoCooldown, 0f, AgentSkillTwoCooldownSeconds);
+        _playerDashTimer = Math.Clamp(_playerDashTimer, 0f, 1f);
+        _playerOverdriveTimer = Math.Clamp(_playerOverdriveTimer, 0f, 12f);
+        _playerHealingTimer = Math.Clamp(_playerHealingTimer, 0f, 5f);
+        _playerGhostTimer = Math.Clamp(_playerGhostTimer, 0f, 3f);
+        _hunterEyeTimer = Math.Clamp(_hunterEyeTimer, 0f, 8f);
+        _systemCrashTimer = Math.Clamp(_systemCrashTimer, 0f, 10f);
         _uiPulseTime = MathF.IEEERemainder(_uiPulseTime, 3600f);
+        _adImpressionTimer = Math.Clamp(_adImpressionTimer, 0f, 12f);
 
         if (_activityFeed.Count > IntegrityMaxActivityFeedEntries)
         {
@@ -50,6 +61,21 @@ internal sealed partial class GameModel
         {
             _ripples.RemoveRange(IntegrityMaxRipples, _ripples.Count - IntegrityMaxRipples);
             RegisterIntegrityAnomaly("音イベント整合性", "過剰なリップルを削減しました。");
+        }
+
+        if (_worldEffects.Count > 24)
+        {
+            _worldEffects.RemoveRange(24, _worldEffects.Count - 24);
+            RegisterIntegrityAnomaly("スキル効果整合性", "過剰なエージェント効果を削減しました。");
+        }
+
+        for (var index = _worldEffects.Count - 1; index >= 0; index--)
+        {
+            var effect = _worldEffects[index];
+            if (!Enum.IsDefined(effect.Kind) || !Enum.IsDefined(effect.OwnerType) || effect.Radius <= 0f || effect.Radius > 320f || effect.Lifetime <= 0f || effect.Lifetime > 18f)
+            {
+                _worldEffects.RemoveAt(index);
+            }
         }
 
         for (var index = _ripples.Count - 1; index >= 0; index--)
@@ -111,9 +137,16 @@ internal sealed partial class GameModel
 
         foreach (var structure in original)
         {
-            if (!_buildSlots.Contains(structure.Cell) || acceptedCells.Contains(structure.Cell))
+            var isTemporaryStructure = structure.RemainingLifetime > 0f;
+            if ((!isTemporaryStructure && !_buildSlots.Contains(structure.Cell)) || acceptedCells.Contains(structure.Cell))
             {
                 RegisterIntegrityStrike("構築物整合性", $"無効な構築物 {structure.Label} を {structure.Cell.X},{structure.Cell.Y} から除去しました。", severe: true);
+                continue;
+            }
+
+            if (isTemporaryStructure && _permanentWalls.Contains(structure.Cell))
+            {
+                RegisterIntegrityAnomaly("構築物整合性", $"一時構築物 {structure.Label} を固定壁セルから除去しました。");
                 continue;
             }
 
@@ -124,9 +157,11 @@ internal sealed partial class GameModel
             }
 
             canonical.Health = Math.Clamp(structure.Health, 0f, canonical.MaxHealth);
-            canonical.PulseCooldown = Math.Clamp(structure.PulseCooldown, 0f, canonical.Kind == StructureKind.StaticNest ? 1.2f : 0.5f);
+            canonical.OwnerType = Enum.IsDefined(structure.OwnerType) ? structure.OwnerType : ActorType.Player;
+            canonical.PulseCooldown = Math.Clamp(structure.PulseCooldown, 0f, StructurePulseCooldownCap(canonical.Kind));
+            canonical.RemainingLifetime = Math.Clamp(structure.RemainingLifetime, 0f, 20f);
 
-            var placementError = ValidateStructurePlacement(canonical);
+            var placementError = isTemporaryStructure ? null : ValidateStructurePlacement(canonical);
             if (placementError is not null)
             {
                 RegisterIntegrityStrike("構築物整合性", $"{canonical.Label} を検証で棄却: {placementError}", severe: true);
@@ -153,10 +188,26 @@ internal sealed partial class GameModel
             StructureKind.StaticNest => CreateStructure(BuildToolKind.StaticNest, structure.Cell),
             StructureKind.ReconBeacon => CreateStructure(BuildToolKind.ReconBeacon, structure.Cell),
             StructureKind.ShieldRelay => CreateStructure(BuildToolKind.ShieldRelay, structure.Cell),
+            StructureKind.PortableCover => CreateStructure(BuildToolKind.PortableCover, structure.Cell),
+            StructureKind.VisorWall => CreateStructure(BuildToolKind.VisorWall, structure.Cell),
+            StructureKind.HoloDecoy => CreateStructure(BuildToolKind.HoloDecoy, structure.Cell),
             _ => structure,
         };
 
         return true;
+    }
+
+    private static float StructurePulseCooldownCap(StructureKind kind)
+    {
+        return kind switch
+        {
+            StructureKind.StaticNest => 1.2f,
+            StructureKind.ReconBeacon => 1.4f,
+            StructureKind.ShieldRelay => 1.8f,
+            StructureKind.VisorWall => 2f,
+            StructureKind.HoloDecoy => 1.4f,
+            _ => 0.5f,
+        };
     }
 
     private void SanitizeActors(float deltaSeconds)
@@ -188,13 +239,25 @@ internal sealed partial class GameModel
     private void SanitizeActor(Actor actor, float deltaSeconds)
     {
         actor.Weapon = SanitizeWeaponType(actor.Weapon, DefaultWeaponFor(actor));
+        actor.Agent = SanitizeAgentKind(actor.Agent);
         actor.Health = Math.Clamp(actor.Health, 0f, actor.MaxHealth);
-        actor.Shield = Math.Clamp(actor.Shield, 0f, actor.MaxShield);
+        var shieldCap = actor.Type == ActorType.Player && actor.Agent == AgentKind.Oasis
+            ? actor.MaxShield + 25f
+            : actor.MaxShield;
+        actor.Shield = Math.Clamp(actor.Shield, 0f, shieldCap);
         actor.ShieldRegenDelay = Math.Clamp(actor.ShieldRegenDelay, 0f, 6f);
         actor.PathCooldown = Math.Clamp(actor.PathCooldown, -0.25f, 3f);
         actor.FootstepCooldown = Math.Clamp(actor.FootstepCooldown, -0.25f, 2f);
         actor.FootstepPulseIndex = Math.Clamp(actor.FootstepPulseIndex, 0, 2);
         actor.FacingAngle = NormalizeAngle(actor.FacingAngle);
+        actor.SkillOneCooldown = Math.Clamp(actor.SkillOneCooldown, 0f, AgentSkillOneCooldownSeconds + 3f);
+        actor.SkillTwoCooldown = Math.Clamp(actor.SkillTwoCooldown, 0f, AgentSkillTwoCooldownSeconds + 3f);
+        actor.UltimateCharge = Math.Clamp(actor.UltimateCharge, 0f, MaxUltPoints);
+        actor.AbilityThinkCooldown = Math.Clamp(actor.AbilityThinkCooldown, 0f, 2f);
+        actor.DashTimer = Math.Clamp(actor.DashTimer, 0f, 1f);
+        actor.OverdriveTimer = Math.Clamp(actor.OverdriveTimer, 0f, 12f);
+        actor.HealingTimer = Math.Clamp(actor.HealingTimer, 0f, 5f);
+        actor.GhostTimer = Math.Clamp(actor.GhostTimer, 0f, 3f);
 
         var weapon = _weaponStats[actor.Weapon];
         var fireCooldownCap = Math.Max(GetActorFireCooldown(actor, weapon.FireCooldown * 1.25f), 1f);

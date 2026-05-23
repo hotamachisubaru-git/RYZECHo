@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Drawing;
+
 namespace RYZECHo.Prototype;
 
 internal sealed partial class GameModel
@@ -26,11 +31,14 @@ internal sealed partial class GameModel
     private const int BossEliminationBonusCredits = GameRules.BossEliminationBonusCredits;
     private const int MaxBossSelectionsPerActor = GameRules.MaxBossSelectionsPerActor;
     private const int OptimalBossInvestment = GameRules.OptimalBossInvestment;
+    private const int AgentSkillPurchaseCost = 400;
     private const int MaxUltPoints = GameRules.MaxUltPoints;
     private const float DefaultFovDegrees = GameRules.DefaultFovDegrees;
     private const float SniperFovDegrees = GameRules.SniperFovDegrees;
     private const float SoundCueLifetimeSeconds = GameRules.SoundCueLifetimeSeconds;
     private const float SharedVisionDurationSeconds = GameRules.SharedVisionDurationSeconds;
+    private const float IdleBreathExposeSeconds = GameRules.IdleBreathExposeSeconds;
+    private const float BreathingRippleIntervalSeconds = GameRules.BreathingRippleIntervalSeconds;
     private const float RoundDurationSeconds = GameRules.RoundDurationSeconds;
     private const float BombPlantSeconds = GameRules.BombPlantSeconds;
     private const float BombFuseSeconds = GameRules.BombFuseSeconds;
@@ -49,6 +57,7 @@ internal sealed partial class GameModel
     private readonly Random _random = new();
     private readonly Dictionary<WeaponType, WeaponStats> _weaponStats = CreateWeaponStats();
     private readonly List<Structure> _structures = [];
+    private readonly List<WorldEffect> _worldEffects = [];
     private readonly List<Ripple> _ripples = [];
     private readonly List<Actor> _allies = [];
     private readonly List<Actor> _enemies = [];
@@ -71,6 +80,8 @@ internal sealed partial class GameModel
     private WeaponType _playerPrimaryWeapon = WeaponType.Giant;
     private WeaponType _playerSidearmWeapon = WeaponType.Pulse;
     private LoadoutFocus _selectedLoadoutFocus = LoadoutFocus.Primary;
+    private AgentKind _selectedAgent = AgentKind.Veil;
+    private bool _agentSkillPurchased;
     private int _buildPoints = 12;
     private int _credits = StartingCredits;
     private int _currentRound = 1;
@@ -88,7 +99,17 @@ internal sealed partial class GameModel
     private float _bombPlantProgress;
     private float _bombDefuseProgress;
     private float _playerIdleSeconds;
+    private float _breathingRippleCooldown;
+    private float _agentSkillOneCooldown;
+    private float _agentSkillTwoCooldown;
+    private float _playerDashTimer;
+    private float _playerOverdriveTimer;
+    private float _playerHealingTimer;
+    private float _playerGhostTimer;
+    private float _hunterEyeTimer;
+    private float _systemCrashTimer;
     private float _uiPulseTime;
+    private float _adImpressionTimer;
     private GamePhase _resultDestination = GamePhase.Bet;
     private string _selectedBossName = RosterCatalog.PlayerName;
     private string _lastProgressionSummary = string.Empty;
@@ -124,6 +145,7 @@ internal sealed partial class GameModel
         return new Actor
         {
             Name = blueprint.Name,
+            Agent = blueprint.Agent,
             Type = blueprint.Type,
             HomeCell = blueprint.HomeCell,
             Weapon = blueprint.Weapon,

@@ -137,7 +137,7 @@ internal sealed partial class GameModel
                 Damage = 34f,
                 MoveSpeed = 192f,
                 ProjectileRange = 420f,
-                ScopedFov = true,
+                ScopedFov = false,
             },
             [WeaponType.Changer] = new()
             {
@@ -156,7 +156,7 @@ internal sealed partial class GameModel
                 Damage = 52f,
                 MoveSpeed = 176f,
                 ProjectileRange = 460f,
-                ScopedFov = true,
+                ScopedFov = false,
             },
             [WeaponType.Howl] = new()
             {

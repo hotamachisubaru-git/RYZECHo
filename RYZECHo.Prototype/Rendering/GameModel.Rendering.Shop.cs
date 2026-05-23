@@ -80,6 +80,16 @@ internal sealed partial class GameModel
                 Color.FromArgb(54, 58, 34, 22),
                 Color.FromArgb(232, 250, 224, 172),
                 Color.FromArgb(220, 244, 188, 126)),
+            "プリズムバイザー" => (
+                Color.FromArgb(132, 112, 116, 210),
+                Color.FromArgb(52, 18, 20, 58),
+                Color.FromArgb(232, 202, 214, 255),
+                Color.FromArgb(220, 172, 194, 255)),
+            "ローグクローム" => (
+                Color.FromArgb(138, 118, 132, 142),
+                Color.FromArgb(54, 14, 18, 20),
+                Color.FromArgb(232, 232, 244, 248),
+                Color.FromArgb(220, 194, 214, 218)),
             _ => (
                 Color.FromArgb(128, 90, 162, 204),
                 Color.FromArgb(48, 14, 44, 70),
@@ -102,6 +112,16 @@ internal sealed partial class GameModel
                 Color.FromArgb(255, 252, 226, 178),
                 Color.FromArgb(126, 180, 226, 132),
                 Color.FromArgb(232, 238, 246, 174)),
+            "プリズムバイザー" => (
+                Color.FromArgb(172, 164, 132, 255),
+                Color.FromArgb(255, 226, 214, 255),
+                Color.FromArgb(126, 112, 190, 255),
+                Color.FromArgb(232, 214, 230, 255)),
+            "ローグクローム" => (
+                Color.FromArgb(172, 180, 194, 204),
+                Color.FromArgb(255, 238, 244, 248),
+                Color.FromArgb(126, 126, 150, 160),
+                Color.FromArgb(232, 226, 238, 244)),
             _ => (
                 Color.FromArgb(178, 238, 168, 62),
                 Color.FromArgb(255, 255, 230, 164),
@@ -116,6 +136,7 @@ internal sealed partial class GameModel
         {
             "VERTEX CUP" => Color.FromArgb(255, 236, 134, 96),
             "SUNSET GRID" => Color.FromArgb(255, 248, 184, 118),
+            "ARC LEAGUE" => Color.FromArgb(255, 174, 206, 255),
             _ => Color.FromArgb(255, 98, 228, 242),
         };
     }

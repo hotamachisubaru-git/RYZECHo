@@ -20,6 +20,7 @@ internal sealed partial class GameModel
         }
 
         UpdateShieldRegen(_player, deltaSeconds);
+        UpdateActorAbilityState(_player, deltaSeconds);
         var weapon = _weaponStats[_player.Weapon];
         var worldMousePosition = ScreenToWorldPoint(input.MousePosition);
         var movement = PointF.Empty;
@@ -45,7 +46,7 @@ internal sealed partial class GameModel
             movement.X += 1f;
         }
 
-        if (movement != PointF.Empty)
+        if (movement != PointF.Empty && !IsActorLockedDown(_player))
         {
             var length = MathF.Sqrt((movement.X * movement.X) + (movement.Y * movement.Y));
             movement = new PointF(movement.X / length, movement.Y / length);
@@ -66,12 +67,12 @@ internal sealed partial class GameModel
             _player.FacingAngle = MathF.Atan2(aimVector.Y, aimVector.X);
         }
 
-        if (input.FireHeld && _player.FireCooldown <= 0f)
+        if (input.FireHeld && _player.FireCooldown <= 0f && !IsActorSystemCrashed(_player) && !IsActorLockedDown(_player))
         {
             var target = PickRaycastTarget(_player.Position, worldMousePosition, weapon.ProjectileRange);
             if (target is not null)
             {
-                ApplyDamage(target, weapon.Damage, _player);
+                ApplyDamage(target, weapon.Damage * PlayerDamageMultiplier(), _player);
             }
 
             _player.FireCooldown = GetActorFireCooldown(_player, weapon.FireCooldown);
@@ -83,10 +84,7 @@ internal sealed partial class GameModel
             acted = true;
         }
 
-        foreach (var enemy in _enemies.Where(actor => actor.IsAlive && PlayerHasDirectSightTo(actor.Position)))
-        {
-            RevealEnemyToTeam(enemy);
-        }
+        RevealEnemiesInActorVision(_player);
 
         UpdatePlayerIdleState(deltaSeconds, acted);
     }
@@ -101,9 +99,18 @@ internal sealed partial class GameModel
             }
 
             UpdateShieldRegen(ally, deltaSeconds);
+            UpdateActorAbilityState(ally, deltaSeconds);
             ally.FireCooldown = MathF.Max(0f, ally.FireCooldown - deltaSeconds);
             var weapon = _weaponStats[ally.Weapon];
             var target = PickBestTarget(ally.Position, weapon.VisionRange, ActorType.Ally);
+            TryUseAutonomousAgentAbility(ally, target, deltaSeconds);
+
+            if (IsActorSystemCrashed(ally) || IsActorLockedDown(ally))
+            {
+                ally.Path.Clear();
+                RevealEnemiesInActorVision(ally);
+                continue;
+            }
 
             if (target is null)
             {
@@ -112,6 +119,7 @@ internal sealed partial class GameModel
                     UpdateAttackingAllyMovement(ally, deltaSeconds);
                 }
 
+                RevealEnemiesInActorVision(ally);
                 continue;
             }
 
@@ -130,6 +138,8 @@ internal sealed partial class GameModel
                 EmitRipple(target.Position, 0.7f, RippleKind.Skill, Color.FromArgb(245, 208, 96));
                 _pingCooldown = 0.7f;
             }
+
+            RevealEnemiesInActorVision(ally);
         }
     }
 
@@ -143,14 +153,22 @@ internal sealed partial class GameModel
             }
 
             UpdateShieldRegen(enemy, deltaSeconds);
+            UpdateActorAbilityState(enemy, deltaSeconds);
             var weapon = _weaponStats[enemy.Weapon];
             enemy.FireCooldown = MathF.Max(0f, enemy.FireCooldown - deltaSeconds);
             enemy.PathCooldown -= deltaSeconds;
             enemy.FootstepCooldown -= deltaSeconds;
 
-            var target = PickEnemyTarget(enemy);
+            if (IsSystemCrashActive() || IsActorLockedDown(enemy))
+            {
+                enemy.Path.Clear();
+                continue;
+            }
 
-            if (target is not null && Distance(enemy.Position, target.Position) <= weapon.ProjectileRange && HasLineOfSight(enemy.Position, target.Position))
+            var target = PickEnemyTarget(enemy);
+            TryUseAutonomousAgentAbility(enemy, target, deltaSeconds);
+
+            if (target is not null && Distance(enemy.Position, target.Position) <= weapon.ProjectileRange && HasLineOfSight(enemy, target.Position))
             {
                 enemy.Path.Clear();
                 enemy.FacingAngle = MathF.Atan2(target.Position.Y - enemy.Position.Y, target.Position.X - enemy.Position.X);
@@ -179,9 +197,24 @@ internal sealed partial class GameModel
 
     private void UpdateStructures(float deltaSeconds)
     {
+        for (var index = _structures.Count - 1; index >= 0; index--)
+        {
+            var structure = _structures[index];
+            if (structure.RemainingLifetime <= 0f)
+            {
+                continue;
+            }
+
+            structure.RemainingLifetime -= deltaSeconds;
+            if (structure.RemainingLifetime <= 0f)
+            {
+                _structures.RemoveAt(index);
+            }
+        }
+
         foreach (var structure in _structures)
         {
-            if (structure.Kind is not StructureKind.StaticNest and not StructureKind.ReconBeacon and not StructureKind.ShieldRelay)
+            if (structure.Kind is not StructureKind.StaticNest and not StructureKind.ReconBeacon and not StructureKind.ShieldRelay and not StructureKind.VisorWall and not StructureKind.HoloDecoy)
             {
                 continue;
             }
@@ -213,17 +246,25 @@ internal sealed partial class GameModel
                         }
 
                         break;
+                    case StructureKind.VisorWall:
+                        structure.PulseCooldown = 1.8f;
+                        EmitRipple(CellCenter(structure.Cell), 0.42f, RippleKind.Skill, Color.FromArgb(150, 150, 228, 255));
+                        break;
+                    case StructureKind.HoloDecoy:
+                        structure.PulseCooldown = 1.15f;
+                        EmitRipple(CellCenter(structure.Cell), 0.94f, _random.Next(0, 2) == 0 ? RippleKind.Footstep : RippleKind.Gunshot, Color.FromArgb(226, 196, 132, 255));
+                        break;
                 }
             }
         }
 
-        foreach (var door in _structures.Where(structure => structure.Kind == StructureKind.BlastDoor).ToList())
+        foreach (var door in _structures.Where(structure => IsRouteBlockingStructure(structure.Kind)).ToList())
         {
             var doorCenter = CellCenter(door.Cell);
 
             foreach (var enemy in _enemies.Where(actor => actor.IsAlive && Distance(actor.Position, doorCenter) <= 30f))
             {
-                door.Health = MathF.Max(0f, door.Health - (17f * deltaSeconds));
+                door.Health = MathF.Max(0f, door.Health - (StructureBreakDamagePerSecond(door.Kind) * deltaSeconds));
                 enemy.Path.Clear();
                 EmitRipple(doorCenter, 0.68f, RippleKind.Skill, Color.FromArgb(245, 198, 92));
             }
@@ -233,6 +274,16 @@ internal sealed partial class GameModel
                 _structures.Remove(door);
             }
         }
+    }
+
+    private static float StructureBreakDamagePerSecond(StructureKind kind)
+    {
+        return kind switch
+        {
+            StructureKind.PortableCover => 24f,
+            StructureKind.VisorWall => 22f,
+            _ => 17f,
+        };
     }
 
     private void UpdateRipples(float deltaSeconds)

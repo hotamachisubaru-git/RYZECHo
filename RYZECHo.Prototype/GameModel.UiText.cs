@@ -20,9 +20,9 @@ internal sealed partial class GameModel
         return _phase switch
         {
             GamePhase.Construct => _sideSwapConstructPending
-                ? $"{BuildToolLabel(_selectedBuildTool)} を選択中。攻守交代に向けた再エディット中です。スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。"
-                : $"{BuildToolLabel(_selectedBuildTool)} を選択中。初期配置は前半ラウンドを支えます。スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。",
-            GamePhase.Bet => $"{PlayerRoleLabel()}。ボス {_selectedBossName} は残り {BossSelectionsRemaining(_selectedBossName)} 回。個別投資 {SelectedBossInvestment()}c / 総投資 {_selectedBet}c、メイン {_weaponStats[_selectedWeapon].Label}、サブ {_weaponStats[_selectedSidearmWeapon].Label}。",
+                ? $"{BuildToolLabel(_selectedBuildTool)} を選択中。攻守交代に向けた再エディット中です。エージェント {SelectedAgentProfile().Name} / スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。"
+                : $"{BuildToolLabel(_selectedBuildTool)} を選択中。初期配置は前半ラウンドを支えます。エージェント {SelectedAgentProfile().Name} / スキン {SelectedStructureSkinName()} / AD {SelectedAdThemeName()}。",
+            GamePhase.Bet => $"{PlayerRoleLabel()}。ボス {_selectedBossName} は残り {BossSelectionsRemaining(_selectedBossName)} 回。個別投資 {SelectedBossInvestment()}c / 総投資 {_selectedBet}c、メイン {_weaponStats[_selectedWeapon].Label}、サブ {_weaponStats[_selectedSidearmWeapon].Label}。エージェント {SelectedAgentProfile().Name} スキル {(_agentSkillPurchased ? "購入済み" : $"{AgentSkillPurchaseCost}c")}",
             GamePhase.Hunt => HuntStatusSummary(),
             GamePhase.RoundResult => _resultMessage,
             GamePhase.Victory => "7 ラウンド先取、または OT 2 本差でマッチに勝利しました。",
@@ -48,8 +48,8 @@ internal sealed partial class GameModel
         return _phase switch
         {
             GamePhase.Construct => _sideSwapConstructPending
-                ? $"{BuildToolLabel(_selectedBuildTool)}\n後半戦 AP {_buildPoints}\n{SelectedStructureSkinName()} / {SelectedAdThemeName()}"
-                : $"{BuildToolLabel(_selectedBuildTool)}\n残り AP {_buildPoints}\n{SelectedStructureSkinName()} / {SelectedAdThemeName()}",
+                ? $"{BuildToolLabel(_selectedBuildTool)}\n後半戦 AP {_buildPoints}\n{SelectedAgentProfile().Name} / {SelectedStructureSkinName()}"
+                : $"{BuildToolLabel(_selectedBuildTool)}\n残り AP {_buildPoints}\n{SelectedAgentProfile().Name} / {SelectedStructureSkinName()}",
             GamePhase.Bet => $"{PlayerRoleLabel()}\nボス {_selectedBossName} / 個別 {SelectedBossInvestment()}c / 総額 {_selectedBet}c\n{WeaponLoadoutLabel(_selectedWeapon)} + {WeaponLoadoutLabel(_selectedSidearmWeapon)} / ULT {SelectedBossUltPoints()}/{MaxUltPoints}",
             GamePhase.Hunt => HuntObjectiveBody(),
             GamePhase.RoundResult => $"{_resultMessage}\nSCORE {_playerRoundWins}-{_enemyRoundWins}\n{ProfileSummaryLine()}",
@@ -62,8 +62,8 @@ internal sealed partial class GameModel
     {
         return _phase switch
         {
-            GamePhase.Construct => _sideSwapConstructPending ? "1-5設置物  Q/Eスキン  R広告  左設置  右撤去  Enter後半戦へ" : "1-5設置物  Q/Eスキン  R広告  左設置  右撤去  Enter確定",
-            GamePhase.Bet => "1-4 ボス兼投資先  Q/E選択  Rメイン/サブ切替  A/D個別投資  Enter出撃",
+            GamePhase.Construct => _sideSwapConstructPending ? "1-5基本設置  Tab全設置物  6エージェント  Q/Eスキン  R広告  Tストア  Enter後半戦へ" : "1-5基本設置  Tab全設置物  6エージェント  Q/Eスキン  R広告  Tストア  Enter確定",
+            GamePhase.Bet => "1-4 ボス兼投資先  5スキル購入  6エージェント  Q/E選択  Rメイン/サブ切替  A/D個別投資  Tストア  Enter出撃",
             GamePhase.Hunt => HuntControlsHint(),
             _ => "Enter進行  R再挑戦",
         };
@@ -95,7 +95,7 @@ internal sealed partial class GameModel
                 : $"{_activePlanter.Name} がサイト {CurrentObjectiveSiteLabel()} で設置中。{BombPlantSeconds - Math.Clamp(_bombPlantProgress, 0f, BombPlantSeconds):0.0} 秒で起爆準備完了。";
         }
 
-        return $"{GetFovDegrees(_player.Weapon):0} 度視界で{PlayerRoleShortLabel()}中。注力サイト {GetBombSite(_attackFocusSite).Label}、設置猶予 {Math.Max(0f, _roundTimer):0.0} 秒、敵編成 {LiveEnemyCount()}/{TeamSize}。{(IsPlayerBreathingExposed() ? " 呼吸音が漏れています。" : string.Empty)}";
+        return $"{GetFovDegrees(_player.Weapon):0} 度視界で{PlayerRoleShortLabel()}中。{AgentRuntimeSummary()}。注力サイト {GetBombSite(_attackFocusSite).Label}、設置猶予 {Math.Max(0f, _roundTimer):0.0} 秒、敵編成 {LiveEnemyCount()}/{TeamSize}。{(IsPlayerBreathingExposed() ? " 呼吸音が漏れています。" : string.Empty)}";
     }
 
     private string HuntObjectiveBody()
@@ -136,10 +136,10 @@ internal sealed partial class GameModel
     {
         if (_bombPlanted)
         {
-            return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  左クリック射撃  サイト防衛" : "WASD移動  Q/E武器切替  左クリック射撃  F長押し解除";
+            return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  1/2/3スキル  左クリック射撃  サイト防衛" : "WASD移動  Q/E武器切替  1/2/3スキル  左クリック射撃  F長押し解除";
         }
 
-        return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  左クリック射撃  F長押し設置" : "WASD移動  Q/E武器切替  マウス照準  左クリック射撃";
+        return IsPlayerTeamAttacking() ? "WASD移動  Q/E武器切替  1/2/3スキル  左クリック射撃  F長押し設置" : "WASD移動  Q/E武器切替  1/2/3スキル  マウス照準  左クリック射撃";
     }
 
     private string CurrentSiteActionLabel()

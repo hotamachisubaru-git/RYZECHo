@@ -10,6 +10,34 @@ internal enum GamePhase
     Defeat,
 }
 
+internal enum AgentKind
+{
+    Veil,
+    Vine,
+    Nitro,
+    Oasis,
+    Divide,
+    Glitch,
+}
+
+internal enum AgentAbilitySlot
+{
+    SkillOne,
+    SkillTwo,
+    Ultimate,
+}
+
+internal enum WorldEffectKind
+{
+    PoisonCloud,
+    DeadlyDome,
+    NanoSmoke,
+    SilenceZone,
+    HunterEye,
+    Lockdown,
+    SystemCrash,
+}
+
 internal enum BuildToolKind
 {
     BlastDoor,
@@ -17,6 +45,9 @@ internal enum BuildToolKind
     StaticNest,
     ReconBeacon,
     ShieldRelay,
+    PortableCover,
+    VisorWall,
+    HoloDecoy,
 }
 
 internal enum WeaponType
@@ -37,6 +68,7 @@ internal enum WeaponType
 internal enum RippleKind
 {
     Footstep,
+    Breathing,
     Gunshot,
     Skill,
 }
@@ -61,6 +93,17 @@ internal enum StructureKind
     StaticNest,
     ReconBeacon,
     ShieldRelay,
+    PortableCover,
+    VisorWall,
+    HoloDecoy,
+}
+
+internal enum CosmeticKind
+{
+    StructureSkin,
+    AdTheme,
+    Banner,
+    KillEffect,
 }
 
 internal enum ObjectiveSiteId

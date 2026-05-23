@@ -9,7 +9,7 @@ internal sealed partial class GameModel
             : _enemies.Where(actor => actor.IsAlive);
 
         var target = candidates
-            .Where(actor => Distance(origin, actor.Position) <= range && HasLineOfSight(origin, actor.Position))
+            .Where(actor => Distance(origin, actor.Position) <= range && HasLineOfSight(sourceType, origin, actor.Position))
             .OrderBy(actor => Distance(origin, actor.Position))
             .FirstOrDefault();
 
@@ -24,11 +24,13 @@ internal sealed partial class GameModel
     private Actor? PickEnemyTarget(Actor enemy)
     {
         var defenders = LivePlayerTeam()
+            .Where(actor => actor.Type != ActorType.Player || _playerGhostTimer <= 0f)
+            .Where(actor => actor.GhostTimer <= 0f)
             .Where(actor => Distance(enemy.Position, actor.Position) <= _weaponStats[enemy.Weapon].ProjectileRange + 30f)
             .OrderBy(actor => Distance(enemy.Position, actor.Position))
             .ToList();
 
-        return defenders.FirstOrDefault(actor => HasLineOfSight(enemy.Position, actor.Position));
+        return defenders.FirstOrDefault(actor => HasLineOfSight(enemy, actor.Position));
     }
 
     private Actor? PickRaycastTarget(PointF origin, PointF targetPoint, float range)
@@ -55,7 +57,7 @@ internal sealed partial class GameModel
             }
 
             var closest = new PointF(origin.X + (direction.X * projection), origin.Y + (direction.Y * projection));
-            if (Distance(closest, enemy.Position) <= enemy.Radius + 5f && projection < bestDistance && HasLineOfSight(origin, enemy.Position))
+            if (Distance(closest, enemy.Position) <= enemy.Radius + 5f && projection < bestDistance && HasLineOfSight(_player, enemy.Position))
             {
                 best = enemy;
                 bestDistance = projection;
@@ -67,13 +69,18 @@ internal sealed partial class GameModel
 
     private bool PlayerHasDirectSightTo(PointF position)
     {
-        if (!_player.IsAlive)
+        return ActorHasDirectSightTo(_player, position);
+    }
+
+    private bool ActorHasDirectSightTo(Actor actor, PointF position)
+    {
+        if (!actor.IsAlive)
         {
             return false;
         }
 
-        var weapon = _weaponStats[_player.Weapon];
-        var vector = new PointF(position.X - _player.Position.X, position.Y - _player.Position.Y);
+        var weapon = _weaponStats[actor.Weapon];
+        var vector = new PointF(position.X - actor.Position.X, position.Y - actor.Position.Y);
         var distance = MathF.Sqrt((vector.X * vector.X) + (vector.Y * vector.Y));
         if (distance > weapon.VisionRange)
         {
@@ -86,13 +93,21 @@ internal sealed partial class GameModel
         }
 
         var angle = MathF.Atan2(vector.Y, vector.X);
-        var difference = NormalizeAngle(angle - _player.FacingAngle);
-        if (MathF.Abs(difference) > DegreesToRadians(GetFovDegrees(_player.Weapon) / 2f))
+        var difference = NormalizeAngle(angle - actor.FacingAngle);
+        if (MathF.Abs(difference) > DegreesToRadians(GetFovDegrees(actor.Weapon) / 2f))
         {
             return false;
         }
 
-        return HasLineOfSight(_player.Position, position);
+        return HasLineOfSight(actor, position);
+    }
+
+    private void RevealEnemiesInActorVision(Actor actor, float duration = SharedVisionDurationSeconds)
+    {
+        foreach (var enemy in _enemies.Where(enemy => enemy.IsAlive && ActorHasDirectSightTo(actor, enemy.Position)))
+        {
+            RevealEnemyToTeam(enemy, duration);
+        }
     }
 
     private bool PlayerCanSee(Actor enemy)
@@ -109,6 +124,11 @@ internal sealed partial class GameModel
 
         if (_structures.Any(structure => structure.Kind == StructureKind.StaticNest && Distance(enemy.Position, CellCenter(structure.Cell)) <= 90f))
         {
+            if (_hunterEyeTimer > 0f && PlayerHasDirectSightTo(enemy.Position))
+            {
+                return true;
+            }
+
             return Distance(_player.Position, enemy.Position) <= 120f;
         }
 
@@ -226,7 +246,7 @@ internal sealed partial class GameModel
             return true;
         }
 
-        return _structures.Any(structure => structure.Kind == StructureKind.BlastDoor && structure.Cell == cell && structure.Health > 0f);
+        return _structures.Any(structure => IsRouteBlockingStructure(structure.Kind) && structure.Cell == cell && structure.Health > 0f);
     }
 
     private PointF ResolveCollision(PointF desiredPosition, float radius)
@@ -235,7 +255,7 @@ internal sealed partial class GameModel
             Math.Clamp(desiredPosition.X, WorldBounds.Left + radius + 2f, WorldBounds.Right - radius - 2f),
             Math.Clamp(desiredPosition.Y, WorldBounds.Top + radius + 2f, WorldBounds.Bottom - radius - 2f));
 
-        foreach (var blockedCell in _permanentWalls.Concat(_structures.Where(structure => structure.Kind == StructureKind.BlastDoor && structure.Health > 0f).Select(structure => structure.Cell)))
+        foreach (var blockedCell in _permanentWalls.Concat(_structures.Where(structure => IsRouteBlockingStructure(structure.Kind) && structure.Health > 0f).Select(structure => structure.Cell)))
         {
             var expanded = RectangleF.Inflate(CellRectangle(blockedCell), radius, radius);
             if (!expanded.Contains(clamped))
@@ -252,8 +272,18 @@ internal sealed partial class GameModel
         return clamped;
     }
 
-    private bool HasLineOfSight(PointF start, PointF end)
+    private bool HasLineOfSight(Actor actor, PointF end)
     {
+        return HasLineOfSight(actor.Type, actor.Position, end);
+    }
+
+    private bool HasLineOfSight(ActorType sourceType, PointF start, PointF end)
+    {
+        if (IsLineBlockedByWorldEffect(start, end))
+        {
+            return false;
+        }
+
         var distance = Distance(start, end);
         var steps = Math.Max(2, (int)(distance / 8f));
 
@@ -264,13 +294,46 @@ internal sealed partial class GameModel
                 start.X + ((end.X - start.X) * progress),
                 start.Y + ((end.Y - start.Y) * progress));
             var cell = WorldToCell(sample);
-            if (IsBlockedCell(cell))
+            if (IsVisionBlockedCell(cell, sourceType))
             {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private bool IsVisionBlockedCell(Point cell, ActorType sourceType)
+    {
+        if (_permanentWalls.Contains(cell))
+        {
+            return true;
+        }
+
+        foreach (var structure in _structures.Where(structure => structure.Cell == cell && structure.Health > 0f))
+        {
+            if (structure.Kind is StructureKind.BlastDoor or StructureKind.PortableCover)
+            {
+                return true;
+            }
+
+            if (structure.Kind == StructureKind.VisorWall && !SameTeamSide(sourceType, structure.OwnerType))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool SameTeamSide(ActorType left, ActorType right)
+    {
+        return IsFriendlyActorType(left) == IsFriendlyActorType(right);
+    }
+
+    private static bool IsFriendlyActorType(ActorType actorType)
+    {
+        return actorType is ActorType.Player or ActorType.Ally;
     }
 
     private int CountOccludingCells(PointF start, PointF end)
@@ -286,7 +349,7 @@ internal sealed partial class GameModel
                 start.X + ((end.X - start.X) * progress),
                 start.Y + ((end.Y - start.Y) * progress));
             var cell = WorldToCell(sample);
-            if (IsBlockedCell(cell))
+            if (_permanentWalls.Contains(cell) || _structures.Any(structure => structure.Cell == cell && structure.Health > 0f && structure.Kind is StructureKind.BlastDoor or StructureKind.PortableCover or StructureKind.VisorWall))
             {
                 blockedCells.Add(cell);
             }

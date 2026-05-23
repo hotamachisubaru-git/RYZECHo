@@ -148,6 +148,7 @@ internal sealed partial class GameModel
         {
             "VERTEX CUP" => new[] { "VERTEX CUP", "TACTICAL CIRCUIT", "BUILD. BREAK. WIN." },
             "SUNSET GRID" => new[] { "SUNSET GRID", "ARENA PASS", "STYLE ONLY" },
+            "ARC LEAGUE" => new[] { "ARC LEAGUE", "CREATOR MARKET", "COSMETIC ONLY" },
             _ => new[] { "NEO CORE", "SIGNAL MARKET", "LIVE WALL SIGNAGE" },
         };
 
@@ -341,7 +342,82 @@ internal sealed partial class GameModel
                         graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * relayRatio, hpRect.Height);
                     }
                     break;
+                case StructureKind.PortableCover:
+                    DrawRaisedBlock(graphics, rectangle, Color.FromArgb(142, 126, 146, 164), Color.FromArgb(64, 24, 30, 38), Color.FromArgb(232, 226, 238, 246), 10f);
+                    DrawStructureHealthBar(graphics, rectangle, structure, Color.FromArgb(220, 226, 238, 246));
+                    break;
+                case StructureKind.VisorWall:
+                    using (var wallFill = new LinearGradientBrush(rectangle, Color.FromArgb(118, 82, 108, 190), Color.FromArgb(62, 24, 38, 74), 90f))
+                    using (var wallBorder = new Pen(Color.FromArgb(238, 174, 206, 255), 2f))
+                    using (var scanPen = new Pen(Color.FromArgb(130, 132, 228, 255), 1.2f))
+                    {
+                        graphics.FillRectangle(wallFill, rectangle);
+                        graphics.DrawRectangle(wallBorder, rectangle);
+                        graphics.DrawLine(scanPen, rectangle.Left + 5, rectangle.Top + 8, rectangle.Right - 5, rectangle.Top + 8);
+                        graphics.DrawLine(scanPen, rectangle.Left + 5, rectangle.Bottom - 8, rectangle.Right - 5, rectangle.Bottom - 8);
+                    }
+
+                    DrawStructureHealthBar(graphics, rectangle, structure, Color.FromArgb(220, 174, 206, 255));
+                    break;
+                case StructureKind.HoloDecoy:
+                    using (var shadow = new SolidBrush(Color.FromArgb(52, 0, 0, 0)))
+                    using (var fill = new SolidBrush(Color.FromArgb(84, 196, 132, 255)))
+                    using (var border = new Pen(Color.FromArgb(224, 226, 206, 255), 1.8f))
+                    using (var ghost = new Pen(Color.FromArgb(104, 196, 132, 255), 1.2f))
+                    {
+                        graphics.FillEllipse(shadow, rectangle.Left + 8, rectangle.Top + 12, rectangle.Width, rectangle.Height);
+                        graphics.FillEllipse(fill, rectangle);
+                        graphics.DrawEllipse(border, rectangle);
+                        graphics.DrawLine(ghost, rectangle.Left + 10, rectangle.Top + 8, rectangle.Right - 10, rectangle.Bottom - 8);
+                        graphics.DrawLine(ghost, rectangle.Right - 10, rectangle.Top + 8, rectangle.Left + 10, rectangle.Bottom - 8);
+                    }
+                    break;
             }
+        }
+    }
+
+    private static void DrawStructureHealthBar(Graphics graphics, Rectangle rectangle, Structure structure, Color fillColor)
+    {
+        var ratio = structure.MaxHealth <= 0f ? 0f : Math.Clamp(structure.Health / structure.MaxHealth, 0f, 1f);
+        using var hpBack = new SolidBrush(Color.FromArgb(36, 0, 0, 0));
+        using var hpFill = new SolidBrush(fillColor);
+        var hpRect = new RectangleF(rectangle.Left, rectangle.Bottom + 3f, rectangle.Width, 5f);
+        graphics.FillRectangle(hpBack, hpRect);
+        graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * ratio, hpRect.Height);
+    }
+
+    private void DrawWorldEffects(Graphics graphics)
+    {
+        foreach (var effect in _worldEffects)
+        {
+            var progress = Math.Clamp(effect.Age / MathF.Max(0.001f, effect.Lifetime), 0f, 1f);
+            var pulse = 0.75f + (0.25f * MathF.Sin((_uiPulseTime * 5.4f) + ((int)effect.Kind * 0.8f)));
+            var radius = effect.Radius * (0.92f + (0.08f * pulse));
+            var alpha = (int)(92f * (1f - (progress * 0.55f)));
+            var fillColor = Color.FromArgb(alpha, effect.Color);
+            var edgeColor = Color.FromArgb(Math.Clamp(alpha + 44, 42, 182), effect.Color);
+
+            using var fill = new SolidBrush(fillColor);
+            using var edge = new Pen(edgeColor, effect.Kind == WorldEffectKind.Lockdown ? 2.4f : 1.6f)
+            {
+                DashStyle = effect.Kind is WorldEffectKind.NanoSmoke or WorldEffectKind.SilenceZone ? DashStyle.Dash : DashStyle.Solid,
+            };
+
+            graphics.FillEllipse(fill, effect.Position.X - radius, effect.Position.Y - radius, radius * 2f, radius * 2f);
+            graphics.DrawEllipse(edge, effect.Position.X - radius, effect.Position.Y - radius, radius * 2f, radius * 2f);
+
+            var label = effect.Kind switch
+            {
+                WorldEffectKind.PoisonCloud => "毒霧",
+                WorldEffectKind.DeadlyDome => "致死",
+                WorldEffectKind.NanoSmoke => "煙幕",
+                WorldEffectKind.SilenceZone => "無音",
+                WorldEffectKind.HunterEye => "索敵",
+                WorldEffectKind.Lockdown => "封鎖",
+                _ => "障害",
+            };
+
+            DrawEffectTag(graphics, new PointF(effect.Position.X, effect.Position.Y - radius - 18f), label, effect.Color);
         }
     }
 
@@ -427,15 +503,19 @@ internal sealed partial class GameModel
             var soundAlpha = GetSoundAlphaMultiplier(ripple.Position);
             var sharedOnly = _phase == GamePhase.Hunt && !PlayerCanPerceive(ripple.Position, ripple.Strength);
 
-            if (ripple.Kind == RippleKind.Footstep)
+            if (ripple.Kind is RippleKind.Footstep or RippleKind.Breathing)
             {
-                var radius = 16f + (progress * 84f * ripple.Strength);
-                var alpha = (int)((sharedOnly ? 92f : 150f) * (1f - progress) * soundAlpha);
+                var isBreathing = ripple.Kind == RippleKind.Breathing;
+                var radius = isBreathing
+                    ? 10f + (progress * 44f * ripple.Strength)
+                    : 16f + (progress * 84f * ripple.Strength);
+                var baseAlpha = isBreathing ? 86f : sharedOnly ? 92f : 150f;
+                var alpha = (int)(baseAlpha * (1f - progress) * soundAlpha);
                 var baseColor = sharedOnly ? Color.FromArgb(180, 124, 214, 255) : ripple.Color;
-                var color = Color.FromArgb(Math.Clamp(alpha, 12, 165), baseColor);
+                var color = Color.FromArgb(Math.Clamp(alpha, isBreathing ? 8 : 12, isBreathing ? 112 : 165), baseColor);
 
-                using var pen = new Pen(color, 2f);
-                using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 8, 80), baseColor), 1f);
+                using var pen = new Pen(color, isBreathing ? 1.3f : 2f);
+                using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 6, isBreathing ? 48 : 80), baseColor), 1f);
                 graphics.DrawEllipse(pen, ripple.Position.X - radius, ripple.Position.Y - radius, radius * 2f, radius * 2f);
                 graphics.DrawEllipse(halo, ripple.Position.X - radius - 8f, ripple.Position.Y - radius - 8f, (radius * 2f) + 16f, (radius * 2f) + 16f);
                 continue;

@@ -24,6 +24,10 @@ internal sealed partial class GameModel
         {
             _selectedBuildTool = BuildToolKind.ShieldRelay;
         }
+        else if (input.Press6)
+        {
+            CycleSelectedAgent();
+        }
 
         if (input.PressQ)
         {
@@ -37,6 +41,11 @@ internal sealed partial class GameModel
         if (input.PressR)
         {
             CycleAdTheme();
+        }
+
+        if (input.PressT)
+        {
+            TryPurchaseOrSelectStoreOffer();
         }
 
         if (input.Confirm)
@@ -79,6 +88,21 @@ internal sealed partial class GameModel
         if (input.PressR)
         {
             ToggleLoadoutFocus();
+        }
+
+        if (input.PressT)
+        {
+            TryPurchaseOrSelectStoreOffer();
+        }
+
+        if (input.Press5)
+        {
+            TryPurchaseAgentSkill();
+        }
+
+        if (input.Press6)
+        {
+            CycleSelectedAgent();
         }
 
         if (input.AdjustBetLeft)

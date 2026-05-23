@@ -14,11 +14,15 @@ internal sealed partial class GameModel
         loadout = loadout
             .OrderBy(_ => _random.Next())
             .ToList();
+        var agents = AgentCatalog.SelectionOrder
+            .OrderBy(_ => _random.Next())
+            .Take(TeamSize)
+            .ToList();
         _enemyBossInvestment = Math.Clamp(180 + (_enemyRoundWins * 35) + (_currentRound * 20) + _random.Next(-40, 61), 120, 420);
 
         for (var index = 0; index < enemyCells.Length; index++)
         {
-            var enemy = CreateEnemyActor($"{(EnemyTeamAttacking() ? "襲撃者" : "守備者")}-{index + 1}", enemyCells[index], loadout[index]);
+            var enemy = CreateEnemyActor($"{(EnemyTeamAttacking() ? "襲撃者" : "守備者")}-{index + 1}", enemyCells[index], loadout[index], agents[index]);
             _enemies.Add(enemy);
             EmitRipple(enemy.Position, 0.82f, RippleKind.Skill, Color.FromArgb(245, 202, 96));
         }
@@ -34,7 +38,7 @@ internal sealed partial class GameModel
         }
     }
 
-    private Actor CreateEnemyActor(string name, Point spawnCell, WeaponType weapon)
+    private Actor CreateEnemyActor(string name, Point spawnCell, WeaponType weapon, AgentKind agent)
     {
         var stats = _weaponStats[weapon];
         var enemyHealth = IsCloseRangeWeapon(weapon) ? 52f : IsMidRangeWeapon(weapon) ? 60f : 48f;
@@ -42,6 +46,7 @@ internal sealed partial class GameModel
         return new Actor
         {
             Name = name,
+            Agent = agent,
             Type = ActorType.Enemy,
             HomeCell = spawnCell,
             Weapon = weapon,
@@ -68,7 +73,7 @@ internal sealed partial class GameModel
         if (path.Count == 0)
         {
             var nearestDoor = _structures
-                .Where(structure => structure.Kind == StructureKind.BlastDoor)
+                .Where(structure => IsRouteBlockingStructure(structure.Kind))
                 .OrderBy(structure => Distance(enemy.Position, CellCenter(structure.Cell)))
                 .FirstOrDefault();
 
@@ -87,6 +92,16 @@ internal sealed partial class GameModel
     private Point PickPathGoal(Actor enemy)
     {
         var siteCell = GetBombSite(_bombPlanted && _armedBombSiteId is not null ? _armedBombSiteId.Value : _attackFocusSite).Cell;
+        var hostileDecoy = _structures
+            .Where(structure => structure.Kind == StructureKind.HoloDecoy && structure.Health > 0f && !SameTeamSide(enemy.Type, structure.OwnerType))
+            .Where(structure => Distance(enemy.Position, CellCenter(structure.Cell)) < 260f)
+            .OrderBy(structure => Distance(enemy.Position, CellCenter(structure.Cell)))
+            .FirstOrDefault();
+        if (hostileDecoy is not null && _random.NextDouble() < 0.42)
+        {
+            return hostileDecoy.Cell;
+        }
+
         var playerTeam = LivePlayerTeam()
             .OrderBy(actor => Distance(enemy.Position, actor.Position))
             .ToList();

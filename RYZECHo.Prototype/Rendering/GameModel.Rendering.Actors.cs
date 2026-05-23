@@ -9,6 +9,8 @@ internal sealed partial class GameModel
             DrawPlayerFov(graphics);
         }
 
+        DrawSharedVisionFovs(graphics);
+
         DrawActor(graphics, _player, mousePosition);
 
         foreach (var ally in _allies)
@@ -123,21 +125,56 @@ internal sealed partial class GameModel
 
     private void DrawPlayerFov(Graphics graphics)
     {
-        var weapon = _weaponStats[_player.Weapon];
-        var fovDegrees = GetFovDegrees(_player.Weapon);
-        var diameter = weapon.VisionRange * 2f;
-        var startAngle = RadiansToDegrees(_player.FacingAngle) - (fovDegrees / 2f);
+        DrawActorFovCone(
+            graphics,
+            _player,
+            1f,
+            Color.FromArgb(78, 248, 244, 214),
+            Color.FromArgb(0, 120, 240, 255),
+            Color.FromArgb(116, 244, 232, 172),
+            1.1f);
+    }
+
+    private void DrawSharedVisionFovs(Graphics graphics)
+    {
+        if (_phase != GamePhase.Hunt || !_player.IsAlive)
+        {
+            return;
+        }
+
+        foreach (var ally in _allies.Where(actor => actor.IsAlive))
+        {
+            DrawActorFovCone(
+                graphics,
+                ally,
+                0.72f,
+                Color.FromArgb(34, 124, 214, 255),
+                Color.FromArgb(0, 124, 214, 255),
+                Color.FromArgb(84, 124, 214, 255),
+                0.9f);
+        }
+    }
+
+    private void DrawActorFovCone(Graphics graphics, Actor actor, float rangeScale, Color centerColor, Color surroundColor, Color edgeColor, float edgeWidth)
+    {
+        var weapon = _weaponStats[actor.Weapon];
+        var fovDegrees = GetFovDegrees(actor.Weapon);
+        var range = weapon.VisionRange * rangeScale;
+        var diameter = range * 2f;
+        var startAngle = RadiansToDegrees(actor.FacingAngle) - (fovDegrees / 2f);
 
         using var path = new GraphicsPath();
-        path.AddPie(_player.Position.X - weapon.VisionRange, _player.Position.Y - weapon.VisionRange, diameter, diameter, startAngle, fovDegrees);
+        path.AddPie(actor.Position.X - range, actor.Position.Y - range, diameter, diameter, startAngle, fovDegrees);
 
         using var coneBrush = new PathGradientBrush(path)
         {
-            CenterColor = Color.FromArgb(78, 248, 244, 214),
-            SurroundColors = [Color.FromArgb(0, 120, 240, 255)],
+            CenterColor = centerColor,
+            SurroundColors = [surroundColor],
         };
+        using var edge = new Pen(edgeColor, edgeWidth);
 
         graphics.FillPath(coneBrush, path);
+        graphics.DrawPath(edge, path);
     }
 
     private void DrawDirectionalCue(Graphics graphics, Ripple ripple, float progress, float soundAlpha)

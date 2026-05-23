@@ -10,7 +10,7 @@ internal sealed partial class GameModel
         }
 
         var expandedWorld = RectangleF.Inflate(WorldBounds, CellSize * 2.5f, CellSize * 2.5f);
-        using var fog = new SolidBrush(Color.FromArgb(132, 2, 7, 12));
+        using var fog = new SolidBrush(Color.FromArgb(158, 2, 7, 12));
         graphics.FillRectangle(fog, expandedWorld);
 
         var weapon = _weaponStats[_player.Weapon];
@@ -22,9 +22,9 @@ internal sealed partial class GameModel
         using var visionPath = new GraphicsPath();
         visionPath.AddPie(_player.Position.X - range, _player.Position.Y - range, diameter, diameter, startAngle, fovDegrees);
 
-        using var visibleFill = new SolidBrush(Color.FromArgb(58, 244, 236, 188));
-        using var visibleEdge = new Pen(Color.FromArgb(170, 244, 232, 172), 1.6f);
-        using var outerEdge = new Pen(Color.FromArgb(74, 88, 232, 248), 1.1f);
+        using var visibleFill = new SolidBrush(Color.FromArgb(48, 244, 236, 188));
+        using var visibleEdge = new Pen(Color.FromArgb(190, 244, 232, 172), 1.8f);
+        using var outerEdge = new Pen(Color.FromArgb(90, 88, 232, 248), 1.4f);
         graphics.FillPath(visibleFill, visionPath);
         graphics.DrawPath(visibleEdge, visionPath);
         graphics.DrawEllipse(outerEdge, _player.Position.X - range, _player.Position.Y - range, diameter, diameter);
@@ -51,14 +51,14 @@ internal sealed partial class GameModel
             return;
         }
 
-        var sideWidth = (int)Math.Clamp(clientBounds.Width * 0.09f, 42f, 150f);
-        var topHeight = (int)Math.Clamp(clientBounds.Height * 0.08f, 34f, 96f);
-        var bottomHeight = (int)Math.Clamp(clientBounds.Height * 0.12f, 56f, 140f);
+        var sideWidth = (int)Math.Clamp(clientBounds.Width * 0.14f, 64f, 220f);
+        var topHeight = (int)Math.Clamp(clientBounds.Height * 0.10f, 42f, 120f);
+        var bottomHeight = (int)Math.Clamp(clientBounds.Height * 0.14f, 68f, 160f);
 
-        using var sideBrush = new SolidBrush(Color.FromArgb(74, 0, 0, 0));
-        using var topBrush = new SolidBrush(Color.FromArgb(62, 0, 0, 0));
-        using var bottomBrush = new SolidBrush(Color.FromArgb(92, 0, 0, 0));
-        using var visorPen = new Pen(Color.FromArgb(86, 78, 224, 238), 1.4f);
+        using var sideBrush = new SolidBrush(Color.FromArgb(96, 0, 0, 0));
+        using var topBrush = new SolidBrush(Color.FromArgb(78, 0, 0, 0));
+        using var bottomBrush = new SolidBrush(Color.FromArgb(110, 0, 0, 0));
+        using var visorPen = new Pen(Color.FromArgb(110, 78, 224, 238), 1.6f);
 
         graphics.FillRectangle(sideBrush, clientBounds.Left, clientBounds.Top, sideWidth, clientBounds.Height);
         graphics.FillRectangle(sideBrush, clientBounds.Right - sideWidth, clientBounds.Top, sideWidth, clientBounds.Height);

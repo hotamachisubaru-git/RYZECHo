@@ -118,16 +118,18 @@ internal sealed partial class GameModel
     {
         if (attacker is null || ReferenceEquals(attacker, victim))
         {
-            PushActivityFeed($"{victim.Name} が離脱。");
+            PushActivityFeed($"{victim.Name} が戦闘不能。");
             return;
         }
 
-        var playerTeamScoredKill = attacker.Type != ActorType.Enemy;
+        // 味方チームによる敵の撃破判定（正常なスコア加算）
+        var playerTeamScoredKill = attacker.Type != ActorType.Enemy && victim.Type == ActorType.Enemy;
         if (playerTeamScoredKill)
         {
             _matchTeamEliminations++;
             _credits += KillRewardCredits;
             PushActivityFeed($"{attacker.Name} が {victim.Name} を撃破。+{KillRewardCredits}c。");
+            EmitCosmeticEliminationEffect(victim.Position);
             AwardUltPoints(attacker.Name, 1, "撃破");
 
             if (attacker.IsBoss)
@@ -158,14 +160,17 @@ internal sealed partial class GameModel
         }
 
         PushActivityFeed($"{attacker.Name} が {victim.Name} を撃破。");
-        if (attacker.IsBoss)
+
+        // 敵ボスが味方を倒した場合の通知
+        if (attacker.IsBoss && attacker.Type == ActorType.Enemy && victim.Type != ActorType.Enemy)
         {
-            PushActivityFeed($"敵ボス {attacker.Name} がキルを取得。敵側へ生存味方配当が発生。");
+            PushActivityFeed($"敵ボス {attacker.Name} がキルを取得。敵側へ生存配当が発生。");
         }
 
-        if (victim.IsBoss)
+        // 味方ボスが倒された場合の通知
+        if (victim.IsBoss && victim.Type != ActorType.Enemy)
         {
-            PushActivityFeed($"味方ボス {victim.Name} が撃破され、投資は没収。敵は +{BossEliminationBonusCredits}c / ULT+2 相当を獲得。");
+            PushActivityFeed($"味方ボス {victim.Name} が撃破されました。投資は没収され、敵に報酬が渡ります。");
         }
     }
 
@@ -214,7 +219,12 @@ internal sealed partial class GameModel
             return;
         }
 
-        _buildPoints += structure.APCost;
+        // 破壊された設備は AP 返還対象外とする（不当なリサイクル防止）
+        if (structure.Health > 0.01f)
+        {
+            _buildPoints += structure.APCost;
+        }
+
         _structures.Remove(structure);
         SetResultMessage($"{structure.Label} を撤去して AP を返還。");
     }
@@ -236,9 +246,14 @@ internal sealed partial class GameModel
 
         _credits -= totalCost;
         _bossSelectionCounts[_selectedBossName] = GetBossSelectionCount(_selectedBossName) + 1;
+        _player.Agent = _selectedAgent;
+        AwardRoundStartUltPoints();
+        ResetAgentRuntimeState(clearWorldEffects: true);
         _roundBossKillCount = 0;
         _enemyBossInvestment = 0;
         _playerIdleSeconds = 0f;
+        _breathingRippleCooldown = 0f;
+        _adImpressionTimer = 0f;
         _coreHealth = 180f;
         _bombPlanted = false;
         _armedBombSiteId = null;
@@ -259,6 +274,7 @@ internal sealed partial class GameModel
         _player.FootstepPulseIndex = 0;
         _player.PathCooldown = 0f;
         _player.Path.Clear();
+        ResetActorAbilityState(_player);
 
         foreach (var actor in _allies)
         {
@@ -271,14 +287,16 @@ internal sealed partial class GameModel
             actor.FootstepPulseIndex = 0;
             actor.PathCooldown = 0f;
             actor.Path.Clear();
+            ResetActorAbilityState(actor);
         }
 
-        foreach (var structure in _structures.Where(structure => structure.Kind == StructureKind.BlastDoor))
+        foreach (var structure in _structures.Where(structure => IsRouteBlockingStructure(structure.Kind)))
         {
-            structure.Health = structure.MaxHealth;
+            structure.Health = Math.Clamp(structure.Health, 0f, structure.MaxHealth);
         }
 
         _enemies.Clear();
+        _worldEffects.Clear();
         _ripples.Clear();
         ResetSharedVision();
         CreateEnemySquad();
@@ -382,6 +400,7 @@ internal sealed partial class GameModel
             }
         }
 
+        ResetAgentRuntimeState(clearWorldEffects: true);
         _phase = GamePhase.RoundResult;
         _resultTimer = 2.4f;
     }
@@ -399,6 +418,8 @@ internal sealed partial class GameModel
         _bombPlantProgress = 0f;
         _bombDefuseProgress = 0f;
         _activePlanter = null;
+        _agentSkillPurchased = false;
+        ResetAgentRuntimeState(clearWorldEffects: true);
         SetResultMessage($"第{_currentRound}ラウンド準備。{PlayerRoleLabel()}としてボス、総投資額、武器を決めてください。");
     }
 
@@ -416,6 +437,8 @@ internal sealed partial class GameModel
         _playerSidearmWeapon = WeaponType.Pulse;
         _selectedLoadoutFocus = LoadoutFocus.Primary;
         _selectedBuildTool = BuildToolKind.BlastDoor;
+        _selectedAgent = AgentKind.Veil;
+        _agentSkillPurchased = false;
         _selectedBossName = RosterCatalog.PlayerName;
         _coreHealth = 180f;
         _bombPlanted = false;
@@ -426,6 +449,7 @@ internal sealed partial class GameModel
         _isOvertime = false;
         _sideSwapConstructPending = false;
         _playerIdleSeconds = 0f;
+        _breathingRippleCooldown = 0f;
         _playerTeamRole = TeamRole.Defense;
         _phase = GamePhase.Construct;
         _resultDestination = GamePhase.Bet;
@@ -434,7 +458,10 @@ internal sealed partial class GameModel
         _matchTeamEliminations = 0;
         _matchPlayerDeaths = 0;
         _roundBossKillCount = 0;
+        _adImpressionTimer = 0f;
+        ResetAgentRuntimeState(clearWorldEffects: true);
         _structures.Clear();
+        _worldEffects.Clear();
         _ripples.Clear();
         _enemies.Clear();
         _sharedVisionTimers.Clear();
@@ -459,8 +486,10 @@ internal sealed partial class GameModel
         _player.ShieldRegenDelay = 0f;
         _player.Position = CellCenter(_player.HomeCell);
         _player.Weapon = _playerPrimaryWeapon;
+        _player.Agent = _selectedAgent;
         _player.PathCooldown = 0f;
         _player.Path.Clear();
+        ResetActorAbilityState(_player);
 
         if (_allies.Count >= 3)
         {
@@ -478,6 +507,7 @@ internal sealed partial class GameModel
             ally.IsBoss = false;
             ally.PathCooldown = 0f;
             ally.Path.Clear();
+            ResetActorAbilityState(ally);
         }
 
         _player.IsBoss = true;
@@ -496,4 +526,5 @@ internal sealed partial class GameModel
             SetResultMessage("攻守交代。再エディットで後半戦の配置を調整してください。");
         }
     }
+
 }

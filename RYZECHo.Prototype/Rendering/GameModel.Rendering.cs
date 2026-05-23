@@ -22,6 +22,7 @@ internal sealed partial class GameModel
         {
             graphics.MultiplyTransform(worldTransform);
             DrawWorldPanel(graphics);
+            DrawWorldEffects(graphics);
             DrawStructures(graphics);
             DrawCore(graphics);
             DrawCombatFog(graphics);

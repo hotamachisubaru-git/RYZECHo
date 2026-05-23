@@ -7,6 +7,7 @@ internal sealed partial class GameModel
         _roundTimer -= deltaSeconds;
         _pingCooldown -= deltaSeconds;
         UpdateSharedVision(deltaSeconds);
+        UpdateAgentRuntime(deltaSeconds, input);
 
         RestoreBossFlags();
         UpdatePlayer(deltaSeconds, input);

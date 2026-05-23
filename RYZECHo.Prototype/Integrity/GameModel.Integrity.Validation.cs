@@ -89,6 +89,11 @@ internal sealed partial class GameModel
         return _weaponStats.ContainsKey(weaponType) ? weaponType : fallback;
     }
 
+    private static AgentKind SanitizeAgentKind(AgentKind agent)
+    {
+        return Enum.IsDefined(agent) ? agent : AgentKind.Veil;
+    }
+
     private WeaponType DefaultWeaponFor(Actor actor)
     {
         return actor.Type switch

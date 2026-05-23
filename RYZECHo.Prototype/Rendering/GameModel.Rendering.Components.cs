@@ -148,9 +148,27 @@ internal sealed partial class GameModel
             offsetY -= 16f;
         }
 
+        if (actor.Type == ActorType.Enemy && IsActorLockedDown(actor))
+        {
+            DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "封鎖", Color.FromArgb(255, 230, 194, 88));
+            offsetY -= 16f;
+        }
+
         if (actor.Type == ActorType.Player && IsPlayerBreathingExposed())
         {
             DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "呼吸漏", Color.FromArgb(255, 255, 132, 108));
+            offsetY -= 16f;
+        }
+
+        if (actor.Type == ActorType.Player && _playerOverdriveTimer > 0f)
+        {
+            DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "OD", Color.FromArgb(255, 255, 132, 92));
+            offsetY -= 16f;
+        }
+
+        if (actor.Type == ActorType.Player && _playerGhostTimer > 0f)
+        {
+            DrawEffectTag(graphics, new PointF(origin.X, origin.Y + offsetY), "幽歩", Color.FromArgb(255, 196, 132, 255));
         }
     }
 

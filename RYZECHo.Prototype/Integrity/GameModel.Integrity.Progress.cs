@@ -32,6 +32,9 @@ internal sealed partial class GameModel
             profile.AccountLevel.ToString(),
             profile.CurrentXp.ToString(),
             profile.AgentCredits.ToString(),
+            profile.CosmeticTokens.ToString(),
+            profile.LifetimeAdImpressions.ToString(),
+            profile.StoreCursor.ToString(),
             profile.RankRating.ToString(),
             profile.MatchesPlayed.ToString(),
             profile.MatchesWon.ToString(),
@@ -42,8 +45,11 @@ internal sealed partial class GameModel
             JoinDistinct(profile.UnlockedStructureSkins),
             JoinDistinct(profile.UnlockedAdThemes),
             JoinDistinct(profile.UnlockedBanners),
+            JoinDistinct(profile.UnlockedKillEffects),
             profile.SelectedStructureSkin,
             profile.SelectedAdTheme,
+            profile.SelectedBanner,
+            profile.SelectedKillEffect,
         ]);
     }
 

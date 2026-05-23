@@ -13,9 +13,11 @@ internal readonly record struct InputSnapshot(
     bool Press3,
     bool Press4,
     bool Press5,
+    bool Press6,
     bool PressQ,
     bool PressE,
     bool PressR,
+    bool PressT,
     bool FireHeld,
     bool InteractHeld,
     Point MousePosition);

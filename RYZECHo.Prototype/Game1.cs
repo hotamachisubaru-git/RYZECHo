@@ -120,9 +120,11 @@ public class Game1 : Game
             IsNumberPressed(keyboard, Keys.D3, Keys.NumPad3),
             IsNumberPressed(keyboard, Keys.D4, Keys.NumPad4),
             IsNumberPressed(keyboard, Keys.D5, Keys.NumPad5),
+            IsNumberPressed(keyboard, Keys.D6, Keys.NumPad6),
             IsNewKeyPress(keyboard, Keys.Q),
             IsNewKeyPress(keyboard, Keys.E),
             IsNewKeyPress(keyboard, Keys.R),
+            IsNewKeyPress(keyboard, Keys.T),
             mouse.LeftButton == ButtonState.Pressed,
             keyboard.IsKeyDown(Keys.F),
             mousePosition);

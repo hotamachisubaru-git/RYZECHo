@@ -11,14 +11,20 @@ internal sealed class ProgressProfile
     public int MatchesPlayed { get; set; }
     public int MatchesWon { get; set; }
     public int ContractsCompleted { get; set; }
+    public int CosmeticTokens { get; set; }
+    public int LifetimeAdImpressions { get; set; }
+    public int StoreCursor { get; set; }
     public string ActiveContract { get; set; } = "ヴェール";
     public int ActiveContractProgress { get; set; }
     public List<string> UnlockedAgents { get; set; } = ["ヴェール"];
     public List<string> UnlockedStructureSkins { get; set; } = ["シグナル標準"];
     public List<string> UnlockedAdThemes { get; set; } = ["NEO CORE"];
     public List<string> UnlockedBanners { get; set; } = ["SIGNAL//STANDARD"];
+    public List<string> UnlockedKillEffects { get; set; } = ["SIGNAL BURST"];
     public string SelectedStructureSkin { get; set; } = "シグナル標準";
     public string SelectedAdTheme { get; set; } = "NEO CORE";
+    public string SelectedBanner { get; set; } = "SIGNAL//STANDARD";
+    public string SelectedKillEffect { get; set; } = "SIGNAL BURST";
     public string IntegritySalt { get; set; } = string.Empty;
     public string IntegrityStamp { get; set; } = string.Empty;
 }
@@ -70,18 +76,49 @@ internal sealed partial class GameModel
 
     private static string[] StructureSkinCatalog()
     {
-        return ["シグナル標準", "カーボンゲート", "サンドパルス"];
+        return ["シグナル標準", "カーボンゲート", "サンドパルス", "プリズムバイザー", "ローグクローム"];
     }
 
     private static string[] AdThemeCatalog()
     {
-        return ["NEO CORE", "VERTEX CUP", "SUNSET GRID"];
+        return ["NEO CORE", "VERTEX CUP", "SUNSET GRID", "ARC LEAGUE"];
+    }
+
+    private static string[] BannerCatalog()
+    {
+        return ["SIGNAL//STANDARD", "CONTRACT//ARC", "BOSS//BACKER", "MAP//ARCHITECT", "AD//PARTNER"];
+    }
+
+    private static string[] KillEffectCatalog()
+    {
+        return ["SIGNAL BURST", "RIPPLE TRACE", "PRISM BREAK", "CLEAN CUT"];
+    }
+
+    private static CosmeticOffer[] CosmeticStoreCatalog()
+    {
+        return
+        [
+            new(CosmeticKind.StructureSkin, "カーボンゲート", 3, "設置物スキン"),
+            new(CosmeticKind.AdTheme, "VERTEX CUP", 3, "会場広告テーマ"),
+            new(CosmeticKind.Banner, "BOSS//BACKER", 2, "プロフィールバナー"),
+            new(CosmeticKind.KillEffect, "RIPPLE TRACE", 4, "キル演出"),
+            new(CosmeticKind.StructureSkin, "プリズムバイザー", 5, "設置物スキン"),
+            new(CosmeticKind.AdTheme, "ARC LEAGUE", 5, "会場広告テーマ"),
+            new(CosmeticKind.Banner, "MAP//ARCHITECT", 4, "プロフィールバナー"),
+            new(CosmeticKind.KillEffect, "PRISM BREAK", 6, "キル演出"),
+            new(CosmeticKind.StructureSkin, "ローグクローム", 6, "設置物スキン"),
+            new(CosmeticKind.Banner, "AD//PARTNER", 3, "プロフィールバナー"),
+            new(CosmeticKind.KillEffect, "CLEAN CUT", 5, "キル演出"),
+        ];
     }
 
     private void NormalizeProgressProfile()
     {
         _profile.AccountLevel = Math.Clamp(_profile.AccountLevel, 1, IntegrityMaxAccountLevel);
         _profile.AgentCredits = Math.Clamp(_profile.AgentCredits, 0, IntegrityMaxCareerStat);
+        _profile.CosmeticTokens = Math.Clamp(_profile.CosmeticTokens, 0, IntegrityMaxCareerStat);
+        _profile.LifetimeAdImpressions = Math.Clamp(_profile.LifetimeAdImpressions, 0, IntegrityMaxCareerStat);
+        _profile.StoreCursor = Math.Clamp(_profile.StoreCursor, 0, Math.Max(0, CosmeticStoreCatalog().Length - 1));
         _profile.RankRating = Math.Clamp(_profile.RankRating, 0, IntegrityMaxCareerStat);
         _profile.CurrentXp = Math.Max(0, _profile.CurrentXp);
         _profile.MatchesPlayed = Math.Clamp(_profile.MatchesPlayed, 0, IntegrityMaxCareerStat);
@@ -92,16 +129,19 @@ internal sealed partial class GameModel
         _profile.UnlockedStructureSkins ??= [];
         _profile.UnlockedAdThemes ??= [];
         _profile.UnlockedBanners ??= [];
+        _profile.UnlockedKillEffects ??= [];
 
         NormalizeProgressList(_profile.UnlockedAgents, ContractOrder());
         NormalizeProgressList(_profile.UnlockedStructureSkins, StructureSkinCatalog());
         NormalizeProgressList(_profile.UnlockedAdThemes, AdThemeCatalog());
         NormalizeLooseProgressList(_profile.UnlockedBanners);
+        NormalizeProgressList(_profile.UnlockedKillEffects, KillEffectCatalog());
 
         EnsureUnlocked(_profile.UnlockedAgents, "ヴェール");
         EnsureUnlocked(_profile.UnlockedStructureSkins, "シグナル標準");
         EnsureUnlocked(_profile.UnlockedAdThemes, "NEO CORE");
         EnsureUnlocked(_profile.UnlockedBanners, "SIGNAL//STANDARD");
+        EnsureUnlocked(_profile.UnlockedKillEffects, "SIGNAL BURST");
         UnlockProgressionRewards();
 
         if (!_profile.UnlockedStructureSkins.Contains(_profile.SelectedStructureSkin))
@@ -112,6 +152,16 @@ internal sealed partial class GameModel
         if (!_profile.UnlockedAdThemes.Contains(_profile.SelectedAdTheme))
         {
             _profile.SelectedAdTheme = _profile.UnlockedAdThemes[0];
+        }
+
+        if (!_profile.UnlockedBanners.Contains(_profile.SelectedBanner))
+        {
+            _profile.SelectedBanner = _profile.UnlockedBanners[0];
+        }
+
+        if (!_profile.UnlockedKillEffects.Contains(_profile.SelectedKillEffect))
+        {
+            _profile.SelectedKillEffect = _profile.UnlockedKillEffects[0];
         }
 
         if (!ContractOrder().Contains(_profile.ActiveContract))
@@ -161,6 +211,16 @@ internal sealed partial class GameModel
             EnsureUnlocked(_profile.UnlockedAgents, "グリッチ");
             EnsureUnlocked(_profile.UnlockedAdThemes, "SUNSET GRID");
         }
+
+        if (_profile.ContractsCompleted >= 1)
+        {
+            EnsureUnlocked(_profile.UnlockedKillEffects, "RIPPLE TRACE");
+        }
+
+        if (_profile.ContractsCompleted >= 2)
+        {
+            EnsureUnlocked(_profile.UnlockedBanners, "BOSS//BACKER");
+        }
     }
 
     private static int ExperienceForNextLevel(int level)
@@ -203,6 +263,7 @@ internal sealed partial class GameModel
         }
 
         _profile.AgentCredits += won ? 2 : 1;
+        _profile.CosmeticTokens += won ? 3 : 2;
         _profile.RankRating = Math.Max(0, _profile.RankRating + rankDelta);
         _profile.CurrentXp += xpGain;
         _profile.ActiveContractProgress += Math.Max(1, (won ? 3 : 1) + (_matchTeamEliminations / 4));
@@ -232,7 +293,7 @@ internal sealed partial class GameModel
         NormalizeProgressProfile();
         SaveProgressProfile();
 
-        _lastProgressionSummary = $"XP +{xpGain} / LV {_profile.AccountLevel}{(levelUps > 0 ? $" (+{levelUps})" : string.Empty)} / {CurrentRankLabel()} / AGC {_profile.AgentCredits}";
+        _lastProgressionSummary = $"XP +{xpGain} / LV {_profile.AccountLevel}{(levelUps > 0 ? $" (+{levelUps})" : string.Empty)} / {CurrentRankLabel()} / AGC {_profile.AgentCredits} / CT {_profile.CosmeticTokens}";
     }
 
     private string CurrentRankLabel()
@@ -251,7 +312,7 @@ internal sealed partial class GameModel
 
     private string ProfileSummaryLine()
     {
-        return $"LV {_profile.AccountLevel}  {CurrentRankLabel()}  AGC {_profile.AgentCredits}";
+        return $"LV {_profile.AccountLevel}  {CurrentRankLabel()}  AGC {_profile.AgentCredits}  CT {_profile.CosmeticTokens}";
     }
 
     private string ContractSummaryLine()
@@ -267,6 +328,16 @@ internal sealed partial class GameModel
     private string SelectedAdThemeName()
     {
         return _profile.SelectedAdTheme;
+    }
+
+    private string SelectedBannerName()
+    {
+        return _profile.SelectedBanner;
+    }
+
+    private string SelectedKillEffectName()
+    {
+        return _profile.SelectedKillEffect;
     }
 
     private void CycleStructureSkin(int direction)
@@ -311,5 +382,141 @@ internal sealed partial class GameModel
         _profile.SelectedAdTheme = catalog[(index + 1) % catalog.Count];
         SaveProgressProfile();
         SetResultMessage($"会場広告テーマを {_profile.SelectedAdTheme} に切り替えました。");
+    }
+
+    private CosmeticOffer CurrentStoreOffer()
+    {
+        var catalog = CosmeticStoreCatalog();
+        var cursor = Math.Clamp(_profile.StoreCursor, 0, Math.Max(0, catalog.Length - 1));
+        return catalog[cursor];
+    }
+
+    private string StoreOfferSummaryLine()
+    {
+        var offer = CurrentStoreOffer();
+        var state = IsCosmeticUnlocked(offer) ? "所持済み" : $"{offer.TokenCost}CT";
+        return $"STORE {offer.Label}: {offer.Name} ({state})";
+    }
+
+    private void TryPurchaseOrSelectStoreOffer()
+    {
+        NormalizeProgressProfile();
+        var offer = CurrentStoreOffer();
+        if (IsCosmeticUnlocked(offer))
+        {
+            SelectCosmetic(offer);
+            AdvanceStoreCursor();
+            SaveProgressProfile();
+            SetResultMessage($"{offer.Name} を選択し、次のストア枠へ進めました。");
+            return;
+        }
+
+        if (_profile.CosmeticTokens < offer.TokenCost)
+        {
+            SetResultMessage($"{offer.Name} の購入には {offer.TokenCost}CT が必要です。現在 {_profile.CosmeticTokens}CT。課金ではなく試合報酬と広告露出報酬で入手できます。");
+            return;
+        }
+
+        _profile.CosmeticTokens -= offer.TokenCost;
+        UnlockCosmetic(offer);
+        SelectCosmetic(offer);
+        AdvanceStoreCursor();
+        SaveProgressProfile();
+        SetResultMessage($"{offer.Name} を購入して選択しました。性能には影響しません。");
+    }
+
+    private void AdvanceStoreCursor()
+    {
+        var catalogLength = CosmeticStoreCatalog().Length;
+        _profile.StoreCursor = (_profile.StoreCursor + 1) % Math.Max(1, catalogLength);
+    }
+
+    private bool IsCosmeticUnlocked(CosmeticOffer offer)
+    {
+        return offer.Kind switch
+        {
+            CosmeticKind.StructureSkin => _profile.UnlockedStructureSkins.Contains(offer.Name),
+            CosmeticKind.AdTheme => _profile.UnlockedAdThemes.Contains(offer.Name),
+            CosmeticKind.Banner => _profile.UnlockedBanners.Contains(offer.Name),
+            CosmeticKind.KillEffect => _profile.UnlockedKillEffects.Contains(offer.Name),
+            _ => false,
+        };
+    }
+
+    private void UnlockCosmetic(CosmeticOffer offer)
+    {
+        switch (offer.Kind)
+        {
+            case CosmeticKind.StructureSkin:
+                EnsureUnlocked(_profile.UnlockedStructureSkins, offer.Name);
+                break;
+            case CosmeticKind.AdTheme:
+                EnsureUnlocked(_profile.UnlockedAdThemes, offer.Name);
+                break;
+            case CosmeticKind.Banner:
+                EnsureUnlocked(_profile.UnlockedBanners, offer.Name);
+                break;
+            case CosmeticKind.KillEffect:
+                EnsureUnlocked(_profile.UnlockedKillEffects, offer.Name);
+                break;
+        }
+    }
+
+    private void SelectCosmetic(CosmeticOffer offer)
+    {
+        switch (offer.Kind)
+        {
+            case CosmeticKind.StructureSkin:
+                _profile.SelectedStructureSkin = offer.Name;
+                break;
+            case CosmeticKind.AdTheme:
+                _profile.SelectedAdTheme = offer.Name;
+                break;
+            case CosmeticKind.Banner:
+                _profile.SelectedBanner = offer.Name;
+                break;
+            case CosmeticKind.KillEffect:
+                _profile.SelectedKillEffect = offer.Name;
+                break;
+        }
+    }
+
+    private void UpdateMonetizationRuntime(float deltaSeconds)
+    {
+        if (_phase != GamePhase.Hunt || IsIntegrityRewardsLocked())
+        {
+            return;
+        }
+
+        _adImpressionTimer += deltaSeconds;
+        if (_adImpressionTimer < 12f)
+        {
+            return;
+        }
+
+        _adImpressionTimer = 0f;
+        _profile.LifetimeAdImpressions++;
+        if (_profile.LifetimeAdImpressions % 3 == 0)
+        {
+            _profile.CosmeticTokens++;
+            SaveProgressProfile();
+            PushActivityFeed($"会場広告露出報酬 +1CT。合計 {_profile.CosmeticTokens}CT。");
+            return;
+        }
+
+        SaveProgressProfile();
+    }
+
+    private void EmitCosmeticEliminationEffect(PointF position)
+    {
+        var color = SelectedKillEffectName() switch
+        {
+            "RIPPLE TRACE" => Color.FromArgb(255, 124, 228, 255),
+            "PRISM BREAK" => Color.FromArgb(255, 196, 132, 255),
+            "CLEAN CUT" => Color.FromArgb(255, 238, 244, 248),
+            _ => Color.FromArgb(255, 255, 220, 132),
+        };
+
+        EmitRipple(position, 1.12f, RippleKind.Skill, color);
     }
 }

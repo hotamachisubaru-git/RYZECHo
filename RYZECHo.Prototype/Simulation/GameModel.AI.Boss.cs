@@ -126,12 +126,47 @@ internal sealed partial class GameModel
 
     private float GetActorMoveSpeedMultiplier(Actor actor)
     {
-        return 1f + BossMoveBonusPercent(CurrentBossInvestment(actor));
+        var multiplier = 1f + BossMoveBonusPercent(CurrentBossInvestment(actor));
+        if (actor.Type == ActorType.Player)
+        {
+            if (_playerDashTimer > 0f)
+            {
+                multiplier *= 2.4f;
+            }
+
+            if (_playerOverdriveTimer > 0f)
+            {
+                multiplier *= 1.22f;
+            }
+        }
+        else
+        {
+            if (actor.DashTimer > 0f)
+            {
+                multiplier *= 1.85f;
+            }
+
+            if (actor.OverdriveTimer > 0f)
+            {
+                multiplier *= 1.18f;
+            }
+        }
+
+        return multiplier;
     }
 
     private float GetActorFireCooldown(Actor actor, float baseCooldown)
     {
         var fireRateBonus = 1f + BossReloadBonusPercent(CurrentBossInvestment(actor));
+        if (actor.Type == ActorType.Player && _playerOverdriveTimer > 0f)
+        {
+            fireRateBonus *= 1.28f;
+        }
+        else if (actor.Type != ActorType.Player && actor.OverdriveTimer > 0f)
+        {
+            fireRateBonus *= 1.18f;
+        }
+
         return baseCooldown / Math.Max(1f, fireRateBonus);
     }
 

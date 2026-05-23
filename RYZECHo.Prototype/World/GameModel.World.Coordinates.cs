@@ -166,7 +166,40 @@ internal sealed partial class GameModel
             BuildToolKind.HoneyTrap => "ハチミツトラップ / 3AP",
             BuildToolKind.StaticNest => "スタティックネスト / 4AP",
             BuildToolKind.ReconBeacon => "リコンビーコン / 4AP",
-            _ => "シールドリレー / 5AP",
+            BuildToolKind.ShieldRelay => "シールドリレー / 5AP",
+            BuildToolKind.PortableCover => "ポータブルカバー / 3AP",
+            BuildToolKind.VisorWall => "一方向バイザー壁 / 4AP",
+            _ => "ホログラムデコイ / 2AP",
+        };
+    }
+
+    private static string BuildToolShortLabel(BuildToolKind tool)
+    {
+        return tool switch
+        {
+            BuildToolKind.BlastDoor => "DOOR",
+            BuildToolKind.HoneyTrap => "HONEY",
+            BuildToolKind.StaticNest => "NEST",
+            BuildToolKind.ReconBeacon => "RECON",
+            BuildToolKind.ShieldRelay => "RELAY",
+            BuildToolKind.PortableCover => "COVER",
+            BuildToolKind.VisorWall => "VISOR",
+            _ => "DECOY",
+        };
+    }
+
+    private static int BuildToolApCost(BuildToolKind tool)
+    {
+        return tool switch
+        {
+            BuildToolKind.BlastDoor => 2,
+            BuildToolKind.HoneyTrap => 3,
+            BuildToolKind.StaticNest => 4,
+            BuildToolKind.ReconBeacon => 4,
+            BuildToolKind.ShieldRelay => 5,
+            BuildToolKind.PortableCover => 3,
+            BuildToolKind.VisorWall => 4,
+            _ => 2,
         };
     }
 

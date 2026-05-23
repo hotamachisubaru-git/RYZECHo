@@ -10,6 +10,9 @@ internal sealed partial class GameModel
             BuildToolKind.HoneyTrap => BuildToolKind.StaticNest,
             BuildToolKind.StaticNest => BuildToolKind.ReconBeacon,
             BuildToolKind.ReconBeacon => BuildToolKind.ShieldRelay,
+            BuildToolKind.ShieldRelay => BuildToolKind.PortableCover,
+            BuildToolKind.PortableCover => BuildToolKind.VisorWall,
+            BuildToolKind.VisorWall => BuildToolKind.HoloDecoy,
             _ => BuildToolKind.BlastDoor,
         };
     }
