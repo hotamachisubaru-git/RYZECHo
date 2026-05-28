@@ -125,6 +125,10 @@ internal sealed partial class GameModel
 
     private readonly Actor _player;
 
+    internal event Action<RippleKind, PointF, float>? AudioCueEmitted;
+
+    internal PointF AudioListenerPosition => _player.Position;
+
     public GameModel()
     {
         BuildMapGeometry();

@@ -12,6 +12,8 @@ internal sealed partial class GameModel
             Kind = kind,
             Color = color,
         });
+
+        AudioCueEmitted?.Invoke(kind, position, strength);
     }
 
     private Point ScreenToCell(Point location)

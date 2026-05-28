@@ -1,6 +1,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using RYZECHo.Audio;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace RYZECHo.Prototype;
@@ -13,6 +14,8 @@ public class Game1 : Game
     private MouseState _previousMouse;
     private SpriteBatch? _spriteBatch;
     private Graphics? _renderer;
+    private AudioManager? _audioManager;
+    private AudioRippleSystem? _audioRipples;
 
     public Game1()
     {
@@ -23,7 +26,7 @@ public class Game1 : Game
         _graphics.PreferredBackBufferWidth = GameLayout.DefaultClientWidth;
         _graphics.PreferredBackBufferHeight = GameLayout.DefaultClientHeight;
         Window.AllowUserResizing = true;
-        Window.Title = "RYZECHØ Prototype v0.0.3";
+        Window.Title = "RYZECHØ Prototype v0.1.0";
     }
 
     protected override void Initialize()
@@ -37,6 +40,16 @@ public class Game1 : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _renderer = new Graphics(GraphicsDevice, _spriteBatch);
+
+        _audioManager = new AudioManager();
+        _audioManager.MasterVolume = 0.78f;
+        _audioManager.BgmVolume = 0.18f;
+        _audioManager.SfxVolume = 0.82f;
+        _audioManager.PreloadEffects(SoundEffectCatalog.All);
+        _audioManager.PlayMusic(SoundEffectCatalog.BGM_HoloTheme);
+
+        _audioRipples = new AudioRippleSystem(_audioManager);
+        _game.AudioCueEmitted += HandleAudioCueEmitted;
     }
 
     protected override void Update(GameTime gameTime)
@@ -100,9 +113,31 @@ public class Game1 : Game
 
     protected override void UnloadContent()
     {
+        _game.AudioCueEmitted -= HandleAudioCueEmitted;
+        _audioManager?.Dispose();
+        _audioManager = null;
+        _audioRipples = null;
         _renderer?.Dispose();
         _renderer = null;
         base.UnloadContent();
+    }
+
+    private void HandleAudioCueEmitted(RippleKind kind, PointF sourcePosition, float strength)
+    {
+        if (_audioRipples is null)
+        {
+            return;
+        }
+
+        var listenerPosition = _game.AudioListenerPosition;
+        var dx = sourcePosition.X - listenerPosition.X;
+        var dy = sourcePosition.Y - listenerPosition.Y;
+        var distance = MathF.Sqrt((dx * dx) + (dy * dy));
+        var maxDistance = MathF.Max(1f, GameSettings.SoundMaxDistance * GameLayout.CellSize);
+        var attenuation = MathF.Pow(1f - Math.Clamp(distance / maxDistance, 0f, 1f), 0.65f);
+        var pan = Math.Clamp(dx / (GameLayout.CellSize * 8f), -1f, 1f);
+
+        _audioRipples.Play(kind, strength * attenuation, pan);
     }
 
     private InputSnapshot CaptureInput(KeyboardState keyboard, MouseState mouse, Point mousePosition)
