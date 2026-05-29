@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -139,48 +139,6 @@ internal sealed partial class GameModel
             "ARC LEAGUE" => Color.FromArgb(255, 174, 206, 255),
             _ => Color.FromArgb(255, 98, 228, 242),
         };
-    }
-
-    private void DrawSoundEdgeIndicators(Graphics graphics)
-    {
-        if (_phase != GamePhase.Hunt || !_player.IsAlive)
-        {
-            return;
-        }
-
-        var indicators = _ripples
-            .Where(ripple => TeamCanPerceive(ripple.Position, ripple.Strength))
-            .Where(ripple => !PlayerHasDirectSightTo(ripple.Position))
-            .OrderByDescending(ripple => ripple.Strength)
-            .Take(3)
-            .ToArray();
-
-        if (indicators.Length == 0)
-        {
-            return;
-        }
-
-        var cameraBounds = MainPlayCameraBounds;
-        var center = new PointF(
-            cameraBounds.Left + (cameraBounds.Width * HuntCameraTargetX),
-            cameraBounds.Top + (cameraBounds.Height * HuntCameraTargetY));
-        foreach (var ripple in indicators)
-        {
-            var direction = new PointF(ripple.Position.X - _player.Position.X, ripple.Position.Y - _player.Position.Y);
-            var length = MathF.Max(1f, MathF.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y)));
-            direction = new PointF(direction.X / length, direction.Y / length);
-            var anchor = new PointF(center.X + (direction.X * 220f), center.Y + (direction.Y * 140f));
-            var side = new PointF(-direction.Y, direction.X);
-            var color = TeamCanPerceive(ripple.Position, ripple.Strength) && !PlayerCanPerceive(ripple.Position, ripple.Strength)
-                ? Color.FromArgb(210, 124, 214, 255)
-                : Color.FromArgb(220, ripple.Color);
-
-            var tip = new PointF(anchor.X + (direction.X * 14f), anchor.Y + (direction.Y * 14f));
-            var left = new PointF(anchor.X - (direction.X * 8f) + (side.X * 8f), anchor.Y - (direction.Y * 8f) + (side.Y * 8f));
-            var right = new PointF(anchor.X - (direction.X * 8f) - (side.X * 8f), anchor.Y - (direction.Y * 8f) - (side.Y * 8f));
-            using var brush = new SolidBrush(color);
-            graphics.FillPolygon(brush, [tip, left, right]);
-        }
     }
 
     private void DrawMiniMapActor(Graphics graphics, Rectangle inner, RectangleF viewRect, float scaleX, float scaleY, Actor actor, Color color)

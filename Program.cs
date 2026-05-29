@@ -1,6 +1,6 @@
 using System;
 
-namespace RYZECHo.Prototype
+namespace RYZECHo
 {
     public static class Program
     {

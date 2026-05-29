@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -23,85 +23,51 @@ internal sealed partial class GameModel
 
     private bool AllBossSelectionsSpent()
     {
-        return BossCandidateNames().All(name => GetBossSelectionCount(name) >= MaxBossSelectionsPerActor);
+        return BossSelectionRules.AllSelectionsSpent(BossCandidateNames(), _bossSelectionCounts, MaxBossSelectionsPerActor);
     }
 
     private bool CanSelectBoss(string actorName)
     {
-        return AllBossSelectionsSpent() || GetBossSelectionCount(actorName) < MaxBossSelectionsPerActor;
+        return BossSelectionRules.CanSelect(actorName, BossCandidateNames(), _bossSelectionCounts, MaxBossSelectionsPerActor);
     }
 
     private int BossSelectionsRemaining(string actorName)
     {
-        if (AllBossSelectionsSpent())
-        {
-            return 1;
-        }
-
-        return Math.Max(0, MaxBossSelectionsPerActor - GetBossSelectionCount(actorName));
+        return BossSelectionRules.SelectionsRemaining(actorName, BossCandidateNames(), _bossSelectionCounts, MaxBossSelectionsPerActor);
     }
 
     private bool TrySelectBoss(string actorName)
     {
-        if (CanSelectBoss(actorName))
+        var resolved = BossSelectionRules.ResolveSelection(actorName, BossCandidateNames(), _bossSelectionCounts, MaxBossSelectionsPerActor);
+        if (resolved == actorName)
         {
             _selectedBossName = actorName;
             return true;
         }
 
-        var fallback = BossCandidateNames().FirstOrDefault(CanSelectBoss);
-        if (!string.IsNullOrWhiteSpace(fallback))
-        {
-            _selectedBossName = fallback;
-            SetResultMessage($"{actorName} は既に 2 回選出済みのため、{fallback} に切り替えました。");
-            return false;
-        }
-
-        _selectedBossName = actorName;
-        return true;
+        _selectedBossName = resolved;
+        SetResultMessage($"{actorName} は既に 2 回選出済みのため、{resolved} に切り替えました。");
+        return false;
     }
 
     private void EnsureBossSelectionAvailable()
     {
-        if (CanSelectBoss(_selectedBossName))
-        {
-            return;
-        }
-
-        var fallback = BossCandidateNames().FirstOrDefault(CanSelectBoss);
-        if (!string.IsNullOrWhiteSpace(fallback))
-        {
-            _selectedBossName = fallback;
-        }
+        _selectedBossName = BossSelectionRules.ResolveSelection(_selectedBossName, BossCandidateNames(), _bossSelectionCounts, MaxBossSelectionsPerActor);
     }
 
     private float BossInvestmentCoreFactor(int investment)
     {
-        if (investment <= 0)
-        {
-            return 0f;
-        }
-
-        var normalized = Math.Clamp(Math.Min(investment, OptimalBossInvestment) / (float)OptimalBossInvestment, 0f, 1f);
-        var quadraticPeak = (2f * normalized) - (normalized * normalized);
-        if (investment <= OptimalBossInvestment)
-        {
-            return quadraticPeak;
-        }
-
-        var overflow = investment - OptimalBossInvestment;
-        var tail = 0.22f * (1f - MathF.Exp(-overflow / 180f));
-        return quadraticPeak + tail;
+        return BossEconomyRules.CalculateBuff(investment, OptimalBossInvestment).CoreFactor;
     }
 
     private float BossMoveBonusPercent(int investment)
     {
-        return BossInvestmentCoreFactor(investment) * 0.12f;
+        return BossEconomyRules.CalculateBuff(investment, OptimalBossInvestment).MoveBonusPercent;
     }
 
     private float BossReloadBonusPercent(int investment)
     {
-        return BossInvestmentCoreFactor(investment) * 0.18f;
+        return BossEconomyRules.CalculateBuff(investment, OptimalBossInvestment).FireRateBonusPercent;
     }
 
     private string BossBuffSummary(int investment)
@@ -111,7 +77,7 @@ internal sealed partial class GameModel
 
     private float BossInvestmentProgress(int investment)
     {
-        return Math.Clamp(BossInvestmentCoreFactor(investment) / 1.22f, 0f, 1f);
+        return Math.Clamp(BossInvestmentCoreFactor(investment), 0f, 1f);
     }
 
     private int CurrentBossInvestment(Actor actor)

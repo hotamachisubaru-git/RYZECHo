@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal readonly record struct InputSnapshot(
     bool MoveUp,

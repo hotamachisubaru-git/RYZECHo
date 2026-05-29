@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed class Matrix : IDisposable
 {

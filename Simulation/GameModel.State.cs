@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -31,8 +31,12 @@ internal sealed partial class GameModel
     private const int BossEliminationBonusCredits = GameRules.BossEliminationBonusCredits;
     private const int MaxBossSelectionsPerActor = GameRules.MaxBossSelectionsPerActor;
     private const int OptimalBossInvestment = GameRules.OptimalBossInvestment;
+    private const int BossPayoutMultiplier = GameRules.BossPayoutMultiplier;
     private const int AgentSkillPurchaseCost = 400;
     private const int MaxUltPoints = GameRules.MaxUltPoints;
+    private const int InitialBuildPoints = GameRules.InitialBuildPoints;
+    private const int MaxBuildPoints = GameRules.MaxBuildPoints;
+    private const int SideSwapBuildPointRefill = GameRules.SideSwapBuildPointRefill;
     private const float DefaultFovDegrees = GameRules.DefaultFovDegrees;
     private const float SniperFovDegrees = GameRules.SniperFovDegrees;
     private const float SoundCueLifetimeSeconds = GameRules.SoundCueLifetimeSeconds;
@@ -82,7 +86,7 @@ internal sealed partial class GameModel
     private LoadoutFocus _selectedLoadoutFocus = LoadoutFocus.Primary;
     private AgentKind _selectedAgent = AgentKind.Veil;
     private bool _agentSkillPurchased;
-    private int _buildPoints = 12;
+    private int _buildPoints = InitialBuildPoints;
     private int _credits = StartingCredits;
     private int _currentRound = 1;
     private int _playerRoundWins;

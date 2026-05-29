@@ -1,10 +1,13 @@
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RYZECHo.Audio;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 public class Game1 : Game
 {
@@ -26,7 +29,7 @@ public class Game1 : Game
         _graphics.PreferredBackBufferWidth = GameLayout.DefaultClientWidth;
         _graphics.PreferredBackBufferHeight = GameLayout.DefaultClientHeight;
         Window.AllowUserResizing = true;
-        Window.Title = "RYZECHØ Prototype v0.1.0";
+        ApplyApplicationTitle();
     }
 
     protected override void Initialize()
@@ -34,6 +37,7 @@ public class Game1 : Game
         _previousKeyboard = Keyboard.GetState();
         _previousMouse = Mouse.GetState();
         base.Initialize();
+        ApplyApplicationTitle();
     }
 
     protected override void LoadContent()
@@ -176,4 +180,45 @@ public class Game1 : Game
 
     private bool IsNewRightClick(MouseState mouse) =>
         mouse.RightButton == ButtonState.Pressed && _previousMouse.RightButton == ButtonState.Released;
+
+    private void ApplyApplicationTitle()
+    {
+        var title = ApplicationTitle();
+        Window.Title = title;
+        TrySetSdlWindowTitleUtf8(title);
+    }
+
+    private static string ApplicationTitle()
+    {
+        return typeof(Game1).Assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? "RYZECHØ";
+    }
+
+    private void TrySetSdlWindowTitleUtf8(string title)
+    {
+        if (Window.Handle == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var utf8Title = Encoding.UTF8.GetBytes(title + '\0');
+        var titlePointer = Marshal.AllocHGlobal(utf8Title.Length);
+        try
+        {
+            Marshal.Copy(utf8Title, 0, titlePointer, utf8Title.Length);
+            SDL_SetWindowTitle(Window.Handle, titlePointer);
+        }
+        catch (DllNotFoundException)
+        {
+        }
+        catch (EntryPointNotFoundException)
+        {
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(titlePointer);
+        }
+    }
+
+    [DllImport("SDL2.dll", CallingConvention = CallingConvention.Cdecl)]
+    private static extern void SDL_SetWindowTitle(IntPtr window, IntPtr title);
 }

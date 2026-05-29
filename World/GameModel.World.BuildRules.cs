@@ -1,22 +1,13 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
     private string? ValidateStructurePlacement(Structure candidate)
     {
-        if (IsNoBuildCell(candidate.Cell))
+        var placement = MapEditApRules.ValidatePlacement(candidate, _structures, _buildSlots, _noBuildZones);
+        if (!placement.Allowed)
         {
-            return "そのセルはノー・ビルド・ゾーンです。";
-        }
-
-        if (candidate.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon or StructureKind.HoloDecoy && ViolatesTrapDensity(candidate))
-        {
-            return "同カテゴリのトラップが近すぎます。デッドゾーンを空けてください。";
-        }
-
-        if (candidate.Kind == StructureKind.BlastDoor && WouldExceedBlastDoorClusterLimit(candidate.Cell))
-        {
-            return "強化扉は 2 連結までです。";
+            return placement.Reason;
         }
 
         if (IsRouteBlockingStructure(candidate.Kind) && !PreservesAttackRoutes(candidate.Cell))
@@ -34,43 +25,7 @@ internal sealed partial class GameModel
 
     private bool IsNoBuildCell(Point cell)
     {
-        return _noBuildZones.Contains(cell);
-    }
-
-    private bool ViolatesTrapDensity(Structure candidate)
-    {
-        return _structures.Any(structure =>
-            structure.Kind is StructureKind.HoneyTrap or StructureKind.StaticNest or StructureKind.ReconBeacon or StructureKind.HoloDecoy &&
-            Distance(CellCenter(structure.Cell), CellCenter(candidate.Cell)) < CellSize * 2.5f);
-    }
-
-    private bool WouldExceedBlastDoorClusterLimit(Point newDoorCell)
-    {
-        var doorCells = _structures
-            .Where(structure => structure.Kind == StructureKind.BlastDoor && structure.Health > 0f)
-            .Select(structure => structure.Cell)
-            .ToHashSet();
-        doorCells.Add(newDoorCell);
-
-        var cluster = new Queue<Point>();
-        cluster.Enqueue(newDoorCell);
-        var visited = new HashSet<Point> { newDoorCell };
-
-        while (cluster.Count > 0)
-        {
-            var current = cluster.Dequeue();
-            foreach (var neighbor in Neighbors(current))
-            {
-                if (!doorCells.Contains(neighbor) || !visited.Add(neighbor))
-                {
-                    continue;
-                }
-
-                cluster.Enqueue(neighbor);
-            }
-        }
-
-        return visited.Count > 2;
+        return MapEditApRules.IsNoBuildCell(cell, _noBuildZones);
     }
 
     private HashSet<Point> BuildBlockedCells(Point? candidateDoorCell = null)
@@ -225,59 +180,4 @@ internal sealed partial class GameModel
         }
     }
 
-    private void UpdatePlayerIdleState(float deltaSeconds, bool acted)
-    {
-        if (_phase != GamePhase.Hunt || !_player.IsAlive)
-        {
-            _playerIdleSeconds = 0f;
-            _breathingRippleCooldown = 0f;
-            return;
-        }
-
-        var wasExposed = IsPlayerBreathingExposed();
-        if (acted)
-        {
-            _playerIdleSeconds = 0f;
-            _breathingRippleCooldown = 0f;
-            return;
-        }
-
-        _playerIdleSeconds += deltaSeconds;
-        if (!wasExposed && IsPlayerBreathingExposed())
-        {
-            PushActivityFeed("10 秒以上静止したため呼吸音が増幅。近距離の敵に位置が漏れやすくなります。");
-        }
-
-        if (IsPlayerBreathingExposed() && !IsPlayerSilenced())
-        {
-            _breathingRippleCooldown -= deltaSeconds;
-            if (_breathingRippleCooldown <= 0f)
-            {
-                EmitRipple(_player.Position, 0.42f, RippleKind.Breathing, Color.FromArgb(255, 255, 132, 108));
-                _breathingRippleCooldown = BreathingRippleIntervalSeconds;
-            }
-        }
-    }
-
-    private bool IsPlayerBreathingExposed()
-    {
-        return _phase == GamePhase.Hunt && _player.IsAlive && _playerIdleSeconds >= IdleBreathExposeSeconds;
-    }
-
-    /// <summary>
-    /// AI が構築物を攻撃すべきか判断するためのヘルパー
-    /// </summary>
-    private Structure? GetBlockingStructure(Actor actor, float checkRange)
-    {
-        if (actor.Path.Count == 0) return null;
-        var nextTarget = actor.Path.Peek();
-        
-        return _structures.FirstOrDefault(s => 
-            StructureCatalog.Get(s.Kind).BlocksMovement && 
-            s.Health > 0 &&
-            Distance(actor.Position, CellCenter(s.Cell)) < checkRange &&
-            // 経路上のセルにあるか簡易チェック
-            WorldToCell(nextTarget) == s.Cell
-        );
-    }
 }

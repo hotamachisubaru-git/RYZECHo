@@ -1,6 +1,6 @@
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal readonly record struct Size(int Width, int Height);
 

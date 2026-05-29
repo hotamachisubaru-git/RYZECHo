@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -24,7 +24,7 @@ internal sealed partial class GameModel
         var effectiveBet = Math.Clamp(_selectedBet, 0, Math.Max(baselineCredits, 6000));
         var maximumKillSwing = (TeamSize * KillRewardCredits) + (TeamSize * TeamSize * BossKillDividendCredits) + BossEliminationBonusCredits;
         var objectiveSwing = ObjectiveRewardCredits * 2;
-        var roundResultSwing = WinRewardCredits + (effectiveBet * 2);
+        var roundResultSwing = WinRewardCredits + (effectiveBet * BossPayoutMultiplier);
 
         return maximumKillSwing + objectiveSwing + roundResultSwing + 600;
     }

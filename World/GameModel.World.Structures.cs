@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -10,7 +10,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.BlastDoor,
                 Cell = cell,
-                APCost = 2,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "防壁ドア",
                 Health = 120f,
                 MaxHealth = 120f,
@@ -20,7 +20,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.HoneyTrap,
                 Cell = cell,
-                APCost = 3,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "ハチミツトラップ",
                 Health = 1f,
                 MaxHealth = 1f,
@@ -30,7 +30,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.StaticNest,
                 Cell = cell,
-                APCost = 4,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "スタティックネスト",
                 Health = 1f,
                 MaxHealth = 1f,
@@ -40,7 +40,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.ReconBeacon,
                 Cell = cell,
-                APCost = 4,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "リコンビーコン",
                 Health = 1f,
                 MaxHealth = 1f,
@@ -50,7 +50,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.ShieldRelay,
                 Cell = cell,
-                APCost = 5,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "シールドリレー",
                 Health = 90f,
                 MaxHealth = 90f,
@@ -60,7 +60,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.PortableCover,
                 Cell = cell,
-                APCost = 3,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "ポータブルカバー",
                 Health = 70f,
                 MaxHealth = 70f,
@@ -70,7 +70,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.VisorWall,
                 Cell = cell,
-                APCost = 4,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "一方向バイザー壁",
                 Health = 55f,
                 MaxHealth = 55f,
@@ -80,7 +80,7 @@ internal sealed partial class GameModel
             {
                 Kind = StructureKind.HoloDecoy,
                 Cell = cell,
-                APCost = 2,
+                APCost = MapEditApRules.ToolApCost(tool),
                 Label = "ホログラムデコイ",
                 Health = 1f,
                 MaxHealth = 1f,

@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal static class GameSettings
 {
@@ -23,4 +23,7 @@ internal static class GameSettings
 
     public const int TeamSize = 4;
     public const int RoundsToWin = 7;
+    public const int InitialBuildPoints = 12;
+    public const int MaxBuildPoints = 12;
+    public const int SideSwapBuildPointRefill = 12;
 }

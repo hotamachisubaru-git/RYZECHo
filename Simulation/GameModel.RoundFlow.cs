@@ -1,234 +1,7 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
-    private bool ActiveSelection(WeaponType weaponType)
-    {
-        return _phase switch
-        {
-            GamePhase.Bet => SelectedLoadoutWeapon() == weaponType,
-            _ => _player.Weapon == weaponType,
-        };
-    }
-
-    private WeaponType DisplayedWeaponType()
-    {
-        return _phase == GamePhase.Bet ? SelectedLoadoutWeapon() : _player.Weapon;
-    }
-
-    private string WeaponDisplayName(WeaponType weaponType)
-    {
-        return _weaponStats[weaponType].ShortLabel;
-    }
-
-    private string WeaponLoadoutLabel(WeaponType weaponType)
-    {
-        return _weaponStats[weaponType].Code;
-    }
-
-    private int CurrentMagazineAmmo()
-    {
-        return _weaponStats[DisplayedWeaponType()].MagazineAmmo;
-    }
-
-    private int CurrentReserveAmmo()
-    {
-        return _weaponStats[DisplayedWeaponType()].ReserveAmmo;
-    }
-
-    private bool IsActorOnHoneyTrap(Actor actor)
-    {
-        var cell = WorldToCell(actor.Position);
-        return _structures.Any(structure => structure.Kind == StructureKind.HoneyTrap && structure.Cell == cell);
-    }
-
-    private bool IsActorInStaticField(Actor actor)
-    {
-        return _structures.Any(structure => structure.Kind == StructureKind.StaticNest && Distance(actor.Position, CellCenter(structure.Cell)) <= 90f);
-    }
-
-    private void ApplyDamage(Actor actor, float damage, Actor? attacker = null)
-    {
-        if (!actor.IsAlive || damage <= 0f)
-        {
-            return;
-        }
-
-        var wasAlive = actor.IsAlive;
-        actor.ShieldRegenDelay = 2.4f;
-        if (actor.Shield > 0f)
-        {
-            var absorbed = MathF.Min(actor.Shield, damage);
-            actor.Shield -= absorbed;
-            damage -= absorbed;
-        }
-
-        if (damage > 0f)
-        {
-            actor.Health = MathF.Max(0f, actor.Health - damage);
-        }
-
-        if (wasAlive && !actor.IsAlive)
-        {
-            HandleActorEliminated(attacker, actor);
-        }
-    }
-
-    private static void UpdateShieldRegen(Actor actor, float deltaSeconds)
-    {
-        if (!actor.IsAlive || actor.MaxShield <= 0f)
-        {
-            return;
-        }
-
-        actor.ShieldRegenDelay = MathF.Max(0f, actor.ShieldRegenDelay - deltaSeconds);
-        if (actor.ShieldRegenDelay > 0f || actor.Shield >= actor.MaxShield)
-        {
-            return;
-        }
-
-        actor.Shield = MathF.Min(actor.MaxShield, actor.Shield + (actor.MaxShield * 0.22f * deltaSeconds) + (8f * deltaSeconds));
-    }
-
-    private void PushActivityFeed(string message)
-    {
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            return;
-        }
-
-        if (_activityFeed.Count == 0 || _activityFeed[0] != message)
-        {
-            _activityFeed.Insert(0, message);
-        }
-
-        if (_activityFeed.Count > 5)
-        {
-            _activityFeed.RemoveRange(5, _activityFeed.Count - 5);
-        }
-    }
-
-    private void SetResultMessage(string message)
-    {
-        _resultMessage = message;
-        PushActivityFeed(message);
-    }
-
-    private void HandleActorEliminated(Actor? attacker, Actor victim)
-    {
-        if (attacker is null || ReferenceEquals(attacker, victim))
-        {
-            PushActivityFeed($"{victim.Name} が戦闘不能。");
-            return;
-        }
-
-        // 味方チームによる敵の撃破判定（正常なスコア加算）
-        var playerTeamScoredKill = attacker.Type != ActorType.Enemy && victim.Type == ActorType.Enemy;
-        if (playerTeamScoredKill)
-        {
-            _matchTeamEliminations++;
-            _credits += KillRewardCredits;
-            PushActivityFeed($"{attacker.Name} が {victim.Name} を撃破。+{KillRewardCredits}c。");
-            EmitCosmeticEliminationEffect(victim.Position);
-            AwardUltPoints(attacker.Name, 1, "撃破");
-
-            if (attacker.IsBoss)
-            {
-                _roundBossKillCount++;
-                var livingAllies = LivePlayerTeam().Count();
-                var dividend = livingAllies * BossKillDividendCredits;
-                if (dividend > 0)
-                {
-                    _credits += dividend;
-                    PushActivityFeed($"ボス撃破配当。生存中の味方 {livingAllies} 名へ +{BossKillDividendCredits}c、合計 +{dividend}c。");
-                }
-            }
-
-            if (victim.IsBoss)
-            {
-                _credits += BossEliminationBonusCredits;
-                PushActivityFeed($"敵ボス {victim.Name} を撃破。+{BossEliminationBonusCredits}c を獲得。");
-                AwardUltPoints(_selectedBossName, 2, "敵ボス撃破");
-            }
-
-            return;
-        }
-
-        if (victim.Type == ActorType.Player)
-        {
-            _matchPlayerDeaths++;
-        }
-
-        PushActivityFeed($"{attacker.Name} が {victim.Name} を撃破。");
-
-        // 敵ボスが味方を倒した場合の通知
-        if (attacker.IsBoss && attacker.Type == ActorType.Enemy && victim.Type != ActorType.Enemy)
-        {
-            PushActivityFeed($"敵ボス {attacker.Name} がキルを取得。敵側へ生存配当が発生。");
-        }
-
-        // 味方ボスが倒された場合の通知
-        if (victim.IsBoss && victim.Type != ActorType.Enemy)
-        {
-            PushActivityFeed($"味方ボス {victim.Name} が撃破されました。投資は没収され、敵に報酬が渡ります。");
-        }
-    }
-
-    private void TryPlaceStructure(Point location)
-    {
-        if (!TryGetWorldPointFromScreen(location, out _))
-        {
-            return;
-        }
-
-        var cell = ScreenToCell(location);
-        if (!_buildSlots.Contains(cell) || _structures.Any(structure => structure.Cell == cell))
-        {
-            return;
-        }
-
-        var candidate = CreateStructure(_selectedBuildTool, cell);
-        if (candidate.APCost > _buildPoints)
-        {
-            return;
-        }
-
-        var placementRule = ValidateStructurePlacement(candidate);
-        if (placementRule is not null)
-        {
-            SetResultMessage(placementRule);
-            return;
-        }
-
-        _buildPoints -= candidate.APCost;
-        _structures.Add(candidate);
-        SetResultMessage($"{candidate.Label} を {cell.X},{cell.Y} に設置。");
-    }
-
-    private void TryRemoveStructure(Point location)
-    {
-        if (!TryGetWorldPointFromScreen(location, out _))
-        {
-            return;
-        }
-
-        var cell = ScreenToCell(location);
-        var structure = _structures.FirstOrDefault(candidate => candidate.Cell == cell);
-        if (structure is null)
-        {
-            return;
-        }
-
-        // 破壊された設備は AP 返還対象外とする（不当なリサイクル防止）
-        if (structure.Health > 0.01f)
-        {
-            _buildPoints += structure.APCost;
-        }
-
-        _structures.Remove(structure);
-        SetResultMessage($"{structure.Label} を撤去して AP を返還。");
-    }
-
     private void StartRound()
     {
         EnsureBossSelectionAvailable();
@@ -316,7 +89,12 @@ internal sealed partial class GameModel
     private void EndRound(bool won, string? outcomeSummary = null)
     {
         var bossAlive = SelectedBoss()?.IsAlive ?? false;
-        var bossQualifiedDividend = bossAlive && _roundBossKillCount > 0;
+        var bossPayout = BossEconomyRules.CalculateRoundPayout(
+            _bossInvestments,
+            won,
+            bossAlive,
+            _roundBossKillCount,
+            BossPayoutMultiplier);
         var completedRound = _currentRound;
         var integrityLocked = IsIntegrityRewardsLocked();
 
@@ -339,23 +117,17 @@ internal sealed partial class GameModel
         {
             _credits += won ? WinRewardCredits : LossRewardCredits;
 
-            if (_selectedBet > 0)
+            if (bossPayout.TotalInvestedCredits > 0)
             {
-                if (won && bossQualifiedDividend)
+                if (bossPayout.InvestmentReturned)
                 {
-                    var returnCredits = _selectedBet * 2;
-                    _credits += returnCredits;
-                    economySummary += $" / 投資返還 +{returnCredits}c";
-                }
-                else if (bossAlive)
-                {
-                    economySummary += won
-                        ? " / ボス無撃破のため投資返還なし"
-                        : " / ボス生存も敗北のため投資返還なし";
+                    _credits += bossPayout.TotalReturnedCredits;
+                    economySummary += $" / 投資返還 +{bossPayout.TotalReturnedCredits}c";
+                    PushActivityFeed($"投資返還配分: {FormatBossReturnAllocation(bossPayout)}");
                 }
                 else
                 {
-                    economySummary += " / ボス撃破により投資没収";
+                    economySummary += $" / {bossPayout.Reason}";
                 }
             }
         }
@@ -383,7 +155,7 @@ internal sealed partial class GameModel
                 _playerTeamRole = ToggleRole(_playerTeamRole);
                 _resultDestination = GamePhase.Construct;
                 _sideSwapConstructPending = true;
-                _buildPoints = Math.Max(_buildPoints, 12);
+                _buildPoints = MapEditApRules.RefillForEditPhase(_buildPoints, SideSwapBuildPointRefill, MaxBuildPoints).AfterAp;
                 SetResultMessage($"{resultSummary} SCORE {_playerRoundWins}-{_enemyRoundWins}。第4ラウンド終了につき攻守交代、再エディットを開始します。");
             }
             else
@@ -403,6 +175,16 @@ internal sealed partial class GameModel
         ResetAgentRuntimeState(clearWorldEffects: true);
         _phase = GamePhase.RoundResult;
         _resultTimer = 2.4f;
+    }
+
+    private static string FormatBossReturnAllocation(BossRoundPayout payout)
+    {
+        var allocations = payout.Returns
+            .Where(entry => entry.ReturnedCredits > 0)
+            .Select(entry => $"{entry.InvestorName}+{entry.ReturnedCredits}c")
+            .ToArray();
+
+        return allocations.Length == 0 ? payout.Reason : string.Join(" / ", allocations);
     }
 
     private void BeginBetPhase()
@@ -425,7 +207,7 @@ internal sealed partial class GameModel
 
     private void ResetCampaign()
     {
-        _buildPoints = 12;
+        _buildPoints = InitialBuildPoints;
         _credits = StartingCredits;
         _currentRound = 1;
         _playerRoundWins = 0;

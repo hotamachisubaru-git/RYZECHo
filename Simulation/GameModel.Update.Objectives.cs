@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -199,7 +199,7 @@ internal sealed partial class GameModel
         {
             _credits += ObjectiveRewardCredits;
             PushActivityFeed($"設置成功。+{ObjectiveRewardCredits}c。");
-            AwardUltPoints(_selectedBossName, 1, $"サイト {GetBombSite(siteId).Label} 設置");
+            AwardUltPoints(planter.Name, 1, $"サイト {GetBombSite(siteId).Label} 設置");
         }
 
         EmitRipple(BombSitePosition(siteId), 0.92f, RippleKind.Skill, Color.FromArgb(245, 208, 96));
@@ -235,7 +235,12 @@ internal sealed partial class GameModel
         _bombDefuseProgress = BombDefuseSeconds;
         _credits += ObjectiveRewardCredits;
         PushActivityFeed($"解除成功。+{ObjectiveRewardCredits}c。");
-        AwardUltPoints(_selectedBossName, 1, "ボム解除");
+        var defuserName = canPlayerDefuse
+            ? _player.Name
+            : LivePlayerTeam()
+                .OrderBy(actor => _armedBombSiteId is null ? 0f : Distance(actor.Position, BombSitePosition(_armedBombSiteId.Value)))
+                .FirstOrDefault()?.Name ?? _selectedBossName;
+        AwardUltPoints(defuserName, 1, "ボム解除");
         var defusedSite = _armedBombSiteId ?? _attackFocusSite;
         _armedBombSiteId = null;
         EmitRipple(BombSitePosition(defusedSite), 0.88f, RippleKind.Skill, Color.FromArgb(120, 228, 208));

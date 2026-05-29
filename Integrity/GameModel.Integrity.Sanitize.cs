@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -11,7 +11,7 @@ internal sealed partial class GameModel
             _credits = clampedCredits;
         }
 
-        _buildPoints = Math.Clamp(_buildPoints, 0, 12);
+        _buildPoints = Math.Clamp(_buildPoints, 0, MaxBuildPoints);
         _currentRound = Math.Clamp(_currentRound, 1, 99);
         _playerRoundWins = Math.Clamp(_playerRoundWins, 0, 99);
         _enemyRoundWins = Math.Clamp(_enemyRoundWins, 0, 99);

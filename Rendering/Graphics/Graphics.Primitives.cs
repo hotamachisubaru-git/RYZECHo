@@ -1,7 +1,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using XnaVector3 = Microsoft.Xna.Framework.Vector3;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class Graphics
 {

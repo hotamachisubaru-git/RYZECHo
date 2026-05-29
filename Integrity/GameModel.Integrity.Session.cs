@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {

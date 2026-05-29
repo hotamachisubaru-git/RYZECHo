@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -227,7 +227,8 @@ internal sealed partial class GameModel
 
         var speed = actor.BaseMoveSpeed * GetActorMoveSpeedMultiplier(actor);
         var cell = WorldToCell(actor.Position);
-        if (_structures.Any(structure => structure.Kind == StructureKind.HoneyTrap && structure.Cell == cell))
+        var amplifiedSurface = _structures.Any(structure => structure.Kind == StructureKind.HoneyTrap && structure.Cell == cell);
+        if (amplifiedSurface)
         {
             speed *= 0.45f;
         }
@@ -241,14 +242,14 @@ internal sealed partial class GameModel
             return;
         }
 
-        var stepStrength = _structures.Any(structure => structure.Kind == StructureKind.HoneyTrap && structure.Cell == cell) ? 1.05f : 0.68f;
-        actor.FootstepPulseIndex = (actor.FootstepPulseIndex + 1) % 3;
-        if (actor.FootstepPulseIndex == 0)
+        var cadence = AudioRippleVisualRules.AdvanceFootstepCadence(actor.FootstepPulseIndex, speed, amplifiedSurface);
+        actor.FootstepPulseIndex = cadence.NextPulseIndex;
+        if (cadence.EmitsRipple)
         {
-            EmitRipple(actor.Position, stepStrength, RippleKind.Footstep, Color.FromArgb(250, 248, 248, 248));
+            EmitRipple(actor.Position, cadence.RippleStrength, RippleKind.Footstep, Color.FromArgb(250, 248, 248, 248));
         }
 
-        actor.FootstepCooldown = GetFootstepInterval(speed);
+        actor.FootstepCooldown = cadence.CooldownSeconds;
     }
 
 }

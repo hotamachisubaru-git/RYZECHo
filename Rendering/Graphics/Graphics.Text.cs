@@ -1,7 +1,7 @@
 using FontStashSharp;
 using XnaVector2 = Microsoft.Xna.Framework.Vector2;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class Graphics
 {

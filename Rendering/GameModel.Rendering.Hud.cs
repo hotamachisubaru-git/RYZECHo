@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -387,7 +387,7 @@ internal sealed partial class GameModel
         {
             var investDenominator = Math.Max(OptimalBossInvestment * 2, Math.Max(1, AffordableCredits() + _selectedBet));
             DrawLabeledBar(graphics, hpBar, "総投資", _selectedBet / (float)investDenominator, Color.FromArgb(255, 238, 202, 112), Color.FromArgb(36, 8, 14, 18), $"{_selectedBet}c");
-            DrawLabeledBar(graphics, shieldBar, "ボス投資", Math.Clamp(SelectedBossInvestment() / (float)OptimalBossInvestment, 0f, 1f), Color.FromArgb(255, 92, 168, 232), Color.FromArgb(36, 8, 14, 18), $"{SelectedBossInvestment()}c");
+            DrawLabeledBar(graphics, shieldBar, "ボス投資", BossInvestmentProgress(SelectedBossInvestment()), Color.FromArgb(255, 92, 168, 232), Color.FromArgb(36, 8, 14, 18), $"{SelectedBossInvestment()}c");
             DrawLabeledBar(graphics, sonicBar, "ULT", SelectedBossUltPoints() / (float)MaxUltPoints, Color.FromArgb(255, 120, 214, 160), Color.FromArgb(36, 8, 14, 18), $"{SelectedBossUltPoints()}/{MaxUltPoints}");
         }
         else
@@ -399,9 +399,12 @@ internal sealed partial class GameModel
 
         if (_phase == GamePhase.Construct)
         {
-            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230), _buildPoints / 2, Math.Clamp(_buildPoints / 2f, 0f, 1f), _buildPoints >= 2);
-            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88), _buildPoints / 3, Math.Clamp(_buildPoints / 3f, 0f, 1f), _buildPoints >= 3);
-            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116), _buildPoints / 4, Math.Clamp(_buildPoints / 4f, 0f, 1f), _buildPoints >= 4);
+            var blastDoorCost = BuildToolApCost(BuildToolKind.BlastDoor);
+            var honeyTrapCost = BuildToolApCost(BuildToolKind.HoneyTrap);
+            var staticNestCost = BuildToolApCost(BuildToolKind.StaticNest);
+            DrawAbilitySlot(graphics, skillRects[0], "1", "スキル1", "防壁", _selectedBuildTool == BuildToolKind.BlastDoor, Color.FromArgb(255, 116, 212, 230), _buildPoints / Math.Max(1, blastDoorCost), Math.Clamp(_buildPoints / (float)Math.Max(1, blastDoorCost), 0f, 1f), _buildPoints >= blastDoorCost);
+            DrawAbilitySlot(graphics, skillRects[1], "2", "スキル2", "蜜罠", _selectedBuildTool == BuildToolKind.HoneyTrap, Color.FromArgb(255, 230, 194, 88), _buildPoints / Math.Max(1, honeyTrapCost), Math.Clamp(_buildPoints / (float)Math.Max(1, honeyTrapCost), 0f, 1f), _buildPoints >= honeyTrapCost);
+            DrawAbilitySlot(graphics, skillRects[2], "3", "スキル3", "静巣", _selectedBuildTool == BuildToolKind.StaticNest, Color.FromArgb(255, 164, 220, 116), _buildPoints / Math.Max(1, staticNestCost), Math.Clamp(_buildPoints / (float)Math.Max(1, staticNestCost), 0f, 1f), _buildPoints >= staticNestCost);
             var advancedSelected = _selectedBuildTool is BuildToolKind.PortableCover or BuildToolKind.VisorWall or BuildToolKind.HoloDecoy;
             DrawAbilitySlot(graphics, abilityRect, advancedSelected ? "TAB" : "4", advancedSelected ? "拡張" : "スキル4", advancedSelected ? BuildToolShortLabel(_selectedBuildTool) : "索敵", _selectedBuildTool == BuildToolKind.ReconBeacon || advancedSelected, Color.FromArgb(255, 124, 228, 255), _buildPoints / Math.Max(1, BuildToolApCost(_selectedBuildTool)), Math.Clamp(_buildPoints / (float)Math.Max(1, BuildToolApCost(_selectedBuildTool)), 0f, 1f), _buildPoints >= BuildToolApCost(_selectedBuildTool));
         }
@@ -532,7 +535,7 @@ internal sealed partial class GameModel
             _selectedBossName == slot.ActorName,
             slot.Accent,
             BossSelectionsRemaining(slot.ActorName),
-            Math.Clamp(GetFriendlyInvestment(slot.ActorName) / (float)OptimalBossInvestment, 0f, 1f),
+            BossInvestmentProgress(GetFriendlyInvestment(slot.ActorName)),
             CanSelectBoss(slot.ActorName));
     }
 

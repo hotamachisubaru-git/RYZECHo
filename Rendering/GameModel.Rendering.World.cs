@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -482,51 +482,6 @@ internal sealed partial class GameModel
 
             DrawHudText(graphics, site.Label, 8.4f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), coreCenter.X - 7f, coreCenter.Y - 42f);
             DrawHudText(graphics, isArmed ? "ARMED" : isPlanting ? "PLANT" : "SITE", 6.8f, FontStyle.Bold, Color.FromArgb(236, 238, 244, 248), coreCenter.X - 18f, coreCenter.Y - 30f);
-        }
-    }
-
-    private void DrawRipples(Graphics graphics)
-    {
-        foreach (var ripple in _ripples)
-        {
-            if (_phase == GamePhase.Hunt && !_player.IsAlive)
-            {
-                continue;
-            }
-
-            if (_phase == GamePhase.Hunt && !TeamCanPerceive(ripple.Position, ripple.Strength))
-            {
-                continue;
-            }
-
-            var progress = ripple.Age / ripple.Lifetime;
-            var soundAlpha = GetSoundAlphaMultiplier(ripple.Position);
-            var sharedOnly = _phase == GamePhase.Hunt && !PlayerCanPerceive(ripple.Position, ripple.Strength);
-
-            if (ripple.Kind is RippleKind.Footstep or RippleKind.Breathing)
-            {
-                var isBreathing = ripple.Kind == RippleKind.Breathing;
-                var radius = isBreathing
-                    ? 10f + (progress * 44f * ripple.Strength)
-                    : 16f + (progress * 84f * ripple.Strength);
-                var baseAlpha = isBreathing ? 86f : sharedOnly ? 92f : 150f;
-                var alpha = (int)(baseAlpha * (1f - progress) * soundAlpha);
-                var baseColor = sharedOnly ? Color.FromArgb(180, 124, 214, 255) : ripple.Color;
-                var color = Color.FromArgb(Math.Clamp(alpha, isBreathing ? 8 : 12, isBreathing ? 112 : 165), baseColor);
-
-                using var pen = new Pen(color, isBreathing ? 1.3f : 2f);
-                using var halo = new Pen(Color.FromArgb(Math.Clamp(alpha / 2, 6, isBreathing ? 48 : 80), baseColor), 1f);
-                graphics.DrawEllipse(pen, ripple.Position.X - radius, ripple.Position.Y - radius, radius * 2f, radius * 2f);
-                graphics.DrawEllipse(halo, ripple.Position.X - radius - 8f, ripple.Position.Y - radius - 8f, (radius * 2f) + 16f, (radius * 2f) + 16f);
-                continue;
-            }
-
-            if (_phase == GamePhase.Hunt && PlayerHasDirectSightTo(ripple.Position))
-            {
-                continue;
-            }
-
-            DrawDirectionalCue(graphics, ripple, progress, soundAlpha, sharedOnly);
         }
     }
 

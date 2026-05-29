@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -175,75 +175,6 @@ internal sealed partial class GameModel
 
         graphics.FillPath(coneBrush, path);
         graphics.DrawPath(edge, path);
-    }
-
-    private void DrawDirectionalCue(Graphics graphics, Ripple ripple, float progress, float soundAlpha)
-    {
-        DrawDirectionalCue(graphics, ripple, progress, soundAlpha, false);
-    }
-
-    private void DrawDirectionalCue(Graphics graphics, Ripple ripple, float progress, float soundAlpha, bool sharedOnly)
-    {
-        if (!_player.IsAlive)
-        {
-            return;
-        }
-
-        var direction = new PointF(ripple.Position.X - _player.Position.X, ripple.Position.Y - _player.Position.Y);
-        var length = MathF.Max(1f, MathF.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y)));
-        direction = new PointF(direction.X / length, direction.Y / length);
-
-        var tail = 34f + (8f * ripple.Strength);
-        var head = 18f + (6f * ripple.Strength);
-        var wing = ripple.Kind == RippleKind.Skill ? 11f : 8f;
-        var anchor = new PointF(_player.Position.X + (direction.X * 54f), _player.Position.Y + (direction.Y * 54f));
-        var side = new PointF(-direction.Y, direction.X);
-        var fade = Math.Clamp(1f - progress, 0f, 1f);
-        var alpha = (int)(225f * fade * soundAlpha);
-        var sourceColor = sharedOnly ? Color.FromArgb(180, 124, 214, 255) : ripple.Color;
-        var color = Color.FromArgb(Math.Clamp(alpha, 18, 225), sourceColor);
-        var glow = Color.FromArgb(Math.Clamp(alpha / 3, 8, 72), sourceColor);
-
-        var bodyStart = new PointF(anchor.X - (direction.X * tail * 0.35f), anchor.Y - (direction.Y * tail * 0.35f));
-        var bodyEnd = new PointF(anchor.X + (direction.X * tail), anchor.Y + (direction.Y * tail));
-        var headBase = new PointF(bodyEnd.X - (direction.X * head), bodyEnd.Y - (direction.Y * head));
-
-        using var bodyPen = new Pen(color, ripple.Kind == RippleKind.Skill ? 3f : 3.4f)
-        {
-            StartCap = LineCap.Round,
-            EndCap = LineCap.Round,
-            LineJoin = LineJoin.Round,
-        };
-        using var glowPen = new Pen(glow, ripple.Kind == RippleKind.Skill ? 5.2f : 5.8f)
-        {
-            StartCap = LineCap.Round,
-            EndCap = LineCap.Round,
-            LineJoin = LineJoin.Round,
-        };
-
-        graphics.DrawLine(glowPen, bodyStart, bodyEnd);
-        graphics.DrawLine(bodyPen, bodyStart, bodyEnd);
-
-        if (ripple.Kind == RippleKind.Skill)
-        {
-            var zigA = new PointF(
-                headBase.X + (side.X * wing * 0.4f),
-                headBase.Y + (side.Y * wing * 0.4f));
-            var zigB = new PointF(
-                headBase.X - (side.X * wing * 0.9f),
-                headBase.Y - (side.Y * wing * 0.9f));
-            var tip = new PointF(bodyEnd.X + (direction.X * 5f), bodyEnd.Y + (direction.Y * 5f));
-            graphics.DrawLines(glowPen, [zigA, zigB, tip]);
-            graphics.DrawLines(bodyPen, [zigA, zigB, tip]);
-            return;
-        }
-
-        var left = new PointF(headBase.X + (side.X * wing), headBase.Y + (side.Y * wing));
-        var right = new PointF(headBase.X - (side.X * wing), headBase.Y - (side.Y * wing));
-        using var headBrush = new SolidBrush(color);
-        using var headGlow = new SolidBrush(glow);
-        graphics.FillPolygon(headGlow, [bodyEnd, left, right]);
-        graphics.FillPolygon(headBrush, [bodyEnd, left, right]);
     }
 
 }

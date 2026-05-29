@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal readonly record struct ObjectiveSite(ObjectiveSiteId Id, string Label, Point Cell);
 
@@ -96,23 +96,28 @@ internal static class StructureCatalog
 {
     private static readonly Dictionary<StructureKind, StructureStats> _catalog = new()
     {
-        { StructureKind.BlastDoor, new() { Label = "強化ナノ・ゲート", ApCost = 5, MaxHealth = 450f, BlocksMovement = true, AiTargetable = true } },
-        { StructureKind.HoneyTrap, new() { Label = "ハチミツ・パッチ", ApCost = 2, MaxHealth = 60f, BlocksMovement = false, AiTargetable = false } },
-        { StructureKind.StaticNest, new() { Label = "スタティック・ネスト", ApCost = 3, MaxHealth = 100f, BlocksMovement = false, AiTargetable = true } },
-        { StructureKind.ReconBeacon, new() { Label = "リコンビーコン", ApCost = 3, MaxHealth = 40f, BlocksMovement = false, AiTargetable = true } },
-        { StructureKind.ShieldRelay, new() { Label = "シールドリレー", ApCost = 4, MaxHealth = 180f, BlocksMovement = false, AiTargetable = true } },
-        { StructureKind.PortableCover, new() { Label = "ポータブルカバー", ApCost = 3, MaxHealth = 300f, BlocksMovement = true, AiTargetable = true } },
-        { StructureKind.VisorWall, new() { Label = "バイザー壁", ApCost = 4, MaxHealth = 200f, BlocksMovement = true, AiTargetable = true } },
-        { StructureKind.HoloDecoy, new() { Label = "ホログラムデコイ", ApCost = 2, MaxHealth = 1f, BlocksMovement = false, AiTargetable = true } },
+        { StructureKind.BlastDoor, new() { Label = "強化ナノ・ゲート", ApCost = MapEditApRules.ToolApCost(BuildToolKind.BlastDoor), MaxHealth = 450f, BlocksMovement = true, AiTargetable = true } },
+        { StructureKind.HoneyTrap, new() { Label = "ハチミツ・パッチ", ApCost = MapEditApRules.ToolApCost(BuildToolKind.HoneyTrap), MaxHealth = 60f, BlocksMovement = false, AiTargetable = false } },
+        { StructureKind.StaticNest, new() { Label = "スタティック・ネスト", ApCost = MapEditApRules.ToolApCost(BuildToolKind.StaticNest), MaxHealth = 100f, BlocksMovement = false, AiTargetable = true } },
+        { StructureKind.ReconBeacon, new() { Label = "リコンビーコン", ApCost = MapEditApRules.ToolApCost(BuildToolKind.ReconBeacon), MaxHealth = 40f, BlocksMovement = false, AiTargetable = true } },
+        { StructureKind.ShieldRelay, new() { Label = "シールドリレー", ApCost = MapEditApRules.ToolApCost(BuildToolKind.ShieldRelay), MaxHealth = 180f, BlocksMovement = false, AiTargetable = true } },
+        { StructureKind.PortableCover, new() { Label = "ポータブルカバー", ApCost = MapEditApRules.ToolApCost(BuildToolKind.PortableCover), MaxHealth = 300f, BlocksMovement = true, AiTargetable = true } },
+        { StructureKind.VisorWall, new() { Label = "バイザー壁", ApCost = MapEditApRules.ToolApCost(BuildToolKind.VisorWall), MaxHealth = 200f, BlocksMovement = true, AiTargetable = true } },
+        { StructureKind.HoloDecoy, new() { Label = "ホログラムデコイ", ApCost = MapEditApRules.ToolApCost(BuildToolKind.HoloDecoy), MaxHealth = 1f, BlocksMovement = false, AiTargetable = true } },
     };
 
     public static StructureStats Get(StructureKind kind) => _catalog[kind];
 
-    public static string Label(BuildToolKind tool) => tool switch {
+    public static string Label(BuildToolKind tool) => tool switch
+    {
         BuildToolKind.BlastDoor => _catalog[StructureKind.BlastDoor].Label,
         BuildToolKind.HoneyTrap => _catalog[StructureKind.HoneyTrap].Label,
-        // ... (他のマッピングも同様に定義)
-        _ => "未知の設備"
+        BuildToolKind.StaticNest => _catalog[StructureKind.StaticNest].Label,
+        BuildToolKind.ReconBeacon => _catalog[StructureKind.ReconBeacon].Label,
+        BuildToolKind.ShieldRelay => _catalog[StructureKind.ShieldRelay].Label,
+        BuildToolKind.PortableCover => _catalog[StructureKind.PortableCover].Label,
+        BuildToolKind.VisorWall => _catalog[StructureKind.VisorWall].Label,
+        _ => _catalog[StructureKind.HoloDecoy].Label,
     };
 }
 

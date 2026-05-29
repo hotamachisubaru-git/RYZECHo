@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -140,20 +140,14 @@ internal sealed partial class GameModel
         return _weaponStats[weaponType].ScopedFov ? SniperFovDegrees : DefaultFovDegrees;
     }
 
-    private float GetFootstepInterval(float movementSpeed)
+    private AudioOcclusionProfile GetAudioOcclusionProfile(PointF position)
     {
-        var normalized = Math.Clamp((movementSpeed - 60f) / 170f, 0f, 1f);
-        return 0.42f - (normalized * 0.16f);
+        return GetAudioOcclusionProfile(_player.Position, position);
     }
 
-    private float GetSoundRangeMultiplier(PointF position)
+    private AudioOcclusionProfile GetAudioOcclusionProfile(PointF listenerPosition, PointF sourcePosition)
     {
-        return MathF.Pow(0.9f, CountOccludingCells(_player.Position, position));
-    }
-
-    private float GetSoundAlphaMultiplier(PointF position)
-    {
-        return MathF.Pow(0.72f, CountOccludingCells(_player.Position, position));
+        return AudioRippleVisualRules.CalculateOcclusion(CountOccludingCells(listenerPosition, sourcePosition));
     }
 
     private bool PlayerCanPerceive(PointF position, float strength)
@@ -163,7 +157,11 @@ internal sealed partial class GameModel
             return true;
         }
 
-        var hearing = _player.HearingRange * _weaponStats[_player.Weapon].HearingMultiplier * 1.8f * strength * GetSoundRangeMultiplier(position);
+        var hearing = AudioRippleVisualRules.CalculateHearingRange(
+            _player.HearingRange,
+            _weaponStats[_player.Weapon].HearingMultiplier,
+            strength,
+            GetAudioOcclusionProfile(position));
         return Distance(_player.Position, position) <= hearing;
     }
 

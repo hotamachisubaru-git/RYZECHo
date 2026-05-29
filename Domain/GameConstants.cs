@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal static class GameLayout
 {
@@ -38,7 +38,11 @@ internal static class GameRules
     public const int BossEliminationBonusCredits = GameSettings.BossEliminatedReward;
     public const int MaxBossSelectionsPerActor = 2;
     public const int OptimalBossInvestment = GameSettings.BossInvestmentSoftCap;
+    public const int BossPayoutMultiplier = GameSettings.BossPayoutMultiplier;
     public const int MaxUltPoints = GameSettings.MaxUltPoints;
+    public const int InitialBuildPoints = GameSettings.InitialBuildPoints;
+    public const int MaxBuildPoints = GameSettings.MaxBuildPoints;
+    public const int SideSwapBuildPointRefill = GameSettings.SideSwapBuildPointRefill;
     public const float DefaultFovDegrees = GameSettings.StandardFovDegrees;
     public const float SniperFovDegrees = GameSettings.SniperFovDegrees;
     public const float SoundCueLifetimeSeconds = GameSettings.RippleDurationSeconds;

@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -164,14 +164,14 @@ internal sealed partial class GameModel
     {
         return tool switch
         {
-            BuildToolKind.BlastDoor => "防壁ドア / 2AP",
-            BuildToolKind.HoneyTrap => "ハチミツトラップ / 3AP",
-            BuildToolKind.StaticNest => "スタティックネスト / 4AP",
-            BuildToolKind.ReconBeacon => "リコンビーコン / 4AP",
-            BuildToolKind.ShieldRelay => "シールドリレー / 5AP",
-            BuildToolKind.PortableCover => "ポータブルカバー / 3AP",
-            BuildToolKind.VisorWall => "一方向バイザー壁 / 4AP",
-            _ => "ホログラムデコイ / 2AP",
+            BuildToolKind.BlastDoor => $"防壁ドア / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.HoneyTrap => $"ハチミツトラップ / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.StaticNest => $"スタティックネスト / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.ReconBeacon => $"リコンビーコン / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.ShieldRelay => $"シールドリレー / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.PortableCover => $"ポータブルカバー / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.VisorWall => $"一方向バイザー壁 / {MapEditApRules.ToolApCost(tool)}AP",
+            _ => $"ホログラムデコイ / {MapEditApRules.ToolApCost(tool)}AP",
         };
     }
 
@@ -192,17 +192,7 @@ internal sealed partial class GameModel
 
     private static int BuildToolApCost(BuildToolKind tool)
     {
-        return tool switch
-        {
-            BuildToolKind.BlastDoor => 2,
-            BuildToolKind.HoneyTrap => 3,
-            BuildToolKind.StaticNest => 4,
-            BuildToolKind.ReconBeacon => 4,
-            BuildToolKind.ShieldRelay => 5,
-            BuildToolKind.PortableCover => 3,
-            BuildToolKind.VisorWall => 4,
-            _ => 2,
-        };
+        return MapEditApRules.ToolApCost(tool);
     }
 
     private string PhaseLabel()

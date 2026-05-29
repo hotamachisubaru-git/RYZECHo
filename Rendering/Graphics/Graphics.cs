@@ -2,7 +2,7 @@ using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
 using XnaColor = Microsoft.Xna.Framework.Color;
 
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class Graphics
 {

@@ -1,4 +1,4 @@
-namespace RYZECHo.Prototype;
+namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
@@ -53,7 +53,8 @@ internal sealed partial class GameModel
         EnsureFriendlyEconomyState();
         foreach (var actorName in BossCandidateNames())
         {
-            _ultPoints[actorName] = Math.Clamp(GetUltPoints(actorName) + 1, 0, MaxUltPoints);
+            var award = BossEconomyRules.CalculateUltAward(actorName, GetUltPoints(actorName), 1, MaxUltPoints, "ラウンド開始");
+            _ultPoints[actorName] = award.After;
         }
 
         PushActivityFeed($"ラウンド開始 ULT +1。あなた {GetUltPoints(_player.Name)}/{MaxUltPoints}");
