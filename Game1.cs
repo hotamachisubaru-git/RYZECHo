@@ -46,9 +46,9 @@ public class Game1 : Game
         _renderer = new Graphics(GraphicsDevice, _spriteBatch);
 
         _audioManager = new AudioManager();
-        _audioManager.MasterVolume = 0.78f;
-        _audioManager.BgmVolume = 0.18f;
-        _audioManager.SfxVolume = 0.82f;
+        _audioManager.MasterVolume = 0.80f;
+        _audioManager.BgmVolume = 0.20f;
+        _audioManager.SfxVolume = 0.80f;
         _audioManager.PreloadEffects(SoundEffectCatalog.All);
         _audioManager.PlayMusic(SoundEffectCatalog.BGM_HoloTheme);
 
