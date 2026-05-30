@@ -3,6 +3,10 @@
 .env.*
 !.env.example
 
+# Local text notes/spec imports
+*.txt
+*.md
+
 # Build output
 [Bb]in/
 [Oo]bj/
@@ -124,7 +128,6 @@ ipch/
 *.appxupload
 AppPackages/
 BundleArtifacts/
-_pkginfo.txt
 
 # OS files
 .DS_Store
