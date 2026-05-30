@@ -8,7 +8,7 @@ namespace RYZECHo
         public static void Main()
         {
             // MonoGame プロジェクトの標準的なエントリポイント
-            using var game = new Game1();
+            using var game = new RyzechoGame();
             game.Run();
         }
     }

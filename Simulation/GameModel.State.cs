@@ -133,6 +133,8 @@ internal sealed partial class GameModel
 
     internal PointF AudioListenerPosition => _player.Position;
 
+    public bool IsPaused { get; set; }
+
     public GameModel()
     {
         BuildMapGeometry();

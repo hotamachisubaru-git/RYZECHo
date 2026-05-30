@@ -9,7 +9,7 @@ using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace RYZECHo;
 
-public class Game1 : Game
+public class RyzechoGame : Game
 {
     private readonly GameModel _game = new();
     private readonly GraphicsDeviceManager _graphics;
@@ -20,7 +20,7 @@ public class Game1 : Game
     private AudioManager? _audioManager;
     private AudioRippleSystem? _audioRipples;
 
-    public Game1()
+    public RyzechoGame()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Assets";
@@ -61,9 +61,25 @@ public class Game1 : Game
         var keyboard = Keyboard.GetState();
         var mouse = Mouse.GetState();
 
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || keyboard.IsKeyDown(Keys.Escape))
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
         {
             Exit();
+            return;
+        }
+
+        if (IsNewKeyPress(keyboard, Keys.Escape))
+        {
+            _game.IsPaused = !_game.IsPaused;
+            _previousKeyboard = keyboard;
+            _previousMouse = mouse;
+            return;
+        }
+
+        if (_game.IsPaused)
+        {
+            _previousKeyboard = keyboard;
+            _previousMouse = mouse;
+            base.Update(gameTime);
             return;
         }
 
@@ -190,7 +206,7 @@ public class Game1 : Game
 
     private static string ApplicationTitle()
     {
-        return typeof(Game1).Assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? "RYZECHØ";
+        return typeof(RyzechoGame).Assembly.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ?? "RYZECHØ";
     }
 
     private void TrySetSdlWindowTitleUtf8(string title)
