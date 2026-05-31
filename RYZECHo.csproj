@@ -32,9 +32,11 @@
 
   <ItemGroup>
     <Compile Include="*.cs" />
+    <Compile Include="AI\**\*.cs" LinkBase="AI" />
     <Compile Include="Audio\**\*.cs" LinkBase="Audio" />
     <Compile Include="Domain\**\*.cs" LinkBase="Domain" />
     <Compile Include="Data\**\*.cs" LinkBase="Data" />
+    <Compile Include="Economy\**\*.cs" LinkBase="Economy" />
     <Compile Include="Input\**\*.cs" LinkBase="Input" />
     <Compile Include="Integrity\**\*.cs" LinkBase="Integrity" />
     <Compile Include="Rendering\**\*.cs" LinkBase="Rendering" />
