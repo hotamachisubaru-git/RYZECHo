@@ -110,8 +110,14 @@ internal sealed partial class GameModel
         _integrityStrikeCount++;
         _integrityStatusLine = $"{category}: {message}";
         _integrityRewardsLocked = true;
-        _ = severe;
-        ForceTerminateForIntegrityViolation(category, message);
+
+        if (severe || _integrityStrikeCount >= IntegrityStrikeLockThreshold)
+        {
+            ForceTerminateForIntegrityViolation(category, message);
+            return;
+        }
+
+        RegisterIntegrityAnomaly(category, message);
     }
 
     private void RegisterIntegrityAnomaly(string category, string message)

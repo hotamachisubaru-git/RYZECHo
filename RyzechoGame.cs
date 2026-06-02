@@ -77,6 +77,12 @@ public class RyzechoGame : Game
 
         if (_game.IsPaused)
         {
+            var pauseMousePosition = new Point(mouse.X, mouse.Y);
+            _game.UpdatePauseMouse(pauseMousePosition);
+            if (IsNewLeftClick(mouse))
+            {
+                _game.HandlePauseResume();
+            }
             _previousKeyboard = keyboard;
             _previousMouse = mouse;
             base.Update(gameTime);

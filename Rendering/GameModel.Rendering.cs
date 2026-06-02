@@ -34,6 +34,11 @@ internal sealed partial class GameModel
         DrawCombatScreenVignette(graphics, clientBounds);
         DrawHud(graphics);
 
+        if (IsPaused)
+        {
+            DrawPauseOverlay(graphics, clientBounds);
+        }
+
         if (_showBriefing)
         {
             DrawBriefingOverlay(graphics);
