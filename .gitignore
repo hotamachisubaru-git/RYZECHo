@@ -3,6 +3,14 @@
 .env.*
 !.env.example
 
+# Unity generated
+Library/
+Temp/
+Obj/
+Builds/
+UserSettings/
+*.unitypackage
+
 # Local text notes/spec imports
 *.txt
 *.md
@@ -50,6 +58,7 @@ coverage*.info
 *.coverage
 *.coveragexml
 BenchmarkDotNet.Artifacts/
+
 
 # Visual Studio and Rider
 .vs/
@@ -113,6 +122,7 @@ ipch/
 *.swp
 *~
 ~$*
+[Tt]emp/
 .history/
 .localhistory/
 .vshistory/
@@ -152,3 +162,7 @@ ASALocalRun/
 node_modules/
 __pycache__/
 *.pyc
+
+# Synaptic AI Pro
+/[Aa]ssets/Synaptic AI Pro/
+/[Aa]ssets/Synaptic AI Pro.meta
