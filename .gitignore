@@ -11,6 +11,10 @@ Builds/
 UserSettings/
 *.unitypackage
 
+# Unity auto-generated C# project files (regenerated on each machine, platform-specific)
+*.csproj
+*.sln
+
 # Local text notes/spec imports
 *.txt
 *.md
