@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -152,7 +153,7 @@ namespace RYZECHo
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 
@@ -194,7 +195,7 @@ namespace RYZECHo
             labelText.alignment = TextAnchor.MiddleLeft;
             labelText.color = LabelColor;
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -237,7 +238,7 @@ namespace RYZECHo
             textComp.alignment = TextAnchor.MiddleRight;
             textComp.color = ValueColor;
             textComp.text = "100/100";
-            textComp.enableWordWrapping = false;
+            textComp.horizontalOverflow = HorizontalWrapMode.Overflow;
             textRef = textComp;
             var textRect = textGO.GetComponent<RectTransform>();
             textRect.anchorMin = new Vector2(1, 1);
@@ -262,8 +263,7 @@ namespace RYZECHo
 
             // Agent info
             var agent = gameModel.GetSelectedAgent();
-            if (!string.IsNullOrEmpty(agent))
-                _agentNameText.text = agent;
+            _agentNameText.text = gameModel.GetAgentLabel(agent);
 
             var role = gameModel.GetPlayerTeamRole();
             _agentRoleText.text = role == TeamRole.Attack ? "アタッカー" : "ディフェンダー";

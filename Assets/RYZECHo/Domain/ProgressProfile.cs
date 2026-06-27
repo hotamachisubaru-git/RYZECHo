@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed class ProgressProfile
+public sealed class ProgressProfile
 {
     public int AccountLevel { get; set; } = 1;
     public int CurrentXp { get; set; }
@@ -14,11 +14,11 @@ internal sealed class ProgressProfile
     public int StoreCursor { get; set; }
     public string ActiveContract { get; set; } = "ヴェール";
     public int ActiveContractProgress { get; set; }
-    public List<string> UnlockedAgents { get; set; } = ["ヴェール"];
-    public List<string> UnlockedStructureSkins { get; set; } = ["シグナル標準"];
-    public List<string> UnlockedAdThemes { get; set; } = ["NEO CORE"];
-    public List<string> UnlockedBanners { get; set; } = ["SIGNAL//STANDARD"];
-    public List<string> UnlockedKillEffects { get; set; } = ["SIGNAL BURST"];
+    public List<string> UnlockedAgents { get; set; } = new() { "ヴェール" };
+    public List<string> UnlockedStructureSkins { get; set; } = new() { "シグナル標準" };
+    public List<string> UnlockedAdThemes { get; set; } = new() { "NEO CORE" };
+    public List<string> UnlockedBanners { get; set; } = new() { "SIGNAL//STANDARD" };
+    public List<string> UnlockedKillEffects { get; set; } = new() { "SIGNAL BURST" };
     public string SelectedStructureSkin { get; set; } = "シグナル標準";
     public string SelectedAdTheme { get; set; } = "NEO CORE";
     public string SelectedBanner { get; set; } = "SIGNAL//STANDARD";

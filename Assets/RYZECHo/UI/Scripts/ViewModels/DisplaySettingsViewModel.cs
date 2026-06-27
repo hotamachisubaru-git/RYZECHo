@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo.UI.ViewModels
 {
@@ -298,7 +299,7 @@ namespace RYZECHo.UI.ViewModels
     /// <summary>
     /// JsonUtilityでNewtonsoft.Jsonの型をシリアライズするためのヘルパークラス
     /// </summary>
-    private static class JsonUtilityFromNewtonton
+    internal static class JsonUtilityFromNewtonton
     {
         public static T Parse<T>(string json) where T : new()
         {

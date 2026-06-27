@@ -11,7 +11,7 @@ namespace RYZECHo.Data
     /// ProgressProfile連携、PlayerPrefs + JSONファイル両方の保存方法をサポート。
     /// 自動セーブ機能を含む。
     /// </summary>
-    public class SaveSystem : IDisposable
+    public class SaveSystem : MonoBehaviour, IDisposable
     {
         #region Singleton
 

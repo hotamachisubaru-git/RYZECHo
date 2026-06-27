@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private void EmitRipple(PointF position, float strength, RippleKind kind, Color color)
     {
@@ -164,14 +164,14 @@ internal sealed partial class GameModel
     {
         return tool switch
         {
-            BuildToolKind.BlastDoor => $"髦ｲ螢√ラ繧｢ / {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.HoneyTrap => $"繝上メ繝溘ヤ繝医Λ繝・・ / {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.StaticNest => $"繧ｹ繧ｿ繝・ぅ繝・け繝阪せ繝・/ {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.ReconBeacon => $"繝ｪ繧ｳ繝ｳ繝薙・繧ｳ繝ｳ / {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.ShieldRelay => $"繧ｷ繝ｼ繝ｫ繝峨Μ繝ｬ繝ｼ / {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.PortableCover => $"繝昴・繧ｿ繝悶Ν繧ｫ繝舌・ / {MapEditApRules.ToolApCost(tool)}AP",
-            BuildToolKind.VisorWall => $"荳譁ｹ蜷代ヰ繧､繧ｶ繝ｼ螢・/ {MapEditApRules.ToolApCost(tool)}AP",
-            _ => $"繝帙Ο繧ｰ繝ｩ繝繝・さ繧､ / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.BlastDoor => $"防壁ドア / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.HoneyTrap => $"ハチミツトラップ / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.StaticNest => $"スタティックネスト / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.ReconBeacon => $"リコンビーコン / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.ShieldRelay => $"シールドリレー / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.PortableCover => $"ポータブルカバー / {MapEditApRules.ToolApCost(tool)}AP",
+            BuildToolKind.VisorWall => $"一方向バイザー壁 / {MapEditApRules.ToolApCost(tool)}AP",
+            _ => $"ホログラムデコイ / {MapEditApRules.ToolApCost(tool)}AP",
         };
     }
 
@@ -199,12 +199,12 @@ internal sealed partial class GameModel
     {
         return _phase switch
         {
-            GamePhase.Construct => "讒狗ｯ・,
-            GamePhase.Bet => "謚戊ｳ・,
-            GamePhase.Hunt => IsPlayerTeamAttacking() ? "謾ｻ謦・ : "髦ｲ陦・,
-            GamePhase.RoundResult => "邊ｾ邂・,
-            GamePhase.Victory => "蜍晏茜",
-            _ => "謨怜圏",
+            GamePhase.Construct => "構築",
+            GamePhase.Bet => "投資",
+            GamePhase.Hunt => IsPlayerTeamAttacking() ? "攻撃" : "防衛",
+            GamePhase.RoundResult => "精算",
+            GamePhase.Victory => "勝利",
+            _ => "敗北",
         };
     }
 

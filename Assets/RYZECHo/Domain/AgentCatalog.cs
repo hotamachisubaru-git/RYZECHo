@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal readonly record struct AgentProfile(
+public readonly record struct AgentProfile(
     AgentKind Kind,
     string Name,
     string Role,
@@ -11,17 +11,17 @@ internal readonly record struct AgentProfile(
     float SkillOneCooldown = 12f,
     float SkillTwoCooldown = 25f);
 
-internal static class AgentCatalog
+public static class AgentCatalog
 {
     public static readonly AgentKind[] SelectionOrder =
-    [
+    {
         AgentKind.Veil,
         AgentKind.Vine,
         AgentKind.Nitro,
         AgentKind.Oasis,
         AgentKind.Divide,
         AgentKind.Glitch,
-    ];
+    };
 
     public static AgentProfile Get(AgentKind kind)
     {

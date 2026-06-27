@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -20,8 +21,8 @@ namespace RYZECHo
 
         // Layout
         private const float PaddingX = 16f;
-        private const float BodyFontSize = 12;
-        private const float SmallFontSize = 10;
+        private const int BodyFontSize = 12;
+        private const int SmallFontSize = 10;
 
         #endregion
 
@@ -62,7 +63,7 @@ namespace RYZECHo
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 

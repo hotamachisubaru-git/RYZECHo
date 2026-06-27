@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.Rendering.Universal;
 
 namespace RYZECHo.Unity;
@@ -39,9 +40,9 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     [SerializeField, Range(8, 160)] private int segments = 72;
 
     [Header("Appearance")]
-    [SerializeField] private Color visionCenterColor = new(0.58f, 0.92f, 1f, 0.15f);
-    [SerializeField] private Color visionEdgeColor = new(0.25f, 0.85f, 1f, 0.04f);
-    [SerializeField] private Color darknessColor = new(0.01f, 0.02f, 0.035f, 0.82f);
+    [SerializeField] private UnityEngine.Color visionCenterColor = new(0.58f, 0.92f, 1f, 0.15f);
+    [SerializeField] private UnityEngine.Color visionEdgeColor = new(0.25f, 0.85f, 1f, 0.04f);
+    [SerializeField] private UnityEngine.Color darknessColor = new(0.01f, 0.02f, 0.035f, 0.82f);
     [SerializeField] private string sortingLayerName = "Default";
     [SerializeField] private int darknessSortingOrder = 20;
     [SerializeField] private int visionSortingOrder = 21;
@@ -142,7 +143,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Set the center color of the vision cone.
     /// </summary>
-    public void SetCenterColor(Color color)
+    public void SetCenterColor(UnityEngine.Color color)
     {
         visionCenterColor = color;
         _dirtyMaterial = true;
@@ -151,7 +152,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Set the edge color of the vision cone.
     /// </summary>
-    public void SetEdgeColor(Color color)
+    public void SetEdgeColor(UnityEngine.Color color)
     {
         visionEdgeColor = color;
         _dirtyMaterial = true;
@@ -160,7 +161,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Set the darkness color for areas outside the FOV.
     /// </summary>
-    public void SetDarknessColor(Color color)
+    public void SetDarknessColor(UnityEngine.Color color)
     {
         darknessColor = color;
         _dirtyMaterial = true;
@@ -386,7 +387,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
         var halfAngle = degrees * 0.5f;
 
         var vertices = new List<Vector3>();
-        var colors = new List<Color>();
+        var colors = new List<UnityEngine.Color>();
         var triangles = new List<int>();
 
         // Add the outer darkness fan (area outside FOV cone but within darkness radius)
@@ -404,10 +405,10 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Build a full circle mesh (for 360 FOV mode).
     /// </summary>
-    private void BuildCircleMesh(float outerRadius, float innerRadius, int segments, Color centerColor, Color edgeColor)
+    private void BuildCircleMesh(float outerRadius, float innerRadius, int segments, UnityEngine.Color centerColor, UnityEngine.Color edgeColor)
     {
         var vertices = new List<Vector3>();
-        var colors = new List<Color>();
+        var colors = new List<UnityEngine.Color>();
         var triangles = new List<int>();
 
         // Inner circle center
@@ -457,10 +458,10 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Build the FOV cone mesh with gradient from center to edge.
     /// </summary>
-    private void BuildFovConeMesh(float degrees, float halfAngle, float outerRadius, float innerRadius, Color centerColor, Color edgeColor)
+    private void BuildFovConeMesh(float degrees, float halfAngle, float outerRadius, float innerRadius, UnityEngine.Color centerColor, UnityEngine.Color edgeColor)
     {
         var vertices = new List<Vector3>();
-        var colors = new List<Color>();
+        var colors = new List<UnityEngine.Color>();
         var triangles = new List<int>();
 
         // Center point
@@ -512,7 +513,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Add a fan mesh (for the outer darkness area).
     /// </summary>
-    private void AddFanToMesh(List<Vector3> vertices, List<Color> colors, List<int> triangles, float startAngle, float spanAngle, float fanRadius, Color darknessColor)
+    private void AddFanToMesh(List<Vector3> vertices, List<UnityEngine.Color> colors, List<int> triangles, float startAngle, float spanAngle, float fanRadius, UnityEngine.Color darknessColor)
     {
         var span = Mathf.Max(0f, spanAngle);
         if (span <= 0.01f)
@@ -542,7 +543,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Add a ring mesh (between inner and outer radius).
     /// </summary>
-    private void AddRingToMesh(List<Vector3> vertices, List<Color> colors, List<int> triangles, float startAngle, float endAngle, float innerRadius, float outerRadius, Color darknessColor)
+    private void AddRingToMesh(List<Vector3> vertices, List<UnityEngine.Color> colors, List<int> triangles, float startAngle, float endAngle, float innerRadius, float outerRadius, UnityEngine.Color darknessColor)
     {
         if (outerRadius <= innerRadius)
             return;
@@ -582,7 +583,7 @@ public sealed class HuntFovRendererOptimized : MonoBehaviour
     /// <summary>
     /// Apply mesh data to a Unity Mesh object.
     /// </summary>
-    private static void ApplyMesh(Mesh mesh, Vector3[] vertices, Color[] colors, int[] triangles)
+    private static void ApplyMesh(Mesh mesh, Vector3[] vertices, UnityEngine.Color[] colors, int[] triangles)
     {
         mesh.Clear();
         mesh.vertices = vertices;

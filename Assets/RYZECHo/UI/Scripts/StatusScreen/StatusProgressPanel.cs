@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -97,7 +98,7 @@ namespace RYZECHo
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 

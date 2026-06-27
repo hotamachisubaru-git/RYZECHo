@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using System.Collections.Generic;
 using System;
 
@@ -10,7 +11,7 @@ namespace RYZECHo.UI
     /// </summary>
     public class UIScreenManager : MonoBehaviour
     {
-        [SerializeField] private GameObject[] screenPrefabs;
+        [SerializeField] public GameObject[] screenPrefabs;
 
         private Dictionary<ScreenType, UIScreen> _screens = new();
         private ScreenType _currentScreen;
@@ -137,7 +138,7 @@ namespace RYZECHo.UI
         /// </summary>
         public void ShowGameOver(bool isVictory, int score, int turnsPlayed)
         {
-            if (_screens.TryGetValue(ScreenType.GameOver, out var screen) && screen is GameOverUI gameOverUI)
+            if (_screens.TryGetValue(ScreenType.GameOver, out var screen) && screen is GameOverScreenController gameOverUI)
             {
                 gameOverUI.SetResult(isVictory, score, turnsPlayed);
             }

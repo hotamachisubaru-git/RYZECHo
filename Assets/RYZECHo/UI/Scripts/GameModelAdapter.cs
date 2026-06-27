@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using TMPro;
 using UnityEngine.UI;
 
@@ -62,9 +63,7 @@ namespace RYZECHo.UI
 
         public static int GetUltPoints()
         {
-            return _model != null && _model.GetPlayer() != null
-                ? _model.GetUltPoints(_model.GetPlayer().Name)
-                : 0;
+            return _model?.GetUltPoints() ?? 0;
         }
 
         // ==================== ゲーム状態 ====================
@@ -143,7 +142,22 @@ namespace RYZECHo.UI
 
         public static Actor GetPlayer()
         {
-            return _model?.GetPlayer() ?? new Actor();
+            return _model?.GetPlayer() ?? new Actor
+            {
+                Name = "Player",
+                Agent = AgentKind.Veil,
+                Type = ActorType.Player,
+                HomeCell = new Point(0, 0),
+                Weapon = WeaponType.Giant,
+                Position = new PointF(0f, 0f),
+                Radius = 14f,
+                MaxHealth = 100f,
+                MaxShield = 60f,
+                HearingRange = 350f,
+                BaseMoveSpeed = 210f,
+                Health = 100f,
+                Shield = 60f,
+            };
         }
 
         public static Actor[] GetAllies()

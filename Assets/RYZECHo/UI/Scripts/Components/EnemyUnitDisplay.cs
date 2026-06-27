@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using TMPro;
 using UnityEngine.UI;
 

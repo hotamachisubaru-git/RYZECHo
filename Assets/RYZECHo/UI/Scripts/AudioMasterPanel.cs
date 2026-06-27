@@ -1,4 +1,6 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
+using UnityEngine.Audio;
 using UnityEngine.UI;
 using RYZECHo.UI.ViewModels;
 
@@ -89,7 +91,7 @@ namespace RYZECHo.UI
             labelText.alignment = TextAnchor.MiddleRight;
             labelText.color = new Color(0.6f, 0.65f, 0.7f);
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -103,7 +105,6 @@ namespace RYZECHo.UI
             slider.minValue = min;
             slider.maxValue = max;
             slider.value = defaultValue;
-            slider.stepSize = step;
             slider.fillRect.GetComponent<Image>().color = sliderFillColor;
             slider.handleRect?.GetComponent<Image>()?.SetColor(accentColor);
             slider.targetGraphic?.GetComponent<Image>()?.SetColor(accentColor);
@@ -142,7 +143,7 @@ namespace RYZECHo.UI
             valueText.alignment = TextAnchor.MiddleLeft;
             valueText.color = accentColor;
             valueText.text = FormatSliderValue(key, defaultValue);
-            valueText.enableWordWrapping = false;
+            valueText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var valueRect = valueGO.GetComponent<RectTransform>();
             valueRect.anchorMin = new Vector2(0, 1);
             valueRect.anchorMax = new Vector2(0, 1);
@@ -150,7 +151,8 @@ namespace RYZECHo.UI
             valueRect.anchoredPosition = new Vector2(_contentLeft + labelWidth + sliderWidth + 12, yPos);
             valueRect.sizeDelta = new Vector2(60, sliderHeight);
 
-            slider.onValueChanged.AddListener(v => OnSliderValueChanged(key, v, valueText));
+            var capturedValueText = valueText;
+            slider.onValueChanged.AddListener(v => OnSliderValueChanged(key, v, capturedValueText));
         }
 
         private void OnSliderValueChanged(string key, float value, Text valueText)
@@ -185,9 +187,5 @@ namespace RYZECHo.UI
 
         private string FormatSliderValue(string key, float value) => FormatVolume(value);
 
-        private static class ImageExtensions
-        {
-            public static void SetColor(this Image image, Color color) { if (image != null) image.color = color; }
-        }
     }
 }

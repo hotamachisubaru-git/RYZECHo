@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private Actor? PickBestTarget(PointF origin, float range, ActorType sourceType)
     {
@@ -169,7 +169,7 @@ internal sealed partial class GameModel
     {
         if (start == goal)
         {
-            return [start];
+            return new List<Point> { start };
         }
 
         var frontier = new Queue<Point>();
@@ -203,7 +203,7 @@ internal sealed partial class GameModel
 
         if (!cameFrom.ContainsKey(goal))
         {
-            return [];
+            return new List<Point>();
         }
 
         var path = new List<Point>();

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -36,7 +37,7 @@ namespace RYZECHo
         private const float PaddingY = 12f;
         private const float BarHeight = 14f;
         private const float SectionGap = 8f;
-        private const float SmallFontSize = 10;
+        private const int SmallFontSize = 10;
 
         #endregion
 
@@ -115,7 +116,7 @@ namespace RYZECHo
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 
@@ -157,7 +158,7 @@ namespace RYZECHo
             labelText.alignment = TextAnchor.MiddleLeft;
             labelText.color = LabelColor;
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -200,7 +201,7 @@ namespace RYZECHo
             textComp.alignment = TextAnchor.MiddleRight;
             textComp.color = ValueColor;
             textComp.text = "100/100";
-            textComp.enableWordWrapping = false;
+            textComp.horizontalOverflow = HorizontalWrapMode.Overflow;
             textRef = textComp;
             var textRect = textGO.GetComponent<RectTransform>();
             textRect.anchorMin = new Vector2(1, 1);

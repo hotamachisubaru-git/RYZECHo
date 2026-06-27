@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel : IGameModel
 {
     private const string UiFontFamily = "Yu Gothic UI";
     private const int DefaultClientWidth = GameLayout.DefaultClientWidth;
@@ -42,10 +42,12 @@ internal sealed partial class GameModel
     private const float SharedVisionDurationSeconds = GameRules.SharedVisionDurationSeconds;
     private const float IdleBreathExposeSeconds = GameRules.IdleBreathExposeSeconds;
     private const float BreathingRippleIntervalSeconds = GameRules.BreathingRippleIntervalSeconds;
+    private const float RoundDurationSeconds = GameRules.RoundDurationSeconds;
     private const float BombPlantSeconds = GameRules.BombPlantSeconds;
     private const float BombFuseSeconds = GameRules.BombFuseSeconds;
     private const float BombDefuseSeconds = GameRules.BombDefuseSeconds;
     private const float BombSiteRadius = GameRules.BombSiteRadius;
+    private const float WorldPerspectiveScaleX = GameLayout.WorldPerspectiveScaleX;
     private const float WorldPerspectiveScaleY = GameLayout.WorldPerspectiveScaleY;
     private const float WorldPerspectiveShearX = GameLayout.WorldPerspectiveShearX;
     private const float WorldPerspectiveTopInset = GameLayout.WorldPerspectiveTopInset;
@@ -62,20 +64,20 @@ internal sealed partial class GameModel
     private readonly AudioSettingsSO _audioSettings;
     private readonly Random _random = new();
     private readonly Dictionary<WeaponType, WeaponStats> _weaponStats = CreateWeaponStats();
-    private readonly List<Structure> _structures = [];
-    private readonly List<WorldEffect> _worldEffects = [];
-    private readonly List<Ripple> _ripples = [];
-    private readonly List<Actor> _allies = [];
-    private readonly List<Actor> _enemies = [];
-    private readonly HashSet<Point> _permanentWalls = [];
-    private readonly HashSet<Point> _buildSlots = [];
-    private readonly HashSet<Point> _noBuildZones = [];
-    private readonly List<Point> _spawnCells = [];
-    private readonly List<string> _activityFeed = [];
-    private readonly Dictionary<string, int> _bossSelectionCounts = [];
-    private readonly Dictionary<string, int> _bossInvestments = [];
-    private readonly Dictionary<string, int> _ultPoints = [];
-    private readonly Dictionary<string, float> _sharedVisionTimers = [];
+    private readonly List<Structure> _structures = new();
+    private readonly List<WorldEffect> _worldEffects = new();
+    private readonly List<Ripple> _ripples = new();
+    private readonly List<Actor> _allies = new();
+    private readonly List<Actor> _enemies = new();
+    private readonly HashSet<Point> _permanentWalls = new();
+    private readonly HashSet<Point> _buildSlots = new();
+    private readonly HashSet<Point> _noBuildZones = new();
+    private readonly List<Point> _spawnCells = new();
+    private readonly List<string> _activityFeed = new();
+    private readonly Dictionary<string, int> _bossSelectionCounts = new();
+    private readonly Dictionary<string, int> _bossInvestments = new();
+    private readonly Dictionary<string, int> _ultPoints = new();
+    private readonly Dictionary<string, float> _sharedVisionTimers = new();
     private readonly ProgressProfile _profile = LoadProgressProfile();
     private readonly IEventBus _eventBus;
     private Size _layoutSize = new(DefaultClientWidth, DefaultClientHeight);
@@ -120,7 +122,7 @@ internal sealed partial class GameModel
     private GamePhase _resultDestination = GamePhase.Bet;
     private string _selectedBossName = RosterCatalog.PlayerName;
     private string _lastProgressionSummary = string.Empty;
-    private string _resultMessage = "鬯ｯ・ｮ繝ｻ・ｫ郢晢ｽｻ繝ｻ・ｴ鬮ｯ譎｢・｣・ｰ郢晢ｽｻ繝ｻ・｢郢晢ｽｻ邵ｺ・､・つ鬯ｯ・ｮ繝ｻ・ｯ髯ｷ闌ｨ・ｽ・ｷ郢晢ｽｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｻ鬯ｮ・ｫ繝ｻ・ｴ髫ｰ・ｫ繝ｻ・ｾ郢晢ｽｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｴ鬯ｩ蟷｢・ｽ・｢髫ｴ雜｣・ｽ・｢郢晢ｽｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｻ鬯ｯ・ｮ繝ｻ・ｫ郢晢ｽｻ繝ｻ・ｶ鬮ｯ諛ｶ・ｽ・｣郢晢ｽｻ繝ｻ・､鬯ｮ・ｴ髢ｧ・ｴ闔・｢驛｢譎｢・ｽ・ｻ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｯ鬯ｮ・ｯ隴趣ｽ｢繝ｻ・ｽ繝ｻ・ｲ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｨ鬯ｩ蛹・ｽｽ・ｯ郢晢ｽｻ繝ｻ・ｶ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｲ鬯ｯ・ｩ隰ｳ・ｾ繝ｻ・ｽ繝ｻ・ｵ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｲ鬯ｩ蛹・ｽｽ・ｶ髣包ｽｵ陟搾ｽｺ繝ｻ・ｺ繝ｻ・｢鬩幢ｽ｢隴趣ｽ｢繝ｻ・ｽ繝ｻ・ｻ鬯ｯ・ｩ陝ｷ・｢繝ｻ・ｽ繝ｻ・｢鬮ｫ・ｴ髮懶ｽ｣繝ｻ・ｽ繝ｻ・｢驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｽ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｩ鬯ｯ・ｩ陝ｷ・｢繝ｻ・ｽ繝ｻ・｢驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｧ鬩幢ｽ｢隴趣ｽ｢繝ｻ・ｽ繝ｻ・ｻ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｦ鬯ｯ・ｩ陝ｷ・｢繝ｻ・ｽ繝ｻ・｢鬮ｫ・ｴ髮懶ｽ｣繝ｻ・ｽ繝ｻ・｢驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｽ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｳ鬯ｯ・ｩ陝ｷ・｢繝ｻ・ｽ繝ｻ・｢鬮ｫ・ｴ陷ｿ髢・ｾ蜉ｱ繝ｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｳ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｨ鬩幢ｽ｢隴趣ｽ｢繝ｻ・ｽ繝ｻ・ｻ鬮ｯ讖ｸ・ｽ・ｳ髯樊ｻゑｽｽ・ｲ郢晢ｽｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｬ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｾ鬩幢ｽ｢隴趣ｽ｢繝ｻ・ｽ繝ｻ・ｻ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｯ鬯ｯ・ｯ繝ｻ・ｯ郢晢ｽｻ繝ｻ・ｩ鬮ｮ迢暦ｽｿ・ｫ郢晢ｽｻ郢晢ｽｻ繝ｻ・ｺ驛｢・ｧ闔ｨ螟ｲ・ｽ・ｽ繝ｻ・ｬ髯区ｻゑｽｽ・･驛｢譎｢・ｽ・ｻ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｹ驛｢譎｢・ｽ・ｻ郢晢ｽｻ繝ｻ・ｧ鬯ｮ・｣陋ｹ繝ｻ・ｽ・ｽ繝ｻ・ｵ鬮ｫ・ｰ繝ｻ・ｨ鬯ｲ謇假ｽｽ・ｴ繝ｻ縺､ﾂ鬯ｩ蟷｢・ｽ・｢髫ｴ雜｣・ｽ・｢郢晢ｽｻ繝ｻ・ｽ郢晢ｽｻ繝ｻ・ｻ;
+    private string _resultMessage = "最初の構築が、全ラウンドを支配する。";
     private ObjectiveSiteId _attackFocusSite = ObjectiveSiteId.Alpha;
     private ObjectiveSiteId? _armedBombSiteId;
     private bool _showBriefing = true;
@@ -132,12 +134,25 @@ internal sealed partial class GameModel
 
     private readonly Actor _player;
 
-    internal event Action<RippleKind, PointF, float>? AudioCueEmitted;
+    public event Action<RippleKind, PointF, float>? AudioCueEmitted;
 
     internal PointF AudioListenerPosition => _player.Position;
 
     public bool IsPaused { get; set; }
-    // ==================== HUD Getter ====================
+    public Size LayoutSize => _layoutSize;
+    public GamePhase Phase => _phase;
+    public bool PlayerIsAlive => _player.IsAlive;
+    public bool ShowBriefing => _showBriefing;
+    public float PlayerHealth => _player.Health;
+    public float PlayerMaxHealth => _player.MaxHealth;
+    public float PlayerShield => _player.Shield;
+    public float PlayerMaxShield => _player.MaxShield;
+    public int PlayerRoundWins => _playerRoundWins;
+    public int EnemyRoundWins => _enemyRoundWins;
+    public int CurrentRound => _currentRound;
+    public int Credits => _credits;
+    public int MatchTeamEliminations => _matchTeamEliminations;
+    public int MatchPlayerDeaths => _matchPlayerDeaths;
 
     internal float GetPlayerHealth() => _player.Health;
     internal float GetPlayerMaxHealth() => _player.MaxHealth;
@@ -149,7 +164,7 @@ internal sealed partial class GameModel
     internal string GetWeaponName() => _player.Weapon.ToString();
     internal int GetCredits() => _credits;
     internal int GetBuildPoints() => _buildPoints;
-    internal int GetUltPoints(string name) => _ultPoints.GetValueOrDefault(name, 0);
+    internal int GetUltPoints() => GetUltPoints(_player.Name);
     internal int GetPlayerRoundWins() => _playerRoundWins;
     internal int GetEnemyRoundWins() => _enemyRoundWins;
     internal int GetCurrentRound() => _currentRound;
@@ -173,10 +188,15 @@ internal sealed partial class GameModel
     internal ObjectiveSiteId GetAttackFocusSite() => _attackFocusSite;
     internal bool GetBombPlanted() => _bombPlanted;
     internal ObjectiveSiteId? GetArmedBombSite() => _armedBombSiteId;
+    internal AgentKind GetSelectedAgent() => _selectedAgent;
+    internal TeamRole GetPlayerTeamRole() => _playerTeamRole;
+    internal WeaponType GetPlayerPrimaryWeapon() => _playerPrimaryWeapon;
+    internal WeaponType GetPlayerSidearmWeapon() => _playerSidearmWeapon;
+    internal float GetAgentSkillOneCooldown() => _agentSkillOneCooldown;
+    internal float GetAgentSkillTwoCooldown() => _agentSkillTwoCooldown;
+    internal int GetMaxUltPoints() => MaxUltPoints;
 
-
-
-    public GameModel(
+    internal GameModel(
         IEventBus? eventBus = null,
         GameRulesSettingsSO? gameRules = null,
         LayoutSettingsSO? layoutSettings = null,
@@ -185,11 +205,11 @@ internal sealed partial class GameModel
         AudioSettingsSO? audioSettings = null)
     {
         _eventBus = eventBus ?? GameEventBusAdapter.Instance;
-        _gameRules = gameRules ?? ScriptableObject.CreateInstance<GameRulesSettingsSO>();
-        _layoutSettings = layoutSettings ?? ScriptableObject.CreateInstance<LayoutSettingsSO>();
-        _gameplaySettings = gameplaySettings ?? ScriptableObject.CreateInstance<GameplaySettingsSO>();
-        _visualSettings = visualSettings ?? ScriptableObject.CreateInstance<VisualSettingsSO>();
-        _audioSettings = audioSettings ?? ScriptableObject.CreateInstance<AudioSettingsSO>();
+        _gameRules = gameRules ?? UnityEngine.ScriptableObject.CreateInstance<GameRulesSettingsSO>();
+        _layoutSettings = layoutSettings ?? UnityEngine.ScriptableObject.CreateInstance<LayoutSettingsSO>();
+        _gameplaySettings = gameplaySettings ?? UnityEngine.ScriptableObject.CreateInstance<GameplaySettingsSO>();
+        _visualSettings = visualSettings ?? UnityEngine.ScriptableObject.CreateInstance<VisualSettingsSO>();
+        _audioSettings = audioSettings ?? UnityEngine.ScriptableObject.CreateInstance<AudioSettingsSO>();
         BuildMapGeometry();
 
         _player = CreateActor(RosterCatalog.Player);
@@ -222,5 +242,4 @@ internal sealed partial class GameModel
             BaseMoveSpeed = blueprint.BaseMoveSpeed,
         };
     }
-
 }

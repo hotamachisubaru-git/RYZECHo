@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private bool AddWorldEffect(WorldEffectKind kind, PointF position, float radius, float lifetime, Color color, string message)
     {

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo.UI.StatusScreen
@@ -90,7 +91,7 @@ namespace RYZECHo.UI.StatusScreen
             tc.alignment = alignment;
             tc.color = color;
             tc.text = text;
-            tc.enableWordWrapping = false;
+            tc.horizontalOverflow = HorizontalWrapMode.Overflow;
             return tc;
         }
 

@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal readonly record struct InputSnapshot(
+public readonly record struct InputSnapshot(
     bool MoveUp,
     bool MoveLeft,
     bool MoveDown,

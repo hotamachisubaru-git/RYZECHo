@@ -1,11 +1,11 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private static WeaponType[] PrimaryWeaponSelectionOrder()
     {
-        return
-        [
+        return new[]
+        {
             WeaponType.Blitz,
             WeaponType.Monster,
             WeaponType.Melt,
@@ -15,16 +15,16 @@ internal sealed partial class GameModel
             WeaponType.Violet,
             WeaponType.Changer,
             WeaponType.Howl,
-        ];
+        };
     }
 
     private static WeaponType[] SidearmSelectionOrder()
     {
-        return
-        [
+        return new[]
+        {
             WeaponType.Pulse,
             WeaponType.Shard,
-        ];
+        };
     }
 
     private static bool IsSidearmWeapon(WeaponType weaponType)

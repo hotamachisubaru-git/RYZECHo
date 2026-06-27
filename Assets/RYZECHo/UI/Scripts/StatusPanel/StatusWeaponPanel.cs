@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo.UI.StatusPanel
@@ -16,7 +17,7 @@ namespace RYZECHo.UI.StatusPanel
 
         private const float PaddingX = 16f;
         private const float PaddingY = 12f;
-        private const float SmallFontSize = 10;
+        private const int SmallFontSize = 10;
 
         private void Awake()
         {
@@ -49,7 +50,7 @@ namespace RYZECHo.UI.StatusPanel
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 

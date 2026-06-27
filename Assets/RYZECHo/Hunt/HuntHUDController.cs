@@ -3,6 +3,9 @@ using TMPro;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using RYZECHo.UI;
+using RYZECHo.Unity;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo.Hunt
 {
@@ -113,6 +116,11 @@ namespace RYZECHo.Hunt
 
         // スキル冷却表示用Prefabパス
         private const string SkillCooldownPrefabPath = "Assets/RYZECHo/Hunt/Prefabs/SkillCooldownDisplay.prefab";
+
+        private sealed class SkillCooldownDisplay
+        {
+            public GameObject gameObject { get; init; }
+        }
 
         // ==================== Unityライフサイクル ====================
 

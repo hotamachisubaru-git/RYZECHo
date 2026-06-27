@@ -6,7 +6,7 @@ namespace RYZECHo
     /// ゲームのレイアウト・カメラ定数へのアクセスを提供する。
     /// 元の定数値は LayoutSettingsSO.DefaultClientWidth 等を参照。
     /// </summary>
-    internal static class GameLayout
+    public static class GameLayout
     {
         static readonly LayoutSettingsSO _settings;
 
@@ -43,7 +43,7 @@ namespace RYZECHo
     /// ゲームルール定数へのアクセスを提供する。
     /// 元の定数値は GameRulesSettingsSO のプロパティを参照。
     /// </summary>
-    internal static class GameRules
+    public static class GameRules
     {
         static readonly GameRulesSettingsSO _settings;
 

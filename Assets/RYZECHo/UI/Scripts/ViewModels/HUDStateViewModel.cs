@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo.UI
 {
@@ -77,7 +78,7 @@ namespace RYZECHo.UI
                 // リソース
                 BuildPoints = model.GetBuildPoints(),
                 Credits = model.GetCredits(),
-                UltPoints = model.GetUltPoints(model.GetPlayer().Name),
+                UltPoints = model.GetUltPoints(),
                 // ステータス
                 AgentName = model.GetAgentName(),
                 WeaponName = model.GetWeaponName(),

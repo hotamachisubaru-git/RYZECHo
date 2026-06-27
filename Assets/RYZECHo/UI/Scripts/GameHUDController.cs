@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using TMPro;
 using UnityEngine.UI;
 
@@ -223,7 +224,7 @@ namespace RYZECHo.UI
                 // リソース (AP/クレジット/BP)
                 BuildPoints = _gameModel.GetBuildPoints(),
                 Credits = _gameModel.GetCredits(),
-                UltPoints = _gameModel.GetUltPoints(_gameModel.GetPlayer().Name),
+                UltPoints = _gameModel.GetUltPoints(),
                 // ステータス
                 AgentName = _gameModel.GetAgentName(),
                 WeaponName = _gameModel.GetWeaponName(),

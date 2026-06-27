@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private bool CanPlayerDefuse()
     {
@@ -61,7 +61,7 @@ internal sealed partial class GameModel
             }
         }
 
-        _spawnCells.AddRange([new Point(1, 2), new Point(1, 4), new Point(1, 7), new Point(1, 9)]);
+        _spawnCells.AddRange(new[] { new Point(1, 2), new Point(1, 4), new Point(1, 7), new Point(1, 9) });
 
         foreach (var protectedCell in new[]
         {

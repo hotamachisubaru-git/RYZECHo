@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo.UI
@@ -56,7 +57,7 @@ namespace RYZECHo.UI
             text.fontSize = fontSize;
             text.alignment = alignment;
             text.color = color;
-            text.enableWordWrapping = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             return text;
         }
 

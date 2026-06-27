@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.Rendering.Universal;
 
 namespace RYZECHo.Unity;

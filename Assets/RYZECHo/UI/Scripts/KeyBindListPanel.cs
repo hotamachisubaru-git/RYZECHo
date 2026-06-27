@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 using RYZECHo.UI.ViewModels;
 
@@ -126,7 +127,7 @@ namespace RYZECHo.UI
             title.alignment = TextAnchor.MiddleLeft;
             title.color = accentColor;
             title.text = text;
-            title.enableWordWrapping = false;
+            title.horizontalOverflow = HorizontalWrapMode.Overflow;
             var rect = go.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0, 1);
             rect.anchorMax = new Vector2(0, 1);
@@ -145,7 +146,7 @@ namespace RYZECHo.UI
             text.fontSize = fontSize;
             text.alignment = alignment;
             text.color = color;
-            text.enableWordWrapping = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
             return text;
         }
 

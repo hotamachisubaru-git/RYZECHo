@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo.UI
 {
@@ -30,14 +31,14 @@ namespace RYZECHo.UI
                     if (bombPlanted && armedBombSite.HasValue)
                     {
                         // ボム設置中 - 爆弾設置サイトを強調表示
-                        objectiveText.text = $"💣 ボム設置: {armedBombSite.Value == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト"}";
+                        objectiveText.text = $"💣 ボム設置: {(armedBombSite.Value == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト")}";
                         objectiveText.gameObject.SetActive(true);
                         objectiveText.color = new Color(1f, 0.4f, 0.4f, 1f); // 赤系
                     }
                     else if (attackFocusSite != default)
                     {
                         // 攻撃目標サイトを表示
-                        objectiveText.text = $"🎯 攻撃目標: {attackFocusSite == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト"}";
+                        objectiveText.text = $"🎯 攻撃目標: {(attackFocusSite == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト")}";
                         objectiveText.gameObject.SetActive(true);
                         objectiveText.color = new Color(1f, 1f, 1f, 1f); // 白
                     }
@@ -61,7 +62,7 @@ namespace RYZECHo.UI
                 {
                     if (attackFocusSite != default)
                     {
-                        objectiveText.text = $"🔨 構築目標: {attackFocusSite == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト"}";
+                        objectiveText.text = $"🔨 構築目標: {(attackFocusSite == ObjectiveSiteId.Alpha ? "Aサイト" : "Bサイト")}";
                         objectiveText.gameObject.SetActive(true);
                         objectiveText.color = new Color(0.6f, 0.8f, 1f, 1f); // 青系
                     }

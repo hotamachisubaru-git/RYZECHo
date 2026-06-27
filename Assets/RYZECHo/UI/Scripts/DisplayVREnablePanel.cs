@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 using RYZECHo.UI.ViewModels;
 
@@ -109,7 +110,7 @@ namespace RYZECHo.UI
             text.alignment = TextAnchor.MiddleLeft;
             text.color = textNormalColor;
             text.text = label;
-            text.enableWordWrapping = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var rect = go.GetComponent<RectTransform>();
             rect.anchorMin = new Vector2(0, 1);

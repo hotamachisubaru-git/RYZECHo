@@ -4,7 +4,7 @@ namespace RYZECHo;
 /// GameModelの純粋ドメイン層APIを定義するインターフェース。
 /// Unityビュー（描画/入力/オーディオ）からの依存を逆転させる。
 /// </summary>
-internal interface IGameModel
+public interface IGameModel
 {
     /// <summary>ゲームの更新（論理フレーム）</summary>
     void Update(float deltaSeconds, InputSnapshot input);

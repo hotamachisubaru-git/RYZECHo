@@ -1,12 +1,16 @@
 namespace System.Runtime.CompilerServices;
 
-internal static class IsExternalInit;
+internal static class IsExternalInit
+{
+}
 
-[AttributeUsage(AttributeTargets.All, Inherited = false)]
-internal sealed class RequiredMemberAttribute : Attribute;
+[System.AttributeUsage(System.AttributeTargets.All, Inherited = false)]
+internal sealed class RequiredMemberAttribute : System.Attribute
+{
+}
 
-[AttributeUsage(AttributeTargets.All, AllowMultiple = true, Inherited = false)]
-internal sealed class CompilerFeatureRequiredAttribute : Attribute
+[System.AttributeUsage(System.AttributeTargets.All, AllowMultiple = true, Inherited = false)]
+internal sealed class CompilerFeatureRequiredAttribute : System.Attribute
 {
     public const string RefStructs = nameof(RefStructs);
     public const string RequiredMembers = nameof(RequiredMembers);
@@ -20,6 +24,7 @@ internal sealed class CompilerFeatureRequiredAttribute : Attribute
     public bool IsOptional { get; init; }
 }
 
-[AttributeUsage(AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
-internal sealed class SetsRequiredMembersAttribute : Attribute;
-
+[System.AttributeUsage(System.AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+internal sealed class SetsRequiredMembersAttribute : System.Attribute
+{
+}

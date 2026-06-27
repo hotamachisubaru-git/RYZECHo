@@ -1,8 +1,8 @@
 namespace RYZECHo;
 
-internal readonly record struct ObjectiveSite(ObjectiveSiteId Id, string Label, Point Cell);
+public readonly record struct ObjectiveSite(ObjectiveSiteId Id, string Label, Point Cell);
 
-internal readonly record struct ActorBlueprint(
+public readonly record struct ActorBlueprint(
     string Name,
     AgentKind Agent,
     ActorType Type,
@@ -14,7 +14,7 @@ internal readonly record struct ActorBlueprint(
     float HearingRange,
     float BaseMoveSpeed);
 
-internal static class RosterCatalog
+public static class RosterCatalog
 {
     public const string PlayerName = "あなた";
     public const string NorthAnchorName = "北アンカー";
@@ -34,7 +34,7 @@ internal static class RosterCatalog
         210f);
 
     public static readonly ActorBlueprint[] Allies =
-    [
+    {
         new(
             NorthAnchorName,
             AgentKind.Vine,
@@ -68,7 +68,7 @@ internal static class RosterCatalog
             48f,
             340f,
             176f),
-    ];
+    };
 
     public static WeaponType DefaultFriendlyWeaponFor(string actorName)
     {
@@ -83,7 +83,7 @@ internal static class RosterCatalog
     }
 }
 
-internal sealed class StructureStats
+public sealed class StructureStats
 {
     public required string Label { get; init; }
     public required int ApCost { get; init; }
@@ -92,7 +92,7 @@ internal sealed class StructureStats
     public bool AiTargetable { get; init; }
 }
 
-internal static class StructureCatalog
+public static class StructureCatalog
 {
     private static readonly Dictionary<StructureKind, StructureStats> _catalog = new()
     {
@@ -121,7 +121,7 @@ internal static class StructureCatalog
     };
 }
 
-internal sealed class WorldEffectStats
+public sealed class WorldEffectStats
 {
     public required float Radius { get; init; }
     public required float Lifetime { get; init; }
@@ -129,7 +129,7 @@ internal sealed class WorldEffectStats
     public bool BlocksVision { get; init; }
 }
 
-internal static class WorldEffectCatalog
+public static class WorldEffectCatalog
 {
     private static readonly Dictionary<WorldEffectKind, WorldEffectStats> _catalog = new()
     {
@@ -146,7 +146,7 @@ internal static class WorldEffectCatalog
     public static WorldEffectStats Get(WorldEffectKind kind) => _catalog[kind];
 }
 
-internal sealed class WeaponStats
+public sealed class WeaponStats
 {
     public required WeaponType Type { get; init; }
     public required string Label { get; init; }
@@ -166,7 +166,7 @@ internal sealed class WeaponStats
     public required bool ScopedFov { get; init; }
 }
 
-internal sealed class Structure
+public sealed class Structure
 {
     public required StructureKind Kind { get; init; }
     public required Point Cell { get; init; }
@@ -179,7 +179,7 @@ internal sealed class Structure
     public float RemainingLifetime { get; set; }
 }
 
-internal sealed class WorldEffect
+public sealed class WorldEffect
 {
     public required WorldEffectKind Kind { get; init; }
     public required PointF Position { get; init; }
@@ -190,7 +190,7 @@ internal sealed class WorldEffect
     public float Age { get; set; }
 }
 
-internal sealed class Ripple
+public sealed class Ripple
 {
     public required PointF Position { get; init; }
     public required float Strength { get; init; }
@@ -200,7 +200,7 @@ internal sealed class Ripple
     public float Age { get; set; }
 }
 
-internal sealed class Actor
+public sealed class Actor
 {
     public required string Name { get; init; }
     public required AgentKind Agent { get; set; }
@@ -234,7 +234,7 @@ internal sealed class Actor
     public bool IsAlive => Health > 0.01f;
 }
 
-internal readonly record struct CosmeticOffer(
+public readonly record struct CosmeticOffer(
     CosmeticKind Kind,
     string Name,
     int TokenCost,

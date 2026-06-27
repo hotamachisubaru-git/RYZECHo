@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo
 {
@@ -22,11 +23,11 @@ namespace RYZECHo
 
             return new PauseInfoViewModel
             {
-                PhaseLabel = GetPhaseLabel(model.GetCurrentPhase()),
-                PlayerScore = model.PlayerRoundWins,
-                EnemyScore = model.EnemyRoundWins,
-                CurrentRound = model.CurrentRound,
-                Credits = model.Credits,
+                PhaseLabel = GetPhaseLabel(model.GetPhase()),
+                PlayerScore = model.GetPlayerRoundWins(),
+                EnemyScore = model.GetEnemyRoundWins(),
+                CurrentRound = model.GetCurrentRound(),
+                Credits = model.GetCredits(),
             };
         }
 

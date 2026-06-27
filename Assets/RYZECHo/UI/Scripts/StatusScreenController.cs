@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -35,9 +36,6 @@ namespace RYZECHo
         [Header("Status Screen References")]
         [Tooltip("ゲームモデル参照")]
         [SerializeField] private GameModel _gameModel;
-
-        [Tooltip("アクターカタログ参照")]
-        [SerializeField] private AgentCatalog _agentCatalog;
 
         // UI Elements
         private GameObject _panel;
@@ -266,7 +264,7 @@ namespace RYZECHo
             textComponent.alignment = alignment;
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.horizontalOverflow = HorizontalWrapMode.Overflow;
             return textComponent;
         }
 
@@ -308,7 +306,7 @@ namespace RYZECHo
             labelText.alignment = TextAnchor.MiddleLeft;
             labelText.color = LabelColor;
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -351,7 +349,7 @@ namespace RYZECHo
             textComp.alignment = TextAnchor.MiddleRight;
             textComp.color = ValueColor;
             textComp.text = "100/100";
-            textComp.enableWordWrapping = false;
+            textComp.horizontalOverflow = HorizontalWrapMode.Overflow;
             textRef = textComp;
             var textRect = textGO.GetComponent<RectTransform>();
             textRect.anchorMin = new Vector2(1, 1);
@@ -373,10 +371,7 @@ namespace RYZECHo
 
             // Agent info
             var agent = _gameModel.GetSelectedAgent();
-            if (!string.IsNullOrEmpty(agent))
-            {
-                _agentNameText.text = agent;
-            }
+            _agentNameText.text = _gameModel.GetAgentLabel(agent);
 
             var role = _gameModel.GetPlayerTeamRole();
             _agentRoleText.text = role == TeamRole.Attack ? "アタッカー" : "ディフェンダー";

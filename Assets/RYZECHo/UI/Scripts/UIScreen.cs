@@ -1,5 +1,7 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using TMPro;
+using UnityEngine.UI;
 
 namespace RYZECHo.UI
 {
@@ -14,7 +16,7 @@ namespace RYZECHo.UI
 
         [Header("Font Settings")]
         [Tooltip("デフォルトフォント")]
-        [SerializeField] private TMP_FontAsset defaultFont;
+        [SerializeField] protected TMP_FontAsset defaultFont;
 
         protected bool _isActive;
 
@@ -55,12 +57,12 @@ namespace RYZECHo.UI
         /// <summary>
         /// 画面が初めて表示されるときに呼ばれる（オーバーライド用）
         /// </summary>
-        protected virtual void OnShow() { }
+        public virtual void OnShow() { }
 
         /// <summary>
         /// 画面が非表示になるときに呼ばれる（オーバーライド用）
         /// </summary>
-        protected virtual void OnHide() { }
+        public virtual void OnHide() { }
 
         /// <summary>
         /// ゲーム開始を要求
@@ -107,7 +109,7 @@ namespace RYZECHo.UI
         protected void AddButtonListener(Button button, System.Action callback)
         {
             if (button != null && callback != null)
-                button.onClick.AddListener(callback);
+                button.onClick.AddListener(() => callback());
         }
 
         /// <summary>

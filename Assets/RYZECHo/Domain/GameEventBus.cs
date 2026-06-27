@@ -42,10 +42,10 @@ internal sealed class GameEventBusAdapter : IEventBus
     internal static readonly GameEventBusAdapter Instance = new();
 
     // 全イベント購読者（型依存なしの万能サブスク）
-    private readonly List<Action<GameEvent>> _subscribers = [];
+    private readonly List<Action<GameEvent>> _subscribers = new();
 
     // 型指定購読者
-    private readonly Dictionary<Type, List<Action<GameEvent>>> _typedSubscribers = [];
+    private readonly Dictionary<Type, List<Delegate>> _typedSubscribers = new();
 
     public int SubscriberCount => _subscribers.Count;
 
@@ -62,9 +62,10 @@ internal sealed class GameEventBusAdapter : IEventBus
         var type = typeof(T);
         if (!_typedSubscribers.TryGetValue(type, out var list))
         {
-            list = [];
+            list = new List<Delegate>();
             _typedSubscribers[type] = list;
         }
+
         if (!list.Contains(handler))
         {
             list.Add(handler);
@@ -105,7 +106,7 @@ internal sealed class GameEventBusAdapter : IEventBus
         {
             for (int i = 0; i < typedList.Count; i++)
             {
-                typedList[i]?.Invoke(evt);
+                typedList[i]?.DynamicInvoke(evt);
             }
         }
     }

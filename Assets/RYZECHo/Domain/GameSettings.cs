@@ -4,7 +4,7 @@ namespace RYZECHo
     /// ゲームバランス定数へのアクセスを提供する。
     /// 値は GameplaySettingsSO のデフォルト値と一致。
     /// </summary>
-    internal static class GameSettings
+    public static class GameSettings
     {
         #region FOV
 

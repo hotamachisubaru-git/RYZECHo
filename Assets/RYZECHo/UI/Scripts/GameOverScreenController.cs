@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 using TMPro;
 
@@ -129,7 +130,7 @@ namespace RYZECHo.UI
             UIScreenManager.Instance?.ResetGame();
         }
 
-        private void OnRetry()
+        private void RetryGame()
         {
             // ゲームリトライ
             UIScreenManager.Instance?.StartGame();
@@ -138,6 +139,6 @@ namespace RYZECHo.UI
         public override void OnStartGame() { }
         public override void OnOpenSettings() { }
         public override void OnExitGame() { }
-        public override void OnRetry() { OnRetry(); }
+        public override void OnRetry() { RetryGame(); }
     }
 }

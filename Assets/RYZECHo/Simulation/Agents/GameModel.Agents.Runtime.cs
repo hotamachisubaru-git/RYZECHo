@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private const float AgentSkillOneCooldownSeconds = 8f;
     private const float AgentSkillTwoCooldownSeconds = 12f;

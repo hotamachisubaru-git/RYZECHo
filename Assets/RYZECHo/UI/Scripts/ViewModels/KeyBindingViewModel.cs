@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo.UI.ViewModels
 {
@@ -41,7 +42,7 @@ namespace RYZECHo.UI.ViewModels
 
         #region Private Fields
 
-        private readonly List<KeybindEntryViewModel> _keybinds;
+        private List<KeybindEntryViewModel> _keybinds;
         private int _selectedIndex = -1;
         private readonly string _settingsFilePath;
 

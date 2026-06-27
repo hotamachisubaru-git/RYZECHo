@@ -27,7 +27,7 @@ public class BuildSettingsConfigurator : EditorWindow
     // ============================================================
     // 開発ビルド設定
     // ============================================================
-    private static readonly BuildOptions DEV_OPTIONS = BuildOptions.DevelopmentBuild | BuildOptions.StrictMode;
+    private static readonly BuildOptions DEV_OPTIONS = BuildOptions.Development | BuildOptions.StrictMode;
 
     // ============================================================
     // 本番ビルド設定
@@ -51,15 +51,12 @@ public class BuildSettingsConfigurator : EditorWindow
         PlayerSettings.bundleVersion = VERSION;
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Standalone, ScriptingImplementation.IL2CPP);
         PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Standalone, ApiCompatibilityLevel.NET_Standard_2_0);
-        PlayerSettings.il2cppCompilerConfiguration = IL2CPPCompilerConfiguration.Release;
 
         // --- Bundle ID ---
         PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Standalone, BUNDLE_ID);
 
         // --- Rendering ---
         PlayerSettings.colorSpace = ColorSpace.Gamma;
-        PlayerSettings.SplashScreen.showLogo = false;
-        PlayerSettings.SplashScreen.showUnityAudioLogo = false;
 
         // --- Resolution ---
         PlayerSettings.defaultScreenWidth  = DEFAULT_WIDTH;
@@ -67,9 +64,6 @@ public class BuildSettingsConfigurator : EditorWindow
         PlayerSettings.fullScreenMode       = FullScreenMode.FullScreenWindow;
         PlayerSettings.resizableWindow      = true;
         PlayerSettings.runInBackground      = true;
-
-        // --- XR ---
-        PlayerSettings.xrSettings.legacyHardwareSupport = XRLegacyHardwareSupport.None;
 
         // --- Other ---
         PlayerSettings.usePlayerLog = true;

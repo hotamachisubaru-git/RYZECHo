@@ -3,6 +3,9 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using System;
 using System.Collections.Generic;
+using RYZECHo.UI;
+using RYZECHo.Unity;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo
 {
@@ -17,9 +20,9 @@ namespace RYZECHo
         // ==================== セットアップ用シリアライズフィールド ====================
 
         [Header("Scene References")]
-        [SerializeField] private Camera gameCamera;
-        [SerializeField] private Transform playerView;
-        [SerializeField] private HuntFovRenderer huntFovRenderer;
+        [SerializeField] internal Camera gameCamera;
+        [SerializeField] internal Transform playerView;
+        [SerializeField] internal HuntFovRenderer huntFovRenderer;
 
         [Header("Settings SO")]
         [SerializeField] private GameplaySettingsSO gameplaySettings;
@@ -56,7 +59,7 @@ namespace RYZECHo
 
         // ==================== ゲーム状態 ====================
 
-        private IGameModel _gameModel;
+        private GameModel _gameModel;
         private IGameModelFactory _factory;
         private IEventBus _eventBus;
 
@@ -118,7 +121,7 @@ namespace RYZECHo
 
             // ゲームモデルを生成
             _factory = GameModelFactory.Instance;
-            _gameModel = _factory.Create(
+            _gameModel = (GameModel)_factory.Create(
                 gameRules: gameRulesSettings,
                 layoutSettings: layoutSettings,
                 gameplaySettings: gameplaySettings);
@@ -240,10 +243,10 @@ namespace RYZECHo
             // ゲームモデルを再生成
             if (_gameModel != null)
             {
-                _gameModel = _factory.Create(
-                    gameRules: gameRulesSettings,
-                    layoutSettings: layoutSettings,
-                    gameplaySettings: gameplaySettings);
+                    _gameModel = (GameModel)_factory.Create(
+                        gameRules: gameRulesSettings,
+                        layoutSettings: layoutSettings,
+                        gameplaySettings: gameplaySettings);
 
                 if (hudController != null)
                 {
@@ -563,13 +566,13 @@ namespace RYZECHo
             if (_eventBus == null) return;
 
             // ゲームイベントを購読
-            _eventBus.Subscribe<GameEvent>(OnGameEvent);
-            _eventBus.Subscribe<GameEvent.ActorDeath>(OnActorDeath);
-            _eventBus.Subscribe<GameEvent.Damage>(OnDamage);
-            _eventBus.Subscribe<GameEvent.StructureBuilt>(OnStructureBuilt);
-            _eventBus.Subscribe<GameEvent.StructureDestroyed>(OnStructureDestroyed);
-            _eventBus.Subscribe<GameEvent.PhaseChanged>(OnPhaseChangedEvent);
-            _eventBus.Subscribe<GameEvent.AudioCue>(OnAudioCueEvent);
+            _eventBus.Subscribe(OnGameEvent);
+            _eventBus.Subscribe<ActorDeathEvent>(OnActorDeath);
+            _eventBus.Subscribe<DamageEvent>(OnDamage);
+            _eventBus.Subscribe<StructureBuiltEvent>(OnStructureBuilt);
+            _eventBus.Subscribe<StructureDestroyedEvent>(OnStructureDestroyed);
+            _eventBus.Subscribe<GamePhaseChangedEvent>(OnPhaseChangedEvent);
+            _eventBus.Subscribe<AudioCueEvent>(OnAudioCueEvent);
 
             // ゲームモデルのオーディオキューイベントも購読
             _gameModel.AudioCueEmitted += OnModelAudioCue;
@@ -581,32 +584,32 @@ namespace RYZECHo
             Debug.Log($"[RyzechoGameController] GameEvent: {evt.GetType().Name}");
         }
 
-        private void OnActorDeath(GameEvent.ActorDeath evt)
+        private void OnActorDeath(ActorDeathEvent evt)
         {
-            Debug.Log($"[RyzechoGameController] ActorDeath: {evt.ActorName}");
+            Debug.Log($"[RyzechoGameController] ActorDeath: {evt.VictimName}");
         }
 
-        private void OnDamage(GameEvent.Damage evt)
+        private void OnDamage(DamageEvent evt)
         {
-            Debug.Log($"[RyzechoGameController] Damage: {evt.Amount}");
+            Debug.Log($"[RyzechoGameController] Damage: {evt.DamageAmount}");
         }
 
-        private void OnStructureBuilt(GameEvent.StructureBuilt evt)
+        private void OnStructureBuilt(StructureBuiltEvent evt)
         {
-            Debug.Log($"[RyzechoGameController] StructureBuilt: {evt.Kind}");
+            Debug.Log($"[RyzechoGameController] StructureBuilt: {evt.Type}");
         }
 
-        private void OnStructureDestroyed(GameEvent.StructureDestroyed evt)
+        private void OnStructureDestroyed(StructureDestroyedEvent evt)
         {
-            Debug.Log($"[RyzechoGameController] StructureDestroyed: {evt.Kind}");
+            Debug.Log($"[RyzechoGameController] StructureDestroyed: {evt.Type}");
         }
 
-        private void OnPhaseChangedEvent(GameEvent.PhaseChanged evt)
+        private void OnPhaseChangedEvent(GamePhaseChangedEvent evt)
         {
-            Debug.Log($"[RyzechoGameController] PhaseChanged: {evt.OldPhase} -> {evt.NewPhase}");
+            Debug.Log($"[RyzechoGameController] PhaseChanged: {evt.To}");
         }
 
-        private void OnAudioCueEvent(GameEvent.AudioCue evt)
+        private void OnAudioCueEvent(AudioCueEvent evt)
         {
             Debug.Log($"[RyzechoGameController] AudioCue: {evt.Kind} at {evt.Position}");
         }
@@ -729,13 +732,13 @@ namespace RYZECHo
             // イベント購読を解除
             if (_eventBus != null && _gameModel != null)
             {
-                _eventBus.Unsubscribe<GameEvent>(OnGameEvent);
-                _eventBus.Unsubscribe<GameEvent.ActorDeath>(OnActorDeath);
-                _eventBus.Unsubscribe<GameEvent.Damage>(OnDamage);
-                _eventBus.Unsubscribe<GameEvent.StructureBuilt>(OnStructureBuilt);
-                _eventBus.Unsubscribe<GameEvent.StructureDestroyed>(OnStructureDestroyed);
-                _eventBus.Unsubscribe<GameEvent.PhaseChanged>(OnPhaseChangedEvent);
-                _eventBus.Unsubscribe<GameEvent.AudioCue>(OnAudioCueEvent);
+                _eventBus.Unsubscribe(OnGameEvent);
+                _eventBus.Unsubscribe<ActorDeathEvent>(OnActorDeath);
+                _eventBus.Unsubscribe<DamageEvent>(OnDamage);
+                _eventBus.Unsubscribe<StructureBuiltEvent>(OnStructureBuilt);
+                _eventBus.Unsubscribe<StructureDestroyedEvent>(OnStructureDestroyed);
+                _eventBus.Unsubscribe<GamePhaseChangedEvent>(OnPhaseChangedEvent);
+                _eventBus.Unsubscribe<AudioCueEvent>(OnAudioCueEvent);
 
                 _gameModel.AudioCueEmitted -= OnModelAudioCue;
             }

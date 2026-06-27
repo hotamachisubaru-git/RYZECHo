@@ -1,7 +1,7 @@
 #if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private void DrawHudText(Graphics graphics, string text, float size, FontStyle style, Color color, float x, float y)
     {

@@ -239,10 +239,10 @@ namespace RYZECHo.Editor.Validation
 
             // GameConstantsの定数チェック
             results.Add(new ValidationResult("Game Rules", "MaxUltPoints", true,
-                $"GameConstants.MaxUltPoints = {GameConstants.MaxUltPoints}"));
+                $"GameRules.MaxUltPoints = {GameRules.MaxUltPoints}"));
 
             results.Add(new ValidationResult("Game Rules", "BossInvestmentSoftCap", true,
-                $"GameConstants.BossInvestmentSoftCap = {GameConstants.BossInvestmentSoftCap}"));
+                $"GameSettings.BossInvestmentSoftCap = {GameSettings.BossInvestmentSoftCap}"));
 
             // GameSettingsの定数チェック
             results.Add(new ValidationResult("Game Rules", "StandardFovDegrees", true,
@@ -267,7 +267,7 @@ namespace RYZECHo.Editor.Validation
                 $"定義された武器タイプ: {weaponTypes.Length}種類"));
 
             // エージェントカタログチェック
-            var agentCount = AgentCatalog.Agents.Count;
+            var agentCount = AgentCatalog.SelectionOrder.Length;
             results.Add(new ValidationResult("Game Rules", "Agent Count", true,
                 $"エージェントカタログに {agentCount} 種類定義されています"));
 

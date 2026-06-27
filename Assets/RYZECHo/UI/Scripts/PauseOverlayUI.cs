@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 using TMPro;
 
@@ -174,13 +175,28 @@ namespace RYZECHo
         {
             var go = new GameObject(name, typeof(TextMeshProUGUI));
             var textComponent = go.GetComponent<TextMeshProUGUI>();
-            textComponent.font = Resources.GetBuiltinResource<Font>("Fonts & Materials/LiberationSans SDF.fnt");
             textComponent.fontSize = fontSize;
-            textComponent.alignment = alignment;
+            textComponent.alignment = ToTextAlignment(alignment);
             textComponent.color = color;
             textComponent.text = text;
-            textComponent.enableWordWrapping = false;
+            textComponent.textWrappingMode = TextWrappingModes.NoWrap;
             return textComponent;
+        }
+
+        private static TextAlignmentOptions ToTextAlignment(TextAnchor alignment)
+        {
+            return alignment switch
+            {
+                TextAnchor.UpperLeft => TextAlignmentOptions.TopLeft,
+                TextAnchor.UpperCenter => TextAlignmentOptions.Top,
+                TextAnchor.UpperRight => TextAlignmentOptions.TopRight,
+                TextAnchor.MiddleLeft => TextAlignmentOptions.Left,
+                TextAnchor.MiddleRight => TextAlignmentOptions.Right,
+                TextAnchor.LowerLeft => TextAlignmentOptions.BottomLeft,
+                TextAnchor.LowerCenter => TextAlignmentOptions.Bottom,
+                TextAnchor.LowerRight => TextAlignmentOptions.BottomRight,
+                _ => TextAlignmentOptions.Center,
+            };
         }
 
         private Button CreatePauseButton(string name, string label, float width, float height, Color normalColor, Color borderColor, float yPos)
@@ -197,7 +213,7 @@ namespace RYZECHo
                 highlightedColor = label == "ゲームを終了" ? QuitButtonHoverColor : ButtonHoverColor,
                 pressedColor = label == "ゲームを終了" ? new Color(0.65f, 0.1f, 0.1f, 1f) : ButtonBorderColor,
                 disabledColor = normalColor,
-                duration = 0.1f,
+                fadeDuration = 0.1f,
             };
 
             // Border
@@ -217,10 +233,10 @@ namespace RYZECHo
             labelGO.transform.SetParent(go.transform, false);
             var labelText = labelGO.GetComponent<TextMeshProUGUI>();
             labelText.fontSize = 14;
-            labelText.alignment = TextAnchor.MiddleCenter;
+            labelText.alignment = TextAlignmentOptions.Center;
             labelText.color = new Color(0.941f, 0.961f, 0.98f, 1f);
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.textWrappingMode = TextWrappingModes.NoWrap;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = Vector2.zero;
             labelRect.anchorMax = Vector2.one;

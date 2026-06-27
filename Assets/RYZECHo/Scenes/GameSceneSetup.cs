@@ -1,9 +1,14 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Audio;
+using UnityEngine.UI;
 using TMPro;
 using System;
 using System.Collections.Generic;
+using RYZECHo.UI;
+using RYZECHo.Unity;
+using Color = UnityEngine.Color;
 
 namespace RYZECHo
 {
@@ -26,7 +31,7 @@ namespace RYZECHo
         [SerializeField] private Color mainCameraBackgroundColor = new Color(0.08f, 0.08f, 0.12f, 1.0f);
 
         [Tooltip("HUDカメラのクリアフラグ")]
-        [SerializeField] private CameraClearFlags hudCameraClearFlags = CameraClearFlags.DepthOnly;
+        [SerializeField] private CameraClearFlags hudCameraClearFlags = CameraClearFlags.Depth;
 
         [Header("Screen Prefabs")]
         [Tooltip("画面Prefab配列（TitleScreen, MainMenu, DifficultySelect, SetupScreen, GameOver）")]
@@ -145,7 +150,7 @@ namespace RYZECHo
             mainCam.backgroundColor = mainConfig?.backgroundColor ?? mainCameraBackgroundColor;
             mainCam.cullingMask = mainConfig?.cullingMask ?? -1;
             mainCam.depth = mainConfig?.depth ?? -1;
-            mainCam.renderPathType = mainConfig?.renderPathType ?? RenderPath.Automatic;
+            mainCam.renderingPath = mainConfig?.renderPathType ?? RenderingPath.UsePlayerSettings;
             mainCam.useOcclusionCulling = true;
             mainCam.allowHDR = false;
             mainCam.allowMSAA = false; // URP使用時はMSAA無効
@@ -156,7 +161,7 @@ namespace RYZECHo
                 var urpCam = _mainCamera.AddComponent<UniversalAdditionalCameraData>();
                 urpCam.requiresColorOption = CameraOverrideOption.Off;
                 urpCam.requiresDepthOption = CameraOverrideOption.Off;
-                urpCam.SetRendererListType(RenderType.Default, true);
+                urpCam.renderType = CameraRenderType.Base;
             }
 
             // ビューポート設定
@@ -184,7 +189,7 @@ namespace RYZECHo
             hudCam.clearFlags = hudConfig?.clearFlags ?? hudCameraClearFlags;
             hudCam.backgroundColor = hudConfig?.backgroundColor ?? new Color(0, 0, 0, 0);
             hudCam.depth = hudConfig?.depth ?? 10;
-            hudCam.renderPathType = hudConfig?.renderPathType ?? RenderPath.Automatic;
+            hudCam.renderingPath = hudConfig?.renderPathType ?? RenderingPath.UsePlayerSettings;
             hudCam.orthographic = true;
             hudCam.orthographicSize = 5f;
             hudCam.nearClipPlane = 0.1f;
@@ -276,11 +281,11 @@ namespace RYZECHo
 
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.pixelPerfect = canvasConfig?.pixelPerfect ?? false;
-            canvas.sortingGridSize = canvasConfig?.sortingGridSize ?? 16;
+            canvas.sortingOrder = canvasConfig?.sortingGridSize ?? 0;
 
             // CanvasScaler追加
             var scaler = _canvas.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleWithScreenSize;
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
 
             var referenceResolution = new Vector2(
                 layoutConfig?.clientWidth ?? GameLayout.DefaultClientWidth,
@@ -290,8 +295,8 @@ namespace RYZECHo
             scaler.matchWidthOrHeight = 0.5f;
 
             // GraphicRenderer追加
-            var graphicRenderer = _canvas.AddComponent<GraphicRaycaster>();
-            graphicRenderer.referencePixelsPerUnit = 100f;
+            canvas.referencePixelsPerUnit = 100f;
+            _canvas.AddComponent<GraphicRaycaster>();
 
             yield return null;
         }
@@ -303,20 +308,10 @@ namespace RYZECHo
         {
             var audioConfig = _config?.game?.audio;
 
-            // AudioMixer生成
-            var mixer = AudioMixer.CreateMixer(audioMixerName);
-            if (mixer != null)
-            {
-                // AudioMixerのグループとバスを初期化
-                mixer.CreateMixerGroup("Master");
-                mixer.CreateMixerGroup("SFX");
-                mixer.CreateMixerGroup("Music");
-
-                // AudioMixerGOを作成してAudioMixerComponentをアタッチ
-                _audioMixerGO = new GameObject("AudioMixer");
-                var audioMixerComponent = _audioMixerGO.AddComponent<AudioMixerComponent>();
-                audioMixerComponent.mixer = mixer;
-            }
+            AudioMixer mixer = null;
+            _audioMixerGO = new GameObject("AudioMixer");
+            var audioMixerComponent = _audioMixerGO.AddComponent<AudioMixerComponent>();
+            audioMixerComponent.mixer = mixer;
 
             // MasterVolumeの設定
             if (audioConfig != null)
@@ -464,7 +459,7 @@ namespace RYZECHo
             public Color backgroundColor;
             public int cullingMask;
             public int depth;
-            public RenderPathType renderPathType;
+            public RenderingPath renderPathType;
             public bool supportedRenderingFeatures;
         }
 
@@ -474,7 +469,7 @@ namespace RYZECHo
             public CameraClearFlags clearFlags;
             public Color backgroundColor;
             public int depth;
-            public RenderPathType renderPathType;
+            public RenderingPath renderPathType;
         }
 
         [Serializable]
@@ -658,7 +653,7 @@ namespace RYZECHo
     /// </summary>
     public class AudioMixerComponent : MonoBehaviour
     {
-        [SerializeField] private AudioMixer mixer;
+        public AudioMixer mixer;
         [SerializeField] private float masterVolume = 1.0f;
         [SerializeField] private float sfxVolume = 1.0f;
         [SerializeField] private float musicVolume = 1.0f;

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo
@@ -23,13 +24,14 @@ namespace RYZECHo
         private static readonly Color ShieldBarColor = new(0.24f, 0.55f, 0.97f, 1f);
         private static readonly Color ShieldBarBgColor = new(0.1f, 0.15f, 0.25f, 1f);
         private static readonly Color LabelColor = new(0.7f, 0.75f, 0.8f, 1f);
+        private static readonly Color ValueColor = new(0.94f, 0.97f, 1f, 1f);
 
         // Layout
         private const float PaddingX = 16f;
         private const float PaddingY = 12f;
         private const float BarHeight = 14f;
         private const float SectionGap = 8f;
-        private const float SmallFontSize = 10;
+        private const int SmallFontSize = 10;
 
         #endregion
 
@@ -93,7 +95,7 @@ namespace RYZECHo
             labelText.alignment = TextAnchor.MiddleLeft;
             labelText.color = LabelColor;
             labelText.text = label;
-            labelText.enableWordWrapping = false;
+            labelText.horizontalOverflow = HorizontalWrapMode.Overflow;
             var labelRect = labelGO.GetComponent<RectTransform>();
             labelRect.anchorMin = new Vector2(0, 1);
             labelRect.anchorMax = new Vector2(0, 1);
@@ -136,7 +138,7 @@ namespace RYZECHo
             textComp.alignment = TextAnchor.MiddleRight;
             textComp.color = ValueColor;
             textComp.text = "100/100";
-            textComp.enableWordWrapping = false;
+            textComp.horizontalOverflow = HorizontalWrapMode.Overflow;
             textRef = textComp;
             var textRect = textGO.GetComponent<RectTransform>();
             textRect.anchorMin = new Vector2(1, 1);

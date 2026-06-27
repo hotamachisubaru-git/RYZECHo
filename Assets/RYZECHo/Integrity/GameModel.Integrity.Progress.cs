@@ -3,7 +3,7 @@ using System.Text;
 
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private static byte[] ProgressIntegrityEntropy()
     {
@@ -26,7 +26,8 @@ internal sealed partial class GameModel
         }
 
         return string.Join("::",
-        [
+        new[]
+        {
             ProgressIntegrityVersion,
             EnsureProgressSalt(profile.IntegritySalt),
             profile.AccountLevel.ToString(),
@@ -50,7 +51,7 @@ internal sealed partial class GameModel
             profile.SelectedAdTheme,
             profile.SelectedBanner,
             profile.SelectedKillEffect,
-        ]);
+        });
     }
 
     private static string CreateProgressIntegrityStamp(ProgressProfile profile)

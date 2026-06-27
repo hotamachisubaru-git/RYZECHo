@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private void RestoreBossFlags()
     {
@@ -13,7 +13,7 @@ internal sealed partial class GameModel
 
     private string[] BossCandidateNames()
     {
-        return [_player.Name, .. _allies.Select(actor => actor.Name)];
+        return new[] { _player.Name }.Concat(_allies.Select(actor => actor.Name)).ToArray();
     }
 
     private int GetBossSelectionCount(string actorName)

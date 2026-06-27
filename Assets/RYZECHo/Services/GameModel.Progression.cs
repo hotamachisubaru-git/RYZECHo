@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private static readonly JsonSerializerSettings ProgressJsonSettings = new()
     {
@@ -44,33 +44,33 @@ internal sealed partial class GameModel
 
     private static string[] ContractOrder()
     {
-        return ["ヴェール", "ヴァイン", "ニトロ", "オアシス", "ディバイド", "グリッチ"];
+        return new[] { "ヴェール", "ヴァイン", "ニトロ", "オアシス", "ディバイド", "グリッチ" };
     }
 
     private static string[] StructureSkinCatalog()
     {
-        return ["シグナル標準", "カーボンゲート", "サンドパルス", "プリズムバイザー", "ローグクローム"];
+        return new[] { "シグナル標準", "カーボンゲート", "サンドパルス", "プリズムバイザー", "ローグクローム" };
     }
 
     private static string[] AdThemeCatalog()
     {
-        return ["NEO CORE", "VERTEX CUP", "SUNSET GRID", "ARC LEAGUE"];
+        return new[] { "NEO CORE", "VERTEX CUP", "SUNSET GRID", "ARC LEAGUE" };
     }
 
     private static string[] BannerCatalog()
     {
-        return ["SIGNAL//STANDARD", "CONTRACT//ARC", "BOSS//BACKER", "MAP//ARCHITECT", "AD//PARTNER"];
+        return new[] { "SIGNAL//STANDARD", "CONTRACT//ARC", "BOSS//BACKER", "MAP//ARCHITECT", "AD//PARTNER" };
     }
 
     private static string[] KillEffectCatalog()
     {
-        return ["SIGNAL BURST", "RIPPLE TRACE", "PRISM BREAK", "CLEAN CUT"];
+        return new[] { "SIGNAL BURST", "RIPPLE TRACE", "PRISM BREAK", "CLEAN CUT" };
     }
 
     private static CosmeticOffer[] CosmeticStoreCatalog()
     {
-        return
-        [
+        return new CosmeticOffer[]
+        {
             new(CosmeticKind.StructureSkin, "カーボンゲート", 3, "設置物スキン"),
             new(CosmeticKind.AdTheme, "VERTEX CUP", 3, "会場広告テーマ"),
             new(CosmeticKind.Banner, "BOSS//BACKER", 2, "プロフィールバナー"),
@@ -82,7 +82,7 @@ internal sealed partial class GameModel
             new(CosmeticKind.StructureSkin, "ローグクローム", 6, "設置物スキン"),
             new(CosmeticKind.Banner, "AD//PARTNER", 3, "プロフィールバナー"),
             new(CosmeticKind.KillEffect, "CLEAN CUT", 5, "キル演出"),
-        ];
+        };
     }
 
     private void NormalizeProgressProfile()
@@ -98,11 +98,11 @@ internal sealed partial class GameModel
         _profile.MatchesWon = Math.Clamp(_profile.MatchesWon, 0, _profile.MatchesPlayed);
         _profile.ContractsCompleted = Math.Clamp(_profile.ContractsCompleted, 0, IntegrityMaxCareerStat);
         _profile.ActiveContractProgress = Math.Clamp(_profile.ActiveContractProgress, 0, 11);
-        _profile.UnlockedAgents ??= [];
-        _profile.UnlockedStructureSkins ??= [];
-        _profile.UnlockedAdThemes ??= [];
-        _profile.UnlockedBanners ??= [];
-        _profile.UnlockedKillEffects ??= [];
+        _profile.UnlockedAgents ??= new List<string>();
+        _profile.UnlockedStructureSkins ??= new List<string>();
+        _profile.UnlockedAdThemes ??= new List<string>();
+        _profile.UnlockedBanners ??= new List<string>();
+        _profile.UnlockedKillEffects ??= new List<string>();
 
         NormalizeProgressList(_profile.UnlockedAgents, ContractOrder());
         NormalizeProgressList(_profile.UnlockedStructureSkins, StructureSkinCatalog());

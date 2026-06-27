@@ -1,8 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->
   <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -61,28 +60,41 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.4.6f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\RYZECHo\UI\Scripts\KeyBindEditPanel.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusAgentPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Rendering\HuntFovRenderer.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Layout.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\SetupScreenController.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusPanel.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.CombatView.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\UIScreenManager.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\UIScreen.cs" />
     <Compile Include="Assets\RYZECHo\Data\SaveDataModel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Pooling\StructureObjectPool.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\Agents\GameModel.Agents.Status.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\AudioMusicPanel.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Loadout.cs" />
     <Compile Include="Assets\RYZECHo\Domain\BossEconomyRules.cs" />
+    <Compile Include="Assets\RYZECHo\Domain\IEventBus.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\GameHUDController.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\InputSnapshot.cs" />
     <Compile Include="Assets\RYZECHo\Domain\AgentCatalog.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusProgressPanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusScorePanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\TimerHUDPanel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Pooling\TileObjectPool.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\PauseOverlayController.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\GlobalUsings.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.Actors.cs" />
     <Compile Include="Assets\RYZECHo\Domain\AudioRippleVisualRules.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\AudioSettingsSO.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\Components\EnemyUnitDisplay.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\HUDStateViewModel.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\KeyConfigPanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\AudioSettingsViewModel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\RyzechoGameController.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\HealthBarHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\InputAdapter.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Update.Objectives.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.AudioCue.cs" />
@@ -91,6 +103,8 @@
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.RoundFlow.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Rendering\HuntFovLightBinder.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.MatchRoles.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusHealthPanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusScreenBasePanel.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Input.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\DrawingExtensions.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\LayoutSettingsSO.cs" />
@@ -108,26 +122,35 @@
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Boss.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Update.Actors.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Weapons.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\KeyBindingViewModel.cs" />
     <Compile Include="Assets\RYZECHo\Services\GameModel.Progression.cs" />
     <Compile Include="Assets\RYZECHo\Integrity\IntegrityActorSnapshot.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\GameRulesSettingsSO.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusUltPanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusEconomyPanel.cs" />
     <Compile Include="Assets\RYZECHo\Integrity\GameModel.Integrity.Progress.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Objectives.cs" />
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Movement.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.Damage.cs" />
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Perception.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\UiImageExtensions.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.PhaseChange.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\Agents\GameModel.Agents.Effects.cs" />
     <Compile Include="Assets\RYZECHo\Input\InputSnapshot.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\PauseInfoViewModel.cs" />
     <Compile Include="Assets\RYZECHo\Hunt\HuntHUDController.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusStatsPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Simulation\GameModelUnityView.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\SettingsUIController.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\CompilerFeaturePolyfills.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\PerformanceOptimizer.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Pooling\TileMeshCombiner.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\Agents\GameModel.Agents.Runtime.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\AudioSettingsPanel.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\MainMenuController.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameSettings.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\TitleScreenController.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\ScoreHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Navigation.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.StructureDestroyed.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\Hud\GameModel.Rendering.Pause.cs" />
@@ -135,8 +158,11 @@
     <Compile Include="Assets\RYZECHo\Integrity\GameModel.Integrity.Sanitize.cs" />
     <Compile Include="Assets\RYZECHo\Input\GameController.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\DisplayResolutionPanel.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Structures.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\ResourceHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\Domain\ProgressProfile.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusWeaponPanel.cs" />
     <Compile Include="Assets\RYZECHo\Data\SaveSystem.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.World.cs" />
     <Compile Include="Assets\RYZECHo\Domain\BossSelectionRules.cs" />
@@ -145,10 +171,13 @@
     <Compile Include="Assets\RYZECHo\Domain\MapEditApRules.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.TeamVision.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEventBus.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\DisplayVREnablePanel.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.Components.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\ObjectiveHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\GameplaySettingsSO.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\DifficultySelectController.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Placement.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\ToolHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\Economy\GameModel.Economy.cs" />
     <Compile Include="Assets\RYZECHo\Integrity\GameModel.Integrity.Validation.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.HudEvents.cs" />
@@ -157,22 +186,32 @@
     <Compile Include="Assets\RYZECHo\UI\Scripts\DisplaySettingsPanel.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Combat.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\Components\CombatResultDisplay.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\PhaseHUDPanel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\PauseOverlayUI.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\DisplaySettingsViewModel.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\GameOverScreenController.cs" />
     <Compile Include="Assets\RYZECHo\Input\InputAdapter.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\VisualSettingsSO.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\SettingsViewModel.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\KeyBindListPanel.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.LoadoutDisplay.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Update.Phases.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreenController.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\Geometry.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Update.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Pooling\ObjectPool.cs" />
     <Compile Include="Assets\RYZECHo\Scenes\GameSceneSetup.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.State.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEnums.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\GameModelAdapter.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\IGameModelFactory.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusSkillPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\AffineMatrix.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\AgentInfoPanel.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Coordinates.cs" />
+    <Compile Include="Assets\RYZECHo\UI\Scripts\AudioMasterPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Core\IGameModel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Pooling\TileRenderer.cs" />
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Agents.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +227,7 @@
     <None Include="Assets\Synaptic AI Pro\Shaders\Water\SynapticWaterPro.shader" />
     <None Include="Assets\RYZECHo\UI\Styles\SettingsUSS.uss" />
     <None Include="Assets\Synaptic AI Pro\MCPServer\node_modules\nodemon\doc\cli\config.txt" />
+    <None Include="Assets\RYZECHo\UI\Styles\ThemeUSS.uss" />
     <None Include="Assets\Synaptic AI Pro\Shaders\Toon\SynapticToonPro.shader" />
     <None Include="Assets\Synaptic AI Pro\Docs\ShaderUpgradePlan.txt" />
     <None Include="Assets\Synaptic AI Pro\Shaders\Character\SynapticEyePro.shader" />
@@ -201,7 +241,9 @@
     <None Include="Assets\Synaptic AI Pro\Shaders\Sky\SynapticSkyPro.shader" />
     <None Include="Assets\Synaptic AI Pro\MCPServer\node_modules\nodemon\doc\cli\whoami.txt" />
     <None Include="Assets\RYZECHo\Rendering\Shaders\HuntFovOverlayOptimized.shader" />
+    <None Include="Assets\RYZECHo\UI\Styles\StateUSS.uss" />
     <None Include="Assets\Synaptic AI Pro\Shaders\Water\SynapticWater.shader" />
+    <None Include="Assets\csc.rsp" />
     <None Include="Assets\Synaptic AI Pro\MCPServer\node_modules\punycode\LICENSE-MIT.txt" />
     <None Include="Assets\Synaptic AI Pro\Resources\VFX\Textures\texture_prompts.txt" />
     <None Include="Assets\Synaptic AI Pro\game-assets-research.txt" />
@@ -211,6 +253,7 @@
     <None Include="Assets\Synaptic AI Pro\v1.1.7-plan.txt" />
     <None Include="Assets\Synaptic AI Pro\MCPServer\node_modules\nodemon\doc\cli\topics.txt" />
     <None Include="Assets\Synaptic AI Pro\Shaders\Effects\SynapticDissolvePro.shader" />
+    <None Include="Assets\RYZECHo\UI\Styles\LayoutUSS.uss" />
     <None Include="Assets\Synaptic AI Pro\v1.2.0-ideas.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -1370,6 +1413,14 @@
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Editor.ConversionSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.InternalAPIEditorBridge.ShaderGraph.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.InternalAPIEditorBridge.ShaderGraph.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
       <Private>False</Private>
@@ -1472,6 +1523,10 @@
     </Reference>
     <Reference Include="Unity.Collections.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.Collections.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.ShaderGraph.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.ShaderGraph.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">

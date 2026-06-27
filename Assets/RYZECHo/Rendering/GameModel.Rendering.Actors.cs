@@ -1,7 +1,7 @@
 #if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private void DrawActors(Graphics graphics, PointF mousePosition)
     {
@@ -170,7 +170,7 @@ internal sealed partial class GameModel
         using var coneBrush = new PathGradientBrush(path)
         {
             CenterColor = centerColor,
-            SurroundColors = [surroundColor],
+            SurroundColors = new[] { surroundColor },
         };
         using var edge = new Pen(edgeColor, edgeWidth);
 

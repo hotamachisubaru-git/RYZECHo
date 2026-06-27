@@ -1,20 +1,20 @@
 namespace RYZECHo;
 
-internal readonly record struct Size(int Width, int Height);
+public readonly record struct Size(int Width, int Height);
 
-internal readonly record struct Point(int X, int Y)
+public readonly record struct Point(int X, int Y)
 {
     public static Point Empty { get; } = new(0, 0);
 
     public static implicit operator PointF(Point point) => new(point.X, point.Y);
 }
 
-internal record struct PointF(float X, float Y)
+public record struct PointF(float X, float Y)
 {
     public static PointF Empty { get; } = new(0f, 0f);
 }
 
-internal readonly record struct Rectangle(int X, int Y, int Width, int Height)
+public readonly record struct Rectangle(int X, int Y, int Width, int Height)
 {
     public int Left => X;
     public int Top => Y;
@@ -46,7 +46,7 @@ internal readonly record struct Rectangle(int X, int Y, int Width, int Height)
         new(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height);
 }
 
-internal record struct RectangleF(float X, float Y, float Width, float Height)
+public record struct RectangleF(float X, float Y, float Width, float Height)
 {
     public float Left => X;
     public float Top => Y;
@@ -77,11 +77,28 @@ internal record struct RectangleF(float X, float Y, float Width, float Height)
         Inflate((RectangleF)rectangle, width, height);
 }
 
-internal readonly record struct Color(byte A, byte R, byte G, byte B)
+public readonly record struct Color(byte A, byte R, byte G, byte B)
 {
     public static Color Transparent { get; } = FromArgb(0, 0, 0, 0);
     public static Color CornflowerBlue { get; } = FromArgb(255, 100, 149, 237);
     public static Color White { get; } = FromArgb(255, 255, 255, 255);
+    public static Color clear => Transparent;
+    public static Color white => White;
+
+    public Color(float red, float green, float blue)
+        : this(red, green, blue, 1f)
+    {
+    }
+
+    public Color(float red, float green, float blue, float alpha)
+        : this(ClampUnit(alpha), ClampUnit(red), ClampUnit(green), ClampUnit(blue))
+    {
+    }
+
+    public float a => A / 255f;
+    public float r => R / 255f;
+    public float g => G / 255f;
+    public float b => B / 255f;
 
     public static Color FromArgb(int red, int green, int blue) => FromArgb(255, red, green, blue);
 
@@ -94,7 +111,20 @@ internal readonly record struct Color(byte A, byte R, byte G, byte B)
     public UnityEngine.Color32 ToUnityColor() => new(R, G, B, A);
 
     public static implicit operator UnityEngine.Color32(Color color) => color.ToUnityColor();
+    public static implicit operator UnityEngine.Color(Color color) => new(color.r, color.g, color.b, color.a);
+    public static implicit operator Color(UnityEngine.Color color) => new(color.r, color.g, color.b, color.a);
+
+    public static Color Lerp(Color start, Color end, float t)
+    {
+        var clamped = Math.Clamp(t, 0f, 1f);
+        return new Color(
+            start.r + ((end.r - start.r) * clamped),
+            start.g + ((end.g - start.g) * clamped),
+            start.b + ((end.b - start.b) * clamped),
+            start.a + ((end.a - start.a) * clamped));
+    }
 
     private static byte ClampByte(int value) => (byte)Math.Clamp(value, 0, 255);
-}
 
+    private static byte ClampUnit(float value) => ClampByte((int)MathF.Round(Math.Clamp(value, 0f, 1f) * 255f));
+}

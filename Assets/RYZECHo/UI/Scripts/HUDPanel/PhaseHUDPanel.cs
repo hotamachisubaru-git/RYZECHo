@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.UI;
 
 namespace RYZECHo.UI

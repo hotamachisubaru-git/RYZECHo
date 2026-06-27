@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private const string ProgressIntegrityVersion = "RYZECHo.Profile.v2";
     private const string IntegrityViolationLogFileName = "integrity-violation.log";
@@ -17,7 +17,7 @@ internal sealed partial class GameModel
     private const int IntegrityMaxCareerStat = 20_000;
 
     private readonly Stopwatch _integrityClock = Stopwatch.StartNew();
-    private readonly Dictionary<Actor, IntegrityActorSnapshot> _integrityActorSnapshots = [];
+    private readonly Dictionary<Actor, IntegrityActorSnapshot> _integrityActorSnapshots = new();
 
     private TimeSpan _integrityLastTick;
     private GamePhase _integrityPhaseSnapshot;

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Color = UnityEngine.Color;
+using Object = UnityEngine.Object;
 
 namespace RYZECHo.Runtime.Core
 {

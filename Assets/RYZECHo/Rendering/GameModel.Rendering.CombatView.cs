@@ -1,7 +1,7 @@
 #if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
     private void DrawCombatFog(Graphics graphics)
     {

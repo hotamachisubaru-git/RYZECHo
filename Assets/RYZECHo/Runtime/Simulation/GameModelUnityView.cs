@@ -1,18 +1,17 @@
 namespace RYZECHo;
 
-internal sealed partial class GameModel
+public sealed partial class GameModel
 {
-    internal PointF PlayerModelPosition => _player.Position;
-    internal float PlayerFacingRadians => _player.FacingAngle;
-    internal float PlayerFovDegrees => GetFovDegrees(_player.Weapon);
-    internal float PlayerVisionRange => _weaponStats[_player.Weapon].VisionRange;
-    internal float ModelCellSize => CellSize;
+    public PointF PlayerModelPosition => _player.Position;
+    public float PlayerFacingRadians => _player.FacingAngle;
+    public float PlayerFovDegrees => GetFovDegrees(_player.Weapon);
+    public float PlayerVisionRange => _weaponStats[_player.Weapon].VisionRange;
+    public float ModelCellSize => CellSize;
 
-    internal PointF ModelToCellSpace(PointF modelPosition)
+    public PointF ModelToCellSpace(PointF modelPosition)
     {
         return new PointF(
             (modelPosition.X - WorldBounds.Left) / CellSize,
             (WorldBounds.Bottom - modelPosition.Y) / CellSize);
     }
 }
-

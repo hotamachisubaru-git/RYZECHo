@@ -1,6 +1,8 @@
 using UnityEngine;
+using Color = UnityEngine.Color;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using RYZECHo.UI;
 
 namespace RYZECHo
 {

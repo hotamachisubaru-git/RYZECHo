@@ -30,7 +30,7 @@ public sealed class GameController : MonoBehaviour
     [SerializeField] private float cameraLerp = 18f;
     [SerializeField] private float orthographicSize = 6.5f;
 
-    private IGameModel _gameModel = null!;
+    private GameModel _gameModel = null!;
     private Sprite? _generatedPlayerSprite;
 
     private void Awake()
@@ -38,7 +38,7 @@ public sealed class GameController : MonoBehaviour
         // DI: factory を明示的に注入（テスト時はモック、本番時は GameModelFactory.Instance）
         _factory = GameModelFactory.Instance;
 
-        _gameModel = _factory.Create(
+        _gameModel = (GameModel)_factory.Create(
             gameRulesSettings,
             layoutSettings,
             gameplaySettings);
@@ -183,4 +183,3 @@ public sealed class GameController : MonoBehaviour
             0f);
     }
 }
-

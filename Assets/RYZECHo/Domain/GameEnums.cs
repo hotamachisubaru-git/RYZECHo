@@ -1,6 +1,6 @@
 namespace RYZECHo;
 
-internal enum GamePhase
+public enum GamePhase
 {
     Construct,
     Bet,
@@ -10,7 +10,7 @@ internal enum GamePhase
     Defeat,
 }
 
-internal enum AgentKind
+public enum AgentKind
 {
     Veil,
     Vine,
@@ -20,14 +20,14 @@ internal enum AgentKind
     Glitch,
 }
 
-internal enum AgentAbilitySlot
+public enum AgentAbilitySlot
 {
     SkillOne,
     SkillTwo,
     Ultimate,
 }
 
-internal enum WorldEffectKind
+public enum WorldEffectKind
 {
     PoisonCloud,
     DeadlyDome,
@@ -38,7 +38,7 @@ internal enum WorldEffectKind
     SystemCrash,
 }
 
-internal enum BuildToolKind
+public enum BuildToolKind
 {
     BlastDoor,
     HoneyTrap,
@@ -50,7 +50,7 @@ internal enum BuildToolKind
     HoloDecoy,
 }
 
-internal enum WeaponType
+public enum WeaponType
 {
     Blitz,
     Monster,
@@ -65,7 +65,7 @@ internal enum WeaponType
     Shard,
 }
 
-internal enum RippleKind
+public enum RippleKind
 {
     Footstep,
     Breathing,
@@ -73,20 +73,20 @@ internal enum RippleKind
     Skill,
 }
 
-internal enum TeamRole
+public enum TeamRole
 {
     Attack,
     Defense,
 }
 
-internal enum ActorType
+public enum ActorType
 {
     Player,
     Ally,
     Enemy,
 }
 
-internal enum StructureKind
+public enum StructureKind
 {
     BlastDoor,
     HoneyTrap,
@@ -98,7 +98,7 @@ internal enum StructureKind
     HoloDecoy,
 }
 
-internal enum CosmeticKind
+public enum CosmeticKind
 {
     StructureSkin,
     AdTheme,
@@ -106,13 +106,13 @@ internal enum CosmeticKind
     KillEffect,
 }
 
-internal enum ObjectiveSiteId
+public enum ObjectiveSiteId
 {
     Alpha,
     Bravo,
 }
 
-internal enum LoadoutFocus
+public enum LoadoutFocus
 {
     Primary,
     Sidearm,

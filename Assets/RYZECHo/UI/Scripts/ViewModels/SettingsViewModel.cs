@@ -7,7 +7,7 @@ namespace RYZECHo.UI.ViewModels
     /// Settings画面全体のViewModel。
     /// 現在選択中のタブ、各タブのViewModelを管理する。
     /// </summary>
-    public class SettingsViewModel
+    public class SettingsViewModel : IDisposable
     {
         public enum TabType
         {
@@ -63,6 +63,13 @@ namespace RYZECHo.UI.ViewModels
             _audioSettings?.ResetToDefaults();
             _displaySettings?.ResetToDefaults();
             _keyBinding?.ResetToDefaults();
+        }
+
+        public void Dispose()
+        {
+            _audioSettings?.Dispose();
+            _displaySettings?.Dispose();
+            _keyBinding?.Dispose();
         }
     }
 }

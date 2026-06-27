@@ -44,10 +44,10 @@ internal sealed class GameModelFactory : IGameModelFactory
     {
         return new(
             eventBus: eventBus,
-            gameRules: gameRules ?? ScriptableObject.CreateInstance<GameRulesSettingsSO>(),
-            layoutSettings: layoutSettings ?? ScriptableObject.CreateInstance<LayoutSettingsSO>(),
-            gameplaySettings: gameplaySettings ?? ScriptableObject.CreateInstance<GameplaySettingsSO>(),
-            visualSettings: visualSettings ?? ScriptableObject.CreateInstance<VisualSettingsSO>(),
-            audioSettings: audioSettings ?? ScriptableObject.CreateInstance<AudioSettingsSO>());
+            gameRules: gameRules ?? UnityEngine.ScriptableObject.CreateInstance<GameRulesSettingsSO>(),
+            layoutSettings: layoutSettings ?? UnityEngine.ScriptableObject.CreateInstance<LayoutSettingsSO>(),
+            gameplaySettings: gameplaySettings ?? UnityEngine.ScriptableObject.CreateInstance<GameplaySettingsSO>(),
+            visualSettings: visualSettings ?? UnityEngine.ScriptableObject.CreateInstance<VisualSettingsSO>(),
+            audioSettings: audioSettings ?? UnityEngine.ScriptableObject.CreateInstance<AudioSettingsSO>());
     }
 }

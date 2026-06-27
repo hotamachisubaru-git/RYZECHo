@@ -5,5 +5,5 @@ namespace RYZECHo;
 /// </summary>
 internal abstract class GameEvent
 {
-    public double Timestamp { get; protected set; }
+    public double Timestamp { get; set; }
 }

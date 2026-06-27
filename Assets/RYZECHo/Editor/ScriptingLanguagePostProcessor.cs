@@ -8,7 +8,7 @@ namespace RYZECHo.Editor
 {
     public class ScriptingLanguagePostProcessor : AssetPostprocessor
     {
-        static void OnGeneratedCSProject(string path, string content)
+        static string OnGeneratedCSProject(string path, string content)
         {
             var fileName = Path.GetFileName(path);
             Debug.Log($"[RYZECHo] OnGeneratedCSProject called: {fileName}");
@@ -24,8 +24,7 @@ namespace RYZECHo.Editor
                 Debug.Log($"[RYZECHo] LangVersion changed: {oldVal} -> {lv.Value} in {fileName}");
             }
 
-            File.WriteAllText(path, doc.ToString());
-            Debug.Log($"[RYZECHo] Saved LangVersion 12.0 to {fileName}");
+            return doc.ToString();
         }
     }
 }
