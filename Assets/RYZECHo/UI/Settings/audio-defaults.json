@@ -1,0 +1,15 @@
+{
+  "masterVolume": 1.0,
+  "musicVolume": 1.0,
+  "sfxVolume": 1.0,
+  "voiceVolume": 1.0,
+  "environmentVolume": 0.8,
+  "musicFadeInSeconds": 1.5,
+  "musicFadeOutSeconds": 2.0,
+  "voiceFadeSeconds": 0.5,
+  "footstepVolumeMultiplier": 1.0,
+  "rippleVolumeDb": -6.0,
+  "rippleAttenuationDistance": 25.0,
+  "environmentPitchMin": 0.95,
+  "environmentPitchMax": 1.05
+}

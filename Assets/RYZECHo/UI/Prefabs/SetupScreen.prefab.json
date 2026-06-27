@@ -1,0 +1,85 @@
+{
+    "prefabName": "SetupScreen",
+    "description": "セットアップ画面 - 難易度選択前のターン数設定画面",
+    "components": [
+        {
+            "type": "Canvas",
+            "settings": {
+                "renderMode": "ScreenSpaceOverlay",
+                "sortOrder": 100
+            }
+        },
+        {
+            "type": "CanvasScaler",
+            "settings": {
+                "uiScaleMode": "ScaleWithScreenSize",
+                "referenceResolution": { "x": 1920, "y": 1080 },
+                "matchWidthOrHeight": 0.5
+            }
+        },
+        {
+            "type": "GraphicRaycaster"
+        },
+        {
+            "name": "SetupScreenPanel",
+            "type": "Panel",
+            "settings": {
+                "color": { "r": 0.02, "g": 0.03, "b": 0.06, "a": 0.95 },
+                "sizeDelta": { "x": 600, "y": 500 },
+                "anchoredPosition": { "x": 0, "y": 0 }
+            },
+            "children": [
+                {
+                    "name": "TitleText",
+                    "type": "TextMeshProUGUI",
+                    "settings": {
+                        "text": "セットアップ",
+                        "fontSize": 28,
+                        "alignment": "Center",
+                        "color": { "r": 0.9, "g": 0.94, "b": 0.97, "a": 1.0 },
+                        "anchoredPosition": { "x": 0, "y": 180 }
+                    }
+                },
+                {
+                    "name": "TurnCountLabel",
+                    "type": "TextMeshProUGUI",
+                    "settings": {
+                        "text": "ターン数:",
+                        "fontSize": 16,
+                        "alignment": "Left",
+                        "color": { "r": 0.7, "g": 0.75, "b": 0.8, "a": 1.0 },
+                        "anchoredPosition": { "x": -200, "y": 50 }
+                    }
+                },
+                {
+                    "name": "TurnCountInput",
+                    "type": "InputField",
+                    "settings": {
+                        "placeholder": "10",
+                        "anchoredPosition": { "x": 0, "y": 50 },
+                        "sizeDelta": { "x": 200, "y": 40 }
+                    }
+                },
+                {
+                    "name": "ConfirmButton",
+                    "type": "Button",
+                    "settings": {
+                        "text": "決定",
+                        "anchoredPosition": { "x": 0, "y": -50 },
+                        "sizeDelta": { "x": 200, "y": 40 }
+                    }
+                },
+                {
+                    "name": "CancelButton",
+                    "type": "Button",
+                    "settings": {
+                        "text": "戻る",
+                        "anchoredPosition": { "x": 0, "y": -100 },
+                        "sizeDelta": { "x": 200, "y": 40 }
+                    }
+                }
+            ]
+        }
+    ],
+    "controller": "SetupScreenController"
+}

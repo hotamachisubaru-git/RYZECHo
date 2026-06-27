@@ -2,6 +2,10 @@ namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
+    // =========================================================================
+    // Boss — ボス選択・ボス経済・ボスバフ
+    // =========================================================================
+
     private void RestoreBossFlags()
     {
         _player.IsBoss = _selectedBossName == _player.Name;
@@ -160,5 +164,4 @@ internal sealed partial class GameModel
 
         return _allies.FirstOrDefault(actor => actor.Name == _selectedBossName);
     }
-
 }

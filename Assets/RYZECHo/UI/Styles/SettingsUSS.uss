@@ -1,0 +1,23 @@
+/*
+ * SettingsUSS.uss
+ * 設定画面用のUSSスタイルシート
+ * Theme/Stateベースのデザインシステム
+ * 
+ * 参照: ThemeUSS.uss, StateUSS.uss, LayoutUSS.uss
+ */
+
+/* 
+ * 注意: このファイルはスタイルのコンポジット用です。
+ * 実際のスタイル定義は以下のファイルに分割されています:
+ *   - ThemeUSS.uss: テーマ別スタイル（ライト/ダークテーマ）
+ *   - StateUSS.uss: ステート別スタイル（normal/hover/pressed/disabled）
+ *   - LayoutUSS.uss: レイアウト用スタイル
+ */
+
+/* ルートスタイル（テーマ適用用） */
+.settings-root {
+    background-color: var(--settings-bg);
+    border-width: var(--settings-border-width);
+    border-color: var(--settings-border-color);
+    border-style: solid;
+}

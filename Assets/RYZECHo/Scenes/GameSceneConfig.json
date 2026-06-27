@@ -1,0 +1,154 @@
+{
+    "camera": {
+        "main": {
+            "clearFlags": "Skybox",
+            "backgroundColor": [0.08, 0.08, 0.12, 1.0],
+            "cullingMask": -1,
+            "depth": -1,
+            "renderPathType": "Automatic",
+            "supportedRenderingFeatures": true
+        },
+        "hud": {
+            "clearFlags": "DepthOnly",
+            "backgroundColor": [0.0, 0.0, 0.0, 0.0],
+            "depth": 10,
+            "renderPathType": "Automatic"
+        },
+        "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1.0,
+            "height": 1.0
+        },
+        "urp": {
+            "useUrp": true,
+            "renderPipelineAsset": "URP-Default",
+            "defaultMaterial": "UniversalMaterial"
+        }
+    },
+    "ui": {
+        "canvas": {
+            "renderMode": "ScreenSpaceOverlay",
+            "screenSpaceCamera": null,
+            "pixelPerfect": false,
+            "sortingGridSize": 16,
+            "defaultSortOrder": 100
+        },
+        "layout": {
+            "clientWidth": 1440,
+            "clientHeight": 960,
+            "topBarHeight": 56,
+            "sidePanelGap": 20,
+            "sidePanelWidth": 280,
+            "bottomHudHeight": 132,
+            "margin": 24
+        },
+        "screens": {
+            "titleScreen": {
+                "enabled": true,
+                "autoShow": true,
+                "name": "TitleScreen"
+            },
+            "mainMenu": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "MainMenu"
+            },
+            "difficultySelect": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "DifficultySelect"
+            },
+            "setupScreen": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "SetupScreen"
+            },
+            "gameOver": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "GameOver"
+            },
+            "gameHUD": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "GameHUD"
+            },
+            "pauseOverlay": {
+                "enabled": true,
+                "autoShow": false,
+                "name": "PauseOverlay"
+            }
+        }
+    },
+    "game": {
+        "initial": {
+            "roundsToWin": 7,
+            "startingCredits": 1000,
+            "initialBuildPoints": 12,
+            "teamSize": 4,
+            "startingPhase": "Construct"
+        },
+        "roundFlow": {
+            "regulationSideSwitchRound": 4,
+            "overtimeTriggerScore": 6,
+            "roundDurationSeconds": 100.0,
+            "bombPlantSeconds": 3.0,
+            "bombFuseSeconds": 35.0,
+            "bombDefuseSeconds": 8.0
+        },
+        "economy": {
+            "winRewardCredits": 2200,
+            "lossRewardCredits": 1200,
+            "killRewardCredits": 400,
+            "objectiveRewardCredits": 350,
+            "bossKillDividendCredits": 200,
+            "bossEliminationBonusCredits": 800
+        },
+        "boss": {
+            "maxBossSelectionsPerActor": 2,
+            "optimalBossInvestment": 300,
+            "bossPayoutMultiplier": 2
+        },
+        "ultimate": {
+            "maxUltPoints": 6
+        },
+        "audio": {
+            "masterVolume": 1.0,
+            "sfxVolume": 1.0,
+            "musicVolume": 1.0,
+            "audioMixerName": "GameMixer"
+        },
+        "input": {
+            "mouseSensitivity": 1.0,
+            "lookSpeed": 1.0,
+            "scrollSensitivity": 1.0
+        }
+    },
+    "world": {
+        "origin": [-9.0, -6.0],
+        "cellSize": 1.0,
+        "gridColumns": 18,
+        "gridRows": 12,
+        "perspective": {
+            "scaleX": 0.84,
+            "scaleY": 0.78,
+            "shearX": 0.22,
+            "topInset": 10.0
+        },
+        "huntCamera": {
+            "zoom": 3.15,
+            "visibleWorldFractionX": 0.55,
+            "visibleWorldFractionY": 0.62,
+            "targetX": 0.5,
+            "targetY": 0.54
+        }
+    },
+    "performance": {
+        "targetFps": 60,
+        "fixedDeltaTime": 0.016666,
+        "maxParticleCount": 1024,
+        "useGPUInstancing": true,
+        "enableObjectPooling": true
+    }
+}

@@ -8,7 +8,7 @@ internal static class GameSettings
     public const float RippleDurationSeconds = 0.3f;
     public const float SharedVisionDurationSeconds = 1.4f;
     public const float IdleBreathExposeSeconds = 10f;
-    public const float BreathingRippleIntervalSeconds = 1.15f;
+    public const float BreathingRippleIntervalSeconds = 5.0f;
 
     public const int InitialMoney = 1000;
     public const int WinReward = 2200;

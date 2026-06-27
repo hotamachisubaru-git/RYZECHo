@@ -64,6 +64,7 @@
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GOAP\GOAPGoal.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GrassRenderer.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\BehaviorTree\BTNode.cs" />
+    <Compile Include="Assets\Synaptic AI Pro\Runtime\Events\IEventHandler.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GOAP\GOAPBehaviorTemplates.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GOAP\WorldState.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\Water\Buoyancy.cs" />
@@ -91,6 +92,8 @@
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GOAP\GOAPDebugVisualizer.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\GOAP\GOAPPlanner.cs" />
     <Compile Include="Assets\Synaptic AI Pro\Runtime\WaterPhysics.cs" />
+    <Compile Include="Assets\Synaptic AI Pro\Runtime\Events\IEvent.cs" />
+    <Compile Include="Assets\Synaptic AI Pro\Runtime\Events\EventBus.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Synaptic AI Pro\Runtime\NexusAI.MCP.Unity.asmdef" />
@@ -1221,12 +1224,12 @@
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="UnityEditor.UI">
       <HintPath>Library\ScriptAssemblies\UnityEditor.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

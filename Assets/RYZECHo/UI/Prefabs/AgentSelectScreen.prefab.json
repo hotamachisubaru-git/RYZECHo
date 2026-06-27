@@ -1,0 +1,279 @@
+{
+    "prefabName": "AgentSelectScreen",
+    "description": "エージェント選択画面 - Betフェーズでエージェント選択",
+    "components": [
+        {
+            "type": "Canvas",
+            "settings": {
+                "renderMode": "ScreenSpaceOverlay",
+                "sortOrder": 100
+            }
+        },
+        {
+            "type": "CanvasScaler",
+            "settings": {
+                "uiScaleMode": "ScaleWithScreenSize",
+                "referenceResolution": { "x": 1920, "y": 1080 },
+                "matchWidthOrHeight": 0.5
+            }
+        },
+        {
+            "type": "GraphicRaycaster"
+        },
+        {
+            "name": "AgentSelectPanel",
+            "type": "Panel",
+            "settings": {
+                "color": { "r": 0.02, "g": 0.03, "b": 0.06, "a": 0.95 },
+                "sizeDelta": { "x": 700, "y": 400 },
+                "anchoredPosition": { "x": 0, "y": 0 }
+            },
+            "children": [
+                {
+                    "name": "TitleText",
+                    "type": "TextMeshProUGUI",
+                    "settings": {
+                        "text": "エージェント選択",
+                        "fontSize": 28,
+                        "alignment": "Center",
+                        "color": { "r": 0.9, "g": 0.94, "b": 0.97, "a": 1.0 },
+                        "anchoredPosition": { "x": 0, "y": 160 }
+                    }
+                },
+                {
+                    "name": "AgentList",
+                    "type": "VerticalLayoutGroup",
+                    "settings": {
+                        "anchoredPosition": { "x": 0, "y": -20 },
+                        "sizeDelta": { "x": 650, "y": 280 }
+                    },
+                    "children": [
+                        {
+                            "name": "AgentItem_Vein",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": 0 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "ヴァイン",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "偵察兵",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "AgentItem_Nitro",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": -45 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "ニトロ",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "アタッカー",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "AgentItem_Oasis",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": -90 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "オアシス",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "支援",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "AgentItem_Divide",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": -135 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "ディバイド",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "エンジニア",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "AgentItem_Glitch",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": -180 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "グリッチ",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "撹乱",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "AgentItem_Veile",
+                            "type": "Panel",
+                            "settings": {
+                                "sizeDelta": { "x": 600, "y": 40 },
+                                "anchoredPosition": { "x": 0, "y": -225 }
+                            },
+                            "children": [
+                                {
+                                    "name": "AgentName",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "ヴェール",
+                                        "fontSize": 16,
+                                        "anchoredPosition": { "x": -250, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "AgentRole",
+                                    "type": "TextMeshProUGUI",
+                                    "settings": {
+                                        "text": "科学医",
+                                        "fontSize": 12,
+                                        "anchoredPosition": { "x": -100, "y": 0 }
+                                    }
+                                },
+                                {
+                                    "name": "SelectButton",
+                                    "type": "Button",
+                                    "settings": {
+                                        "text": "選択",
+                                        "sizeDelta": { "x": 80, "y": 30 },
+                                        "anchoredPosition": { "x": 250, "y": 0 }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "controller": "AgentSelectController"
+}

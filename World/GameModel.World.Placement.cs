@@ -28,6 +28,8 @@ internal sealed partial class GameModel
         _buildPoints = apTransaction.AfterAp;
         _structures.Add(candidate);
         SetResultMessage($"{candidate.Label} を {cell.X},{cell.Y} に設置。AP {apTransaction.BeforeAp}->{apTransaction.AfterAp}。");
+        // T005-3: 構造物設置イベントの Emit
+        GameEventBus.Emit(new StructureBuiltEvent(candidate.Kind, cell, CellCenter(cell), "Player"));
     }
 
     private void TryRemoveStructure(Point location)

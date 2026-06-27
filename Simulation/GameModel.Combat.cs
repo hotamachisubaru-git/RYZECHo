@@ -20,6 +20,17 @@ internal sealed partial class GameModel
             return;
         }
 
+        // T005-2: ダメージイベントの Emit
+        if (attacker is not null)
+        {
+            GameEventBus.Emit(new DamageEvent(
+                attacker.Name,
+                actor.Name,
+                damage,
+                attacker.Weapon,
+                false));
+        }
+
         var wasAlive = actor.IsAlive;
         actor.ShieldRegenDelay = 2.4f;
         if (actor.Shield > 0f)
@@ -58,6 +69,13 @@ internal sealed partial class GameModel
 
     private void HandleActorEliminated(Actor? attacker, Actor victim)
     {
+        // T005-1: 死亡イベントの Emit
+        GameEventBus.Emit(new ActorDeathEvent(
+            victim.Name,
+            victim.Type,
+            victim.Position,
+            attacker?.Name));
+
         if (attacker is null || ReferenceEquals(attacker, victim))
         {
             PushActivityFeed($"{victim.Name} が戦闘不能。");

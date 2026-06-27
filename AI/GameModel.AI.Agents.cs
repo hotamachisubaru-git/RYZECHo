@@ -2,6 +2,10 @@ namespace RYZECHo;
 
 internal sealed partial class GameModel
 {
+    // =========================================================================
+    // Agent Abilities — エージェント個別スキル・自律行動
+    // =========================================================================
+
     private static void ResetActorAbilityState(Actor actor)
     {
         actor.SkillOneCooldown = 0f;

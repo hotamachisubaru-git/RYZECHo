@@ -45,6 +45,19 @@ internal sealed partial class GameModel
         }
     }
 
+    
+    private Rectangle KillFeedBounds
+    {
+        get
+        {
+            var width = 280;
+            var height = 200;
+            var top = TopBarBounds.Top - height - 4;
+            var left = TopBarBounds.Left;
+            return new Rectangle(left, top, width, height);
+        }
+    }
+
     private RectangleF MainPlayCameraBounds
     {
         get

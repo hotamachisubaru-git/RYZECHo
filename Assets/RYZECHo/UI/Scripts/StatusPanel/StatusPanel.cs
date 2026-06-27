@@ -1,0 +1,323 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace RYZECHo
+{
+    /// <summary>
+    /// ステータスパネル: HP, シールド, 武器, スキル情報表示
+    /// </summary>
+    public sealed class StatusPanel : MonoBehaviour
+    {
+        #region Private Fields
+
+        private Image _healthBarBackground;
+        private Image _healthBarFill;
+        private Text _healthText;
+        private Image _shieldBarBackground;
+        private Image _shieldBarFill;
+        private Text _shieldText;
+        private Text _weaponNameText;
+        private Text _sidearmNameText;
+        private Text _skillOneText;
+        private Text _skillTwoText;
+        private Text _ultimateText;
+
+        // Colors
+        private static readonly Color HealthBarColor = new(0.24f, 0.79f, 0.44f, 1f);
+        private static readonly Color HealthBarBgColor = new(0.1f, 0.2f, 0.15f, 1f);
+        private static readonly Color ShieldBarColor = new(0.24f, 0.55f, 0.97f, 1f);
+        private static readonly Color ShieldBarBgColor = new(0.1f, 0.15f, 0.25f, 1f);
+        private static readonly Color LabelColor = new(0.7f, 0.75f, 0.8f, 1f);
+        private static readonly Color ValueColor = new(0.94f, 0.97f, 1f, 1f);
+        private static readonly Color AccentColor = new(0.24f, 0.55f, 0.97f, 1f);
+
+        // Layout
+        private const float PaddingX = 16f;
+        private const float PaddingY = 12f;
+        private const float BarHeight = 14f;
+        private const float SectionGap = 8f;
+        private const float SmallFontSize = 10;
+
+        #endregion
+
+        #region Unity Lifecycle
+
+        private void Awake()
+        {
+            CreateStatusContent();
+        }
+
+        #endregion
+
+        #region Panel Creation
+
+        private void CreateStatusContent()
+        {
+            var contentY = GetComponent<RectTransform>().sizeDelta.y - PaddingY;
+            var contentX = PaddingX;
+            var contentWidth = GetComponent<RectTransform>().sizeDelta.x - PaddingX * 2;
+
+            // Divider
+            AddDivider(contentX, contentY, contentWidth);
+
+            contentY -= 12f;
+
+            // Health bar
+            contentY = CreateBarWithText("体力", "Health", contentX, contentY, contentWidth, BarHeight,
+                ref _healthBarBackground, ref _healthBarFill, ref _healthText, HealthBarBgColor, HealthBarColor);
+
+            contentY -= SectionGap;
+
+            // Shield bar
+            contentY = CreateBarWithText("シールド", "Shield", contentX, contentY, contentWidth, BarHeight,
+                ref _shieldBarBackground, ref _shieldBarFill, ref _shieldText, ShieldBarBgColor, ShieldBarColor);
+
+            contentY -= SectionGap;
+
+            // Divider
+            AddDivider(contentX, contentY, contentWidth);
+
+            contentY -= 12f;
+
+            // Weapon section
+            _weaponNameText = CreateText("WeaponName", "", 12, TextAnchor.MiddleLeft, ValueColor);
+            SetTextPosition(_weaponNameText, contentX, contentY, contentWidth, 18);
+            contentY -= 20f;
+
+            _sidearmNameText = CreateText("SidearmName", "", SmallFontSize, TextAnchor.MiddleLeft, LabelColor);
+            SetTextPosition(_sidearmNameText, contentX, contentY, contentWidth, 16);
+            contentY -= 18f;
+
+            // Divider
+            AddDivider(contentX, contentY, contentWidth);
+
+            contentY -= 12f;
+
+            // Skills section
+            _skillOneText = CreateText("SkillOne", "", 12, TextAnchor.MiddleLeft, ValueColor);
+            SetTextPosition(_skillOneText, contentX, contentY, contentWidth, 18);
+            contentY -= 20f;
+
+            _skillTwoText = CreateText("SkillTwo", "", 12, TextAnchor.MiddleLeft, ValueColor);
+            SetTextPosition(_skillTwoText, contentX, contentY, contentWidth, 18);
+            contentY -= 20f;
+
+            _ultimateText = CreateText("Ultimate", "", 12, TextAnchor.MiddleLeft, AccentColor);
+            SetTextPosition(_ultimateText, contentX, contentY, contentWidth, 18);
+        }
+
+        private Text CreateText(string name, string text, int fontSize, TextAnchor alignment, Color color)
+        {
+            var go = new GameObject(name, typeof(Text));
+            var textComponent = go.GetComponent<Text>();
+            textComponent.font = Font.CreateDynamicFontFromOSFont("Yu Gothic UI", fontSize);
+            textComponent.fontSize = fontSize;
+            textComponent.alignment = alignment;
+            textComponent.color = color;
+            textComponent.text = text;
+            textComponent.enableWordWrapping = false;
+            return textComponent;
+        }
+
+        private void SetTextPosition(Text text, float x, float y, float width, float height)
+        {
+            var rect = text.rectTransform;
+            rect.SetParent(transform, false);
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 1f);
+            rect.anchoredPosition = new Vector2(x, y);
+            rect.sizeDelta = new Vector2(width, height);
+        }
+
+        private void AddDivider(float x, float y, float width)
+        {
+            var go = new GameObject("Divider", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            var image = go.GetComponent<Image>();
+            image.color = new Color(0.15f, 0.3f, 0.5f, 0.7f);
+            image.raycastTarget = false;
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 1f);
+            rect.anchoredPosition = new Vector2(x, y);
+            rect.sizeDelta = new Vector2(width, 1);
+        }
+
+        private float CreateBarWithText(string label, string name, float x, float y, float width, float barHeight,
+            ref Image bgRef, ref Image fillRef, ref Text textRef, Color bgColor, Color fillColor)
+        {
+            // Label
+            var labelGO = new GameObject($"{name}_Label", typeof(RectTransform), typeof(Text));
+            labelGO.transform.SetParent(transform, false);
+            var labelText = labelGO.GetComponent<Text>();
+            labelText.font = Font.CreateDynamicFontFromOSFont("Yu Gothic UI", SmallFontSize);
+            labelText.fontSize = SmallFontSize;
+            labelText.alignment = TextAnchor.MiddleLeft;
+            labelText.color = LabelColor;
+            labelText.text = label;
+            labelText.enableWordWrapping = false;
+            var labelRect = labelGO.GetComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0, 1);
+            labelRect.anchorMax = new Vector2(0, 1);
+            labelRect.pivot = new Vector2(0, 1f);
+            labelRect.anchoredPosition = new Vector2(x, y);
+            labelRect.sizeDelta = new Vector2(width, 14);
+
+            // Background bar
+            var bgGO = new GameObject($"{name}_Bg", typeof(RectTransform), typeof(Image));
+            bgGO.transform.SetParent(transform, false);
+            var bgImage = bgGO.GetComponent<Image>();
+            bgImage.color = bgColor;
+            bgImage.raycastTarget = false;
+            bgRef = bgImage;
+            var bgRect = bgGO.GetComponent<RectTransform>();
+            bgRect.anchorMin = new Vector2(0, 1);
+            bgRect.anchorMax = new Vector2(0, 1);
+            bgRect.pivot = new Vector2(0, 1f);
+            bgRect.anchoredPosition = new Vector2(x, y - 16);
+            bgRect.sizeDelta = new Vector2(width, barHeight);
+
+            // Fill bar
+            var fillGO = new GameObject($"{name}_Fill", typeof(RectTransform), typeof(Image));
+            fillGO.transform.SetParent(bgGO.transform, false);
+            var fillImage = fillGO.GetComponent<Image>();
+            fillImage.color = fillColor;
+            fillImage.raycastTarget = false;
+            fillRef = fillImage;
+            var fillRect = fillGO.GetComponent<RectTransform>();
+            fillRect.anchorMin = new Vector2(0, 0);
+            fillRect.anchorMax = new Vector2(0, 1);
+            fillRect.sizeDelta = new Vector2(0, 0);
+
+            // Value text
+            var textGO = new GameObject($"{name}_Value", typeof(RectTransform), typeof(Text));
+            textGO.transform.SetParent(transform, false);
+            var textComp = textGO.GetComponent<Text>();
+            textComp.font = Font.CreateDynamicFontFromOSFont("Yu Gothic UI", SmallFontSize);
+            textComp.fontSize = SmallFontSize;
+            textComp.alignment = TextAnchor.MiddleRight;
+            textComp.color = ValueColor;
+            textComp.text = "100/100";
+            textComp.enableWordWrapping = false;
+            textRef = textComp;
+            var textRect = textGO.GetComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(1, 1);
+            textRect.anchorMax = new Vector2(1, 1);
+            textRect.pivot = new Vector2(1, 1f);
+            textRect.anchoredPosition = new Vector2(-x - width, y - 16);
+            textRect.sizeDelta = new Vector2(80, barHeight);
+
+            return y - 16 - barHeight - 4;
+        }
+
+        #endregion
+
+        #region Public Update Methods
+
+        /// <summary>
+        /// HP情報を更新する。
+        /// </summary>
+        public void UpdateHealth(float current, float max)
+        {
+            if (_healthText != null)
+                _healthText.text = $"{Mathf.CeilToInt(current)}/{max}";
+            UpdateBarFill(_healthBarFill, current / max);
+        }
+
+        /// <summary>
+        /// シールド情報を更新する。
+        /// </summary>
+        public void UpdateShield(float current, float max)
+        {
+            if (_shieldText != null)
+                _shieldText.text = $"{Mathf.CeilToInt(current)}/{max}";
+            UpdateBarFill(_shieldBarFill, current / max);
+        }
+
+        /// <summary>
+        /// 主力武器名を更新する。
+        /// </summary>
+        public void UpdateWeaponName(WeaponType weapon)
+        {
+            if (_weaponNameText != null)
+                _weaponNameText.text = $"武器: {GetWeaponDisplayName(weapon)}";
+        }
+
+        /// <summary>
+        /// サブ武器名を更新する。
+        /// </summary>
+        public void UpdateSidearmName(WeaponType weapon)
+        {
+            if (_sidearmNameText != null)
+                _sidearmNameText.text = $"サブ: {GetWeaponDisplayName(weapon)}";
+        }
+
+        /// <summary>
+        /// スキル1のクールダウンを更新する。
+        /// </summary>
+        public void UpdateSkillOne(float cooldown)
+        {
+            if (_skillOneText != null)
+                _skillOneText.text = $"スキル1: {GetCooldownText(cooldown)}";
+        }
+
+        /// <summary>
+        /// スキル2のクールダウンを更新する。
+        /// </summary>
+        public void UpdateSkillTwo(float cooldown)
+        {
+            if (_skillTwoText != null)
+                _skillTwoText.text = $"スキル2: {GetCooldownText(cooldown)}";
+        }
+
+        /// <summary>
+        /// ウルティのチャージを更新する。
+        /// </summary>
+        public void UpdateUltimate(int current, int max)
+        {
+            if (_ultimateText != null)
+                _ultimateText.text = $"ウルティ: {current}/{max}";
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private void UpdateBarFill(Image fillImage, float ratio)
+        {
+            if (fillImage == null) return;
+            ratio = Mathf.Clamp01(ratio);
+            var rect = fillImage.rectTransform;
+            rect.sizeDelta = new Vector2(rect.parent.GetComponent<RectTransform>().sizeDelta.x * ratio, rect.sizeDelta.y);
+        }
+
+        private string GetCooldownText(float cooldown)
+        {
+            if (cooldown <= 0f) return "利用可能";
+            return $"残り {cooldown:F1}秒";
+        }
+
+        private string GetWeaponDisplayName(WeaponType weapon)
+        {
+            return weapon switch
+            {
+                WeaponType.Blitz => "Blitz",
+                WeaponType.Monster => "Monster",
+                WeaponType.Melt => "Melt",
+                WeaponType.Fairy => "Fairy",
+                WeaponType.Giant => "Giant",
+                WeaponType.Juggernaut => "Juggernaut",
+                WeaponType.Violet => "Violet",
+                WeaponType.Changer => "Changer",
+                WeaponType.Howl => "Howl",
+                WeaponType.Pulse => "Pulse",
+                WeaponType.Shard => "Shard",
+                _ => weapon.ToString(),
+            };
+        }
+
+        #endregion
+    }
+}

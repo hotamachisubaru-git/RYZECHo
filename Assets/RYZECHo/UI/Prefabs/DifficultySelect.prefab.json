@@ -1,0 +1,245 @@
+{
+    "version": "1.0",
+    "prefab": {
+        "name": "DifficultySelect",
+        "namespace": "RYZECHo.UI",
+        "screenType": "DifficultySelect",
+        "gameObject": {
+            "name": "DifficultySelect",
+            "type": "UIScreen",
+            "components": [
+                {
+                    "type": "DifficultySelectUI",
+                    "properties": {
+                        "defaultFont": null
+                    }
+                }
+            ]
+        },
+        "children": [
+            {
+                "name": "ScreenRoot",
+                "type": "GameObject",
+                "components": [
+                    {
+                        "type": "RectTransform",
+                        "properties": {
+                            "anchoredPosition": [0, 0],
+                            "sizeDelta": [1440, 960],
+                            "anchorMin": [0, 0],
+                            "anchorMax": [1, 1],
+                            "pivot": [0.5, 0.5]
+                        }
+                    },
+                    {
+                        "type": "Image",
+                        "properties": {
+                            "color": [0.08, 0.08, 0.12, 1],
+                            "raycastTarget": true
+                        }
+                    }
+                ],
+                "children": [
+                    {
+                        "name": "Background",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 0],
+                                    "sizeDelta": [1440, 960],
+                                    "anchorMin": [0, 0],
+                                    "anchorMax": [1, 1],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.05, 0.05, 0.08, 1],
+                                    "raycastTarget": false
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "TitleText",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 320],
+                                    "sizeDelta": [500, 50],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "難易度選択",
+                                    "fontSize": 42,
+                                    "color": [0.94, 0.97, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "DifficultyEasy",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 100],
+                                    "sizeDelta": [320, 60],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.2, 0.7, 0.4, 1],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "イージー",
+                                    "fontSize": 24,
+                                    "color": [1, 1, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "DifficultyNormal",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 0],
+                                    "sizeDelta": [320, 60],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.24, 0.55, 0.97, 1],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "ノーマル",
+                                    "fontSize": 24,
+                                    "color": [1, 1, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "DifficultyHard",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -100],
+                                    "sizeDelta": [320, 60],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.8, 0.2, 0.15, 1],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "ハード",
+                                    "fontSize": 24,
+                                    "color": [1, 1, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "BackButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -200],
+                                    "sizeDelta": [200, 44],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.15, 0.3, 0.5, 0.7],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "戻る",
+                                    "fontSize": 16,
+                                    "color": [0.9, 0.94, 0.97, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    }
+                ]
+            }
+        ]
+    }
+}

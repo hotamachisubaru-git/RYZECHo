@@ -1,0 +1,91 @@
+/*
+ * LayoutUSS.uss
+ * レイアウト用USSスタイルシート
+ * USSスタイルの再導入 - Layoutベース
+ */
+
+/* ========================
+   Text Styles
+   ======================== */
+.settings-title {
+    font-size: 28px;
+    color: var(--settings-text);
+    alignment: middle-center;
+}
+
+.settings-header {
+    font-size: 16px;
+    color: var(--settings-accent);
+    alignment: left-center;
+}
+
+.settings-body {
+    font-size: 13px;
+    color: var(--settings-text);
+    alignment: left-center;
+}
+
+.settings-body-dim {
+    font-size: 13px;
+    color: var(--settings-text-dim);
+    alignment: left-center;
+}
+
+.settings-value {
+    font-size: 13px;
+    color: var(--settings-accent);
+    alignment: left-center;
+}
+
+/* ========================
+   Section Title
+   ======================== */
+.settings-section-title {
+    font-size: 16px;
+    color: var(--settings-accent);
+    alignment: left-center;
+}
+
+/* ========================
+   Reusable Layout Classes
+   ======================== */
+.settings-row-hcenter {
+    alignment: middle-center;
+}
+
+.settings-row-vcenter {
+    alignment: center-left;
+}
+
+.settings-row-space-between {
+    alignment: space-between-center;
+}
+
+.settings-row-left {
+    alignment: left-center;
+}
+
+.settings-row-right {
+    alignment: right-center;
+}
+
+/* ========================
+   Scrollbar
+   ======================== */
+.settings-scroll-view {
+    border-width: 0;
+}
+
+.settings-scroll-view .unity-scrollview-item {
+    min-height: var(--settings-row-height);
+}
+
+/* ========================
+   Tooltip / Info
+   ======================== */
+.settings-tooltip {
+    background-color: rgba(0.05, 0.08, 0.12, 0.95);
+    color: var(--settings-text);
+    font-size: 12px;
+    padding: 4px 8px;
+}

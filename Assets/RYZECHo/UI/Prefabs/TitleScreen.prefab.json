@@ -1,0 +1,244 @@
+{
+    "version": "1.0",
+    "prefab": {
+        "name": "TitleScreen",
+        "namespace": "RYZECHo.UI",
+        "screenType": "TitleScreen",
+        "gameObject": {
+            "name": "TitleScreen",
+            "type": "UIScreen",
+            "components": [
+                {
+                    "type": "TitleScreenUI",
+                    "properties": {
+                        "defaultFont": null,
+                        "initialDelay": 1.0
+                    }
+                }
+            ]
+        },
+        "children": [
+            {
+                "name": "ScreenRoot",
+                "type": "GameObject",
+                "components": [
+                    {
+                        "type": "RectTransform",
+                        "properties": {
+                            "anchoredPosition": [0, 0],
+                            "sizeDelta": [1440, 960],
+                            "anchorMin": [0, 0],
+                            "anchorMax": [1, 1],
+                            "pivot": [0.5, 0.5]
+                        }
+                    },
+                    {
+                        "type": "Image",
+                        "properties": {
+                            "color": [0.08, 0.08, 0.12, 1],
+                            "fillMethod": 0,
+                            "raycastTarget": true
+                        }
+                    }
+                ],
+                "children": [
+                    {
+                        "name": "Background",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 0],
+                                    "sizeDelta": [1440, 960],
+                                    "anchorMin": [0, 0],
+                                    "anchorMax": [1, 1],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.05, 0.05, 0.08, 1],
+                                    "raycastTarget": false
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "TitleLogo",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 120],
+                                    "sizeDelta": [600, 120],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "RYZECHo",
+                                    "fontSize": 72,
+                                    "color": [0.94, 0.97, 1, 1],
+                                    "alignment": "Center",
+                                    "fontWeight": 700
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "Subtitle",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 40],
+                                    "sizeDelta": [500, 40],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": " tactical strategy game",
+                                    "fontSize": 24,
+                                    "color": [0.7, 0.75, 0.8, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "StartButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -60],
+                                    "sizeDelta": [240, 50],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.24, 0.55, 0.97, 1],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": {
+                                    "targetGraphic": "StartButton_Image",
+                                    "transition": 1
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "ゲーム開始",
+                                    "fontSize": 20,
+                                    "color": [1, 1, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "SettingsButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -130],
+                                    "sizeDelta": [200, 44],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.15, 0.3, 0.5, 0.7],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": {
+                                    "transition": 1
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "設定",
+                                    "fontSize": 16,
+                                    "color": [0.9, 0.94, 0.97, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "ExitButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -190],
+                                    "sizeDelta": [200, 44],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.5, 0.15, 0.15, 0.7],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": {
+                                    "transition": 1
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "終了",
+                                    "fontSize": 16,
+                                    "color": [0.9, 0.8, 0.8, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    }
+                ]
+            }
+        ]
+    }
+}

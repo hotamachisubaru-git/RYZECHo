@@ -1,0 +1,136 @@
+/*
+ * ThemeUSS.uss
+ * テーマ別USSスタイルシート（ライト/ダークテーマ）
+ * USSスタイルの再導入 - Themeベース
+ */
+
+/* ========================
+   ダークテーマ（デフォルト）
+   ======================== */
+:root {
+    /* Background colors */
+    --settings-bg: rgba(0.02, 0.03, 0.06, 0.95);
+    --settings-panel-bg: rgba(0.05, 0.08, 0.12, 0.9);
+    --settings-border-color: rgba(0.15, 0.3, 0.5, 0.8);
+
+    /* Accent / Interactive colors */
+    --settings-accent: rgba(0.24, 0.55, 0.97, 1.0);
+    --settings-accent-dim: rgba(0.2, 0.4, 0.7, 0.6);
+
+    /* Text colors */
+    --settings-text: rgba(0.9, 0.94, 0.97, 1.0);
+    --settings-text-dim: rgba(0.6, 0.65, 0.7, 1.0);
+    --settings-text-highlight: rgba(0.3, 0.55, 0.95, 1.0);
+
+    /* Tab states */
+    --settings-tab-normal: rgba(0.1, 0.15, 0.25, 0.5);
+    --settings-tab-hover: rgba(0.15, 0.25, 0.4, 0.7);
+    --settings-tab-active: rgba(0.2, 0.35, 0.55, 0.9);
+
+    /* Slider styles */
+    --settings-slider-fill: rgba(0.2, 0.4, 0.7, 1.0);
+    --settings-slider-bg: rgba(0.1, 0.15, 0.2, 1.0);
+    --settings-slider-handle: rgba(0.24, 0.55, 0.97, 1.0);
+
+    /* Button states */
+    --settings-button-normal: rgba(0.1, 0.15, 0.25, 0.5);
+    --settings-button-hover: rgba(0.15, 0.25, 0.4, 0.7);
+    --settings-button-active: rgba(0.2, 0.35, 0.55, 0.9);
+    --settings-button-disabled: rgba(0.1, 0.15, 0.25, 0.3);
+    --settings-button-danger: rgba(0.5, 0.15, 0.15, 0.8);
+
+    /* Highlight / selection */
+    --settings-highlight: rgba(0.15, 0.25, 0.4, 0.3);
+
+    /* Spacing */
+    --settings-padding: 12px;
+    --settings-row-height: 36px;
+    --settings-spacing: 4px;
+    --settings-border-width: 2px;
+}
+
+/* ========================
+   ダークテーマ用ルートスタイル
+   ======================== */
+.theme-dark {
+    background-color: var(--settings-bg);
+    border-width: var(--settings-border-width);
+    border-color: var(--settings-border-color);
+    border-style: solid;
+}
+
+/* ========================
+   ライトテーマ
+   ======================== */
+:root.light-theme {
+    /* Background colors */
+    --settings-bg: rgba(0.97, 0.98, 0.99, 0.95);
+    --settings-panel-bg: rgba(1.0, 1.0, 1.0, 0.95);
+    --settings-border-color: rgba(0.7, 0.75, 0.85, 0.8);
+
+    /* Accent / Interactive colors */
+    --settings-accent: rgba(0.1, 0.4, 0.85, 1.0);
+    --settings-accent-dim: rgba(0.15, 0.35, 0.7, 0.6);
+
+    /* Text colors */
+    --settings-text: rgba(0.1, 0.12, 0.15, 1.0);
+    --settings-text-dim: rgba(0.4, 0.42, 0.45, 1.0);
+    --settings-text-highlight: rgba(0.1, 0.4, 0.85, 1.0);
+
+    /* Tab states */
+    --settings-tab-normal: rgba(0.85, 0.87, 0.9, 0.5);
+    --settings-tab-hover: rgba(0.75, 0.78, 0.85, 0.7);
+    --settings-tab-active: rgba(0.65, 0.7, 0.8, 0.9);
+
+    /* Slider styles */
+    --settings-slider-fill: rgba(0.1, 0.4, 0.85, 1.0);
+    --settings-slider-bg: rgba(0.75, 0.78, 0.82, 1.0);
+    --settings-slider-handle: rgba(0.1, 0.4, 0.85, 1.0);
+
+    /* Button states */
+    --settings-button-normal: rgba(0.85, 0.87, 0.9, 0.5);
+    --settings-button-hover: rgba(0.75, 0.78, 0.85, 0.7);
+    --settings-button-active: rgba(0.65, 0.7, 0.8, 0.9);
+    --settings-button-disabled: rgba(0.85, 0.87, 0.9, 0.3);
+    --settings-button-danger: rgba(0.8, 0.2, 0.2, 0.8);
+
+    /* Highlight / selection */
+    --settings-highlight: rgba(0.7, 0.75, 0.85, 0.3);
+
+    /* Spacing (unchanged) */
+    --settings-padding: 12px;
+    --settings-row-height: 36px;
+    --settings-spacing: 4px;
+    --settings-border-width: 2px;
+}
+
+/* ライトテーマ用ルートスタイル */
+.theme-light {
+    background-color: var(--settings-bg);
+    border-width: var(--settings-border-width);
+    border-color: var(--settings-border-color);
+    border-style: solid;
+}
+
+/* ========================
+   テーマ切替用ユーティリティ
+   ======================== */
+.theme-toggle {
+    background-color: var(--settings-button-normal);
+    color: var(--settings-text);
+    min-height: var(--settings-row-height);
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.theme-toggle:hover {
+    background-color: var(--settings-button-hover);
+}
+
+.theme-toggle:pressed {
+    background-color: var(--settings-button-active);
+}
+
+.theme-toggle:checked {
+    background-color: var(--settings-accent);
+}

@@ -1,0 +1,163 @@
+/*
+ * StateUSS.uss
+ * ステート別USSスタイルシート（normal/hover/pressed/disabled）
+ * USSスタイルの再導入 - Stateベース
+ */
+
+/* ========================
+   Tab Buttons - ステート別スタイル
+   ======================== */
+.settings-tab {
+    background-color: var(--settings-tab-normal);
+    color: var(--settings-text-dim);
+    min-height: var(--settings-row-height);
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* Tab: hover */
+.settings-tab:hover {
+    background-color: var(--settings-tab-hover);
+    color: var(--settings-text);
+}
+
+/* Tab: pressed */
+.settings-tab:pressed {
+    background-color: var(--settings-tab-active);
+    color: var(--settings-text);
+}
+
+/* Tab: active */
+.settings-tab.active {
+    background-color: var(--settings-tab-active);
+    color: var(--settings-text);
+}
+
+/* Tab: disabled */
+.settings-tab.disabled {
+    background-color: var(--settings-button-disabled);
+    color: var(--settings-text-dim);
+}
+
+/* Tab: focus */
+.settings-tab:focus {
+    background-color: var(--settings-tab-active);
+    color: var(--settings-text);
+}
+
+/* ========================
+   Buttons - ステート別スタイル
+   ======================== */
+.settings-button {
+    background-color: var(--settings-button-normal);
+    color: var(--settings-text);
+    min-height: var(--settings-row-height);
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/* Button: hover */
+.settings-button:hover {
+    background-color: var(--settings-button-hover);
+}
+
+/* Button: pressed */
+.settings-button:pressed {
+    background-color: var(--settings-button-active);
+}
+
+/* Button: disabled */
+.settings-button:disabled {
+    background-color: var(--settings-button-disabled);
+    color: var(--settings-text-dim);
+}
+
+/* Button: focus */
+.settings-button:focus {
+    background-color: var(--settings-tab-active);
+    color: var(--settings-text);
+}
+
+/* Button: danger */
+.settings-button.danger {
+    background-color: var(--settings-button-danger);
+}
+
+.settings-button.danger:hover {
+    background-color: rgba(0.6, 0.2, 0.2, 0.9);
+}
+
+/* ========================
+   Slider - ステート別スタイル
+   ======================== */
+.settings-slider {
+    background-color: var(--settings-slider-bg);
+}
+
+.settings-slider .fill {
+    background-color: var(--settings-slider-fill);
+}
+
+.settings-slider .handle {
+    background-color: var(--settings-slider-handle);
+}
+
+/* Slider: hover */
+.settings-slider:hover {
+    background-color: var(--settings-slider-hover, var(--settings-slider-bg));
+}
+
+/* Slider: disabled */
+.settings-slider:disabled {
+    background-color: var(--settings-button-disabled);
+}
+
+/* Slider: focus */
+.settings-slider:focus {
+    background-color: var(--settings-tab-hover);
+}
+
+/* ========================
+   Toggle / Checkbox - ステート別スタイル
+   ======================== */
+.settings-toggle {
+    background-color: var(--settings-button-normal);
+}
+
+/* Toggle: checked */
+.settings-toggle:checked {
+    background-color: var(--settings-accent);
+}
+
+/* Toggle: hover */
+.settings-toggle:hover {
+    background-color: var(--settings-tab-hover);
+}
+
+.settings-toggle:checked:hover {
+    background-color: var(--settings-tab-active);
+}
+
+/* ========================
+   Row / List Items - ステート別スタイル
+   ======================== */
+.settings-row {
+    min-height: var(--settings-row-height);
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+/* Row: hover */
+.settings-row:hover {
+    background-color: var(--settings-highlight);
+}
+
+/* Row: selected */
+.settings-row.selected {
+    background-color: var(--settings-highlight);
+}
+
+/* Row: disabled */
+.settings-row.disabled {
+    opacity: 0.5;
+}

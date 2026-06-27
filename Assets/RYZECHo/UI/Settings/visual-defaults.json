@@ -1,0 +1,17 @@
+{
+  "fov": 100.0,
+  "sniperFov": 80.0,
+  "wideFov": 120.0,
+  "sensitivity": 1.0,
+  "invertY": false,
+  "crosshairSize": 1.0,
+  "crosshairColor": "#FF3C8CF7",
+  "showCrosshair": true,
+  "showHealthBar": true,
+  "showShieldBar": true,
+  "showMinimap": true,
+  "showDamageNumbers": true,
+  "showActivityFeed": true,
+  "activityFeedMaxEntries": 10,
+  "activityFeedDuration": 5.0
+}

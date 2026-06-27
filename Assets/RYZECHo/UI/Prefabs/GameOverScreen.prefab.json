@@ -1,0 +1,234 @@
+{
+    "version": "1.0",
+    "prefab": {
+        "name": "GameOverScreen",
+        "namespace": "RYZECHo.UI",
+        "screenType": "GameOverScreen",
+        "gameObject": {
+            "name": "GameOverScreen",
+            "type": "UIScreen",
+            "components": [
+                {
+                    "type": "GameOverScreenUI",
+                    "properties": {
+                        "defaultFont": null
+                    }
+                }
+            ]
+        },
+        "children": [
+            {
+                "name": "ScreenRoot",
+                "type": "GameObject",
+                "components": [
+                    {
+                        "type": "RectTransform",
+                        "properties": {
+                            "anchoredPosition": [0, 0],
+                            "sizeDelta": [1440, 960],
+                            "anchorMin": [0, 0],
+                            "anchorMax": [1, 1],
+                            "pivot": [0.5, 0.5]
+                        }
+                    },
+                    {
+                        "type": "Image",
+                        "properties": {
+                            "color": [0.08, 0.08, 0.12, 1],
+                            "raycastTarget": true
+                        }
+                    }
+                ],
+                "children": [
+                    {
+                        "name": "Background",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 0],
+                                    "sizeDelta": [1440, 960],
+                                    "anchorMin": [0, 0],
+                                    "anchorMax": [1, 1],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.1, 0.05, 0.05, 1],
+                                    "raycastTarget": false
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "GameOverTitle",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 200],
+                                    "sizeDelta": [600, 80],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "ゲームオーバー",
+                                    "fontSize": 64,
+                                    "color": [0.9, 0.2, 0.15, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "ScoreText",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, 80],
+                                    "sizeDelta": [400, 40],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "スコア: 0",
+                                    "fontSize": 32,
+                                    "color": [0.94, 0.97, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "RetryButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -40],
+                                    "sizeDelta": [240, 56],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.24, 0.55, 0.97, 1],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "リトライ",
+                                    "fontSize": 22,
+                                    "color": [1, 1, 1, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "MainMenuButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -120],
+                                    "sizeDelta": [240, 56],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.15, 0.3, 0.5, 0.7],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "メインメニュー",
+                                    "fontSize": 22,
+                                    "color": [0.9, 0.94, 0.97, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    },
+                    {
+                        "name": "ExitButton",
+                        "type": "GameObject",
+                        "components": [
+                            {
+                                "type": "RectTransform",
+                                "properties": {
+                                    "anchoredPosition": [0, -200],
+                                    "sizeDelta": [200, 44],
+                                    "anchorMin": [0.5, 0.5],
+                                    "anchorMax": [0.5, 0.5],
+                                    "pivot": [0.5, 0.5]
+                                }
+                            },
+                            {
+                                "type": "Image",
+                                "properties": {
+                                    "color": [0.5, 0.15, 0.15, 0.7],
+                                    "raycastTarget": true
+                                }
+                            },
+                            {
+                                "type": "Button",
+                                "properties": { "transition": 1 }
+                            },
+                            {
+                                "type": "TextMeshProUGUI",
+                                "properties": {
+                                    "text": "終了",
+                                    "fontSize": 16,
+                                    "color": [0.9, 0.8, 0.8, 1],
+                                    "alignment": "Center"
+                                }
+                            }
+                        ],
+                        "isActive": true
+                    }
+                ]
+            }
+        ]
+    }
+}
