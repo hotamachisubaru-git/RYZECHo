@@ -90,12 +90,11 @@ namespace RYZECHo.Runtime.Effects
                 if (useGradient)
                 {
                     float t = i / (float)visibleCount;
-                    colors[i] = Color.Lerp(startColor, endColor, t);
-                    colors[i].a *= fade;
+                    colors[i] = Color.Lerp(startColor, endColor, t) * fade;
                 }
                 else
                 {
-                    colors[i].a = startColor.a * fade;
+                    colors[i] = new Color(startColor.r, startColor.g, startColor.b, startColor.a * fade);
                 }
             }
             lineRenderer.SetColors(colors);

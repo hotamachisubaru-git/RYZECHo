@@ -1,4 +1,5 @@
 using UnityEngine;
+using SysRandom = System.Random;
 
 namespace RYZECHo.Runtime.Effects
 {
@@ -115,7 +116,7 @@ namespace RYZECHo.Runtime.Effects
             for (int i = 0; i < particleCount; i++)
             {
                 var angle = (i / (float)particleCount) * Mathf.PI * 2f;
-                var speed = particleSpeed * (0.5f + Random.value * 0.5f);
+                var speed = particleSpeed * (0.5f + UnityEngine.Random.value * 0.5f);
 
                 var p = new GameObject($"ExplosionParticle_{i}");
                 p.SetActive(false);
@@ -125,9 +126,9 @@ namespace RYZECHo.Runtime.Effects
                 sr.sprite = CreateCircleSprite(particleSize);
 
                 // 炎の色をランダム化
-                float r = explosionColor.r * (0.8f + Random.value * 0.2f);
-                float g = explosionColor.g * (0.5f + Random.value * 0.5f);
-                float b = explosionColor.b * (0.2f + Random.value * 0.3f);
+                float r = explosionColor.r * (0.8f + UnityEngine.Random.value * 0.2f);
+                float g = explosionColor.g * (0.5f + UnityEngine.Random.value * 0.5f);
+                float b = explosionColor.b * (0.2f + UnityEngine.Random.value * 0.3f);
                 sr.color = new Color(r, g, b, 1f);
                 sr.sortingOrder = 50;
 

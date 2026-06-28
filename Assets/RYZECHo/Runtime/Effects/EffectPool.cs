@@ -62,7 +62,7 @@ namespace RYZECHo.Runtime.Effects
             if (go == null) return false;
 
             var ps = go.GetComponent<ParticleSystem>();
-            if (ps != null && ps.IsPlaying())
+            if (ps != null && ps.isPlaying)
             {
                 // まだ再生中なら戻さない（後で手動でReturn）
                 return false;

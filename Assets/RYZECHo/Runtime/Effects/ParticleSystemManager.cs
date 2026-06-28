@@ -46,7 +46,7 @@ namespace RYZECHo.Runtime.Effects
             foreach (var ep in effectPrefabs)
             {
                 if (ep.prefab == null) continue;
-                _pools[ep.name] = new EffectPool(ep.prefab, ep.poolSize, effectParent);
+                _pools[ep.name] = new EffectPool(ep.prefab, ep.poolSize, 50, effectParent);
             }
         }
 

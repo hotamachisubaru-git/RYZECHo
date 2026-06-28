@@ -42,7 +42,8 @@ public sealed class ProgressionManager
             var unlocked = IsAchievementUnlocked(manifest);
             if (unlocked)
             {
-                _unlockedAchievements.Add(AchievementData.Clone(manifest.Id) { Unlocked = true });
+                _unlockedAchievements.Add(AchievementData.Clone(manifest.Id));
+                _unlockedAchievements[_unlockedAchievements.Count - 1].Unlocked = true;
             }
         }
     }
@@ -194,7 +195,8 @@ public sealed class ProgressionManager
         {
             if (IsAchievementUnlocked(manifest))
             {
-                _unlockedAchievements.Add(AchievementData.Clone(manifest.Id) { Unlocked = true });
+                _unlockedAchievements.Add(AchievementData.Clone(manifest.Id));
+                _unlockedAchievements[_unlockedAchievements.Count - 1].Unlocked = true;
             }
         }
     }
@@ -326,11 +328,11 @@ public sealed class ProgressionManager
         _state.StoreCursor = Math.Clamp(_state.StoreCursor, 0, Math.Max(0, 10 - 1));
         _state.LifetimeAdImpressions = Math.Max(0, _state.LifetimeAdImpressions);
 
-        _state.UnlockedAgents ??= ["ヴェール"];
-        _state.UnlockedStructureSkins ??= ["シグナル標準"];
-        _state.UnlockedAdThemes ??= ["NEO CORE"];
-        _state.UnlockedBanners ??= ["SIGNAL//STANDARD"];
-        _state.UnlockedKillEffects ??= ["SIGNAL BURST"];
+        if (_state.UnlockedAgents == null) _state.UnlockedAgents = new List<string> { "ヴェール" };
+        if (_state.UnlockedStructureSkins == null) _state.UnlockedStructureSkins = new List<string> { "シグナル標準" };
+        if (_state.UnlockedAdThemes == null) _state.UnlockedAdThemes = new List<string> { "NEO CORE" };
+        if (_state.UnlockedBanners == null) _state.UnlockedBanners = new List<string> { "SIGNAL//STANDARD" };
+        if (_state.UnlockedKillEffects == null) _state.UnlockedKillEffects = new List<string> { "SIGNAL BURST" };
     }
 
     private static bool ValidateIntegrity(ProgressionState state)

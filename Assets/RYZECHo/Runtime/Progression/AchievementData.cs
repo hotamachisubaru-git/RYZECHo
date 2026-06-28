@@ -33,8 +33,8 @@ public sealed class AchievementData
 /// </summary>
 public static class AchievementManifest
 {
-    private static readonly AchievementData[] _catalog =
-    [
+    private static readonly AchievementData[] _catalog = new AchievementData[]
+    {
         new() { Id = "match_first_win", Name = "初勝利", Description = "最初のマッチに勝利しました", Condition = new() { Type = "matchesWon", Target = 1 }, RewardAgentCredits = 1, RewardCosmeticTokens = 0 },
         new() { Id = "match_10_wins", Name = "10勝", Description = "10回のマッチ勝利", Condition = new() { Type = "matchesWon", Target = 10 }, RewardAgentCredits = 2, RewardCosmeticTokens = 1 },
         new() { Id = "match_50_wins", Name = "50勝", Description = "50回のマッチ勝利", Condition = new() { Type = "matchesWon", Target = 50 }, RewardAgentCredits = 5, RewardCosmeticTokens = 3 },

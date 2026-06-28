@@ -101,7 +101,7 @@ namespace RYZECHo.Runtime.Effects
             lineRenderer.material = CreateRingMaterial();
             lineRenderer.useWorldSpace = false;
             lineRenderer.loop = true;
-            lineRenderer.boundingSphereOverride = Vector4.one * (radius + lineWidth);
+            // boundingSphereOverride is not available on LineRenderer in this Unity version
 
             ringMaterial = lineRenderer.material;
 

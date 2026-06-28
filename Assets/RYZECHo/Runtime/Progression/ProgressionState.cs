@@ -41,19 +41,19 @@ public sealed class ProgressionState
     public int ActiveContractProgress { get; set; }
 
     [JsonPropertyName("unlockedAgents")]
-    public List<string> UnlockedAgents { get; set; } = ["ヴェール"];
+    public List<string> UnlockedAgents { get; set; } = new List<string> { "ヴェール" };
 
     [JsonPropertyName("unlockedStructureSkins")]
-    public List<string> UnlockedStructureSkins { get; set; } = ["シグナル標準"];
+    public List<string> UnlockedStructureSkins { get; set; } = new List<string> { "シグナル標準" };
 
     [JsonPropertyName("unlockedAdThemes")]
-    public List<string> UnlockedAdThemes { get; set; } = ["NEO CORE"];
+    public List<string> UnlockedAdThemes { get; set; } = new List<string> { "NEO CORE" };
 
     [JsonPropertyName("unlockedBanners")]
-    public List<string> UnlockedBanners { get; set; } = ["SIGNAL//STANDARD"];
+    public List<string> UnlockedBanners { get; set; } = new List<string> { "SIGNAL//STANDARD" };
 
     [JsonPropertyName("unlockedKillEffects")]
-    public List<string> UnlockedKillEffects { get; set; } = ["SIGNAL BURST"];
+    public List<string> UnlockedKillEffects { get; set; } = new List<string> { "SIGNAL BURST" };
 
     [JsonPropertyName("selectedStructureSkin")]
     public string SelectedStructureSkin { get; set; } = "シグナル標準";
