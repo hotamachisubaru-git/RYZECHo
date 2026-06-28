@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 using XnaColor = Microsoft.Xna.Framework.Color;
 
 namespace RYZECHo;
@@ -99,3 +101,6 @@ internal readonly record struct Color(byte A, byte R, byte G, byte B)
 
     private static byte ClampByte(int value) => (byte)Math.Clamp(value, 0, 255);
 }
+
+
+#endif

@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 namespace RYZECHo;
 
 internal enum FontStyle
@@ -176,3 +178,6 @@ internal sealed class GraphicsPath : IDisposable
     {
     }
 }
+
+
+#endif

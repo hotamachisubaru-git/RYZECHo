@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 namespace RYZECHo;
 
 internal sealed class Matrix : IDisposable
@@ -109,3 +111,6 @@ internal sealed class GraphicsState(Matrix transform)
 {
     public Matrix Transform { get; } = transform;
 }
+
+
+#endif

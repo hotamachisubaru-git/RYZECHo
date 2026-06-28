@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 using FontStashSharp;
 using XnaVector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -71,3 +73,6 @@ internal sealed partial class Graphics
         return spriteFont;
     }
 }
+
+
+#endif

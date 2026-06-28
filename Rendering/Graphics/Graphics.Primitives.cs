@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 using Microsoft.Xna.Framework.Graphics;
 using XnaVector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -191,3 +193,6 @@ internal sealed partial class Graphics
         }
     }
 }
+
+
+#endif

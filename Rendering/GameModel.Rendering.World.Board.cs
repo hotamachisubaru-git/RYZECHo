@@ -1,3 +1,4 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
 namespace RYZECHo;
 
 internal sealed partial class GameModel
@@ -247,3 +248,4 @@ internal sealed partial class GameModel
         graphics.DrawEllipse(haloPen, center.X - 30f, center.Y - 30f, 60f, 60f);
     }
 }
+#endif

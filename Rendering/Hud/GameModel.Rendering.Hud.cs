@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 namespace RYZECHo;
 
 internal sealed partial class GameModel
@@ -44,3 +46,6 @@ internal sealed partial class GameModel
         DrawCenteredHudText(graphics, value, 9.8f, FontStyle.Bold, valueColor, new RectangleF(bounds.Left + 2, bounds.Top + 13, bounds.Width - 4, bounds.Height - 14));
     }
 }
+
+
+#endif

@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
 using XnaColor = Microsoft.Xna.Framework.Color;
@@ -210,3 +212,6 @@ internal sealed partial class Graphics
     }
 
 }
+
+
+#endif

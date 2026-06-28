@@ -1,4 +1,4 @@
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->
   <PropertyGroup>
     <LangVersion>12.0</LangVersion>
@@ -80,8 +80,11 @@
     <Compile Include="Assets\RYZECHo\UI\Scripts\GameHUDController.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\InputSnapshot.cs" />
     <Compile Include="Assets\RYZECHo\Domain\AgentCatalog.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\DamageNumber.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusProgressPanel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\SelectionRing.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusScorePanel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\ParticleSystemManager.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\HUDPanel\TimerHUDPanel.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Pooling\TileObjectPool.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\PauseOverlayController.cs" />
@@ -105,12 +108,14 @@
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.MatchRoles.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\StatusPanel\StatusHealthPanel.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\StatusScreen\StatusScreenBasePanel.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\HitFlash.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Input.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\DrawingExtensions.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Settings\LayoutSettingsSO.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameConstants.cs" />
     <Compile Include="Assets\RYZECHo\Domain\EventBus.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\Agents\GameModel.Agents.PlayerAbilities.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\DamageIndicator.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.PlayerNoise.cs" />
     <Compile Include="Assets\RYZECHo\Runtime\Rendering\HuntFovRendererOptimized.cs" />
     <Compile Include="Assets\RYZECHo\Domain\ActorModels.cs" />
@@ -121,6 +126,7 @@
     <Compile Include="Assets\RYZECHo\World\GameModel.World.BuildRules.cs" />
     <Compile Include="Assets\RYZECHo\AI\GameModel.AI.Boss.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Update.Actors.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\ExplosionEffect.cs" />
     <Compile Include="Assets\RYZECHo\World\GameModel.World.Weapons.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\KeyBindingViewModel.cs" />
     <Compile Include="Assets\RYZECHo\Services\GameModel.Progression.cs" />
@@ -136,6 +142,7 @@
     <Compile Include="Assets\RYZECHo\UI\Scripts\UiImageExtensions.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.PhaseChange.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\Agents\GameModel.Agents.Effects.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\TrailEffect.cs" />
     <Compile Include="Assets\RYZECHo\Input\InputSnapshot.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\ViewModels\PauseInfoViewModel.cs" />
     <Compile Include="Assets\RYZECHo\Hunt\HuntHUDController.cs" />
@@ -156,6 +163,7 @@
     <Compile Include="Assets\RYZECHo\Rendering\Hud\GameModel.Rendering.Pause.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\RYZECHo\Integrity\GameModel.Integrity.Sanitize.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\SelectionHighlight.cs" />
     <Compile Include="Assets\RYZECHo\Input\GameController.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\DisplayResolutionPanel.cs" />
@@ -183,6 +191,7 @@
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.HudEvents.cs" />
     <Compile Include="Assets\RYZECHo\Rendering\GameModel.Rendering.Layout.cs" />
     <Compile Include="Assets\RYZECHo\Domain\GameEvent.ActorDeath.cs" />
+    <Compile Include="Assets\RYZECHo\Runtime\Effects\EffectPool.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\DisplaySettingsPanel.cs" />
     <Compile Include="Assets\RYZECHo\Simulation\GameModel.Combat.cs" />
     <Compile Include="Assets\RYZECHo\UI\Scripts\Components\CombatResultDisplay.cs" />

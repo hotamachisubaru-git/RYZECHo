@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 namespace RYZECHo;
 
 internal sealed partial class GameModel
@@ -71,3 +73,6 @@ internal sealed partial class GameModel
         graphics.DrawLine(visorPen, rightGuide, clientBounds.Top + topHeight, rightGuide, clientBounds.Bottom - bottomHeight);
     }
 }
+
+
+#endif

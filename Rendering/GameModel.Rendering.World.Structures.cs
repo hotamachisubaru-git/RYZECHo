@@ -1,3 +1,4 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
 namespace RYZECHo;
 
 internal sealed partial class GameModel
@@ -141,3 +142,4 @@ internal sealed partial class GameModel
         graphics.FillRectangle(hpFill, hpRect.Left, hpRect.Top, hpRect.Width * ratio, hpRect.Height);
     }
 }
+#endif

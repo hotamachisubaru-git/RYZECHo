@@ -1,3 +1,5 @@
+#if RYZECHO_LEGACY_SYSTEM_DRAWING_RENDERER
+
 namespace RYZECHo;
 
 internal sealed partial class GameModel
@@ -178,3 +180,6 @@ internal sealed partial class GameModel
     }
 
 }
+
+
+#endif
