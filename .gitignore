@@ -171,3 +171,6 @@ __pycache__/
 /[Aa]ssets/Synaptic AI Pro/
 /[Aa]ssets/Synaptic AI Pro.meta
 Assets/Scenes/SampleScene_backup.unity
+
+# Scripts
+*.ps1
