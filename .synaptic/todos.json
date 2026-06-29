@@ -1,0 +1,72 @@
+[
+  {
+    "id": "todo-1782703231148-jmth",
+    "content": "TacticalInputManager.csの文字化けコメント修正",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-c1tx",
+    "content": "Actor.csの重複enum定義を削除",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-jps5",
+    "content": "TacticalActor.csにPrimaryWeaponプロパティ追加",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-z50w",
+    "content": "TacticalProtoBootstrap.csのVector2コンストラクタ修正",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-lda5",
+    "content": "TacticalGameModel.csのenum変換キャスト追加",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-m19y",
+    "content": "TacticalGameModel.csのEndRoundをpublicに変更",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-4efm",
+    "content": "TacticalGameModel.csのvar dx,dy文法修正",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-lr4x",
+    "content": "TacticalGameModel.csのWeaponStats Type変換修正",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-ii0h",
+    "content": "残りのコンパイルエラー修正",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  },
+  {
+    "id": "todo-1782703231148-pqj3",
+    "content": "最終ビルド確認",
+    "status": "completed",
+    "createdAt": 1782703231148,
+    "updatedAt": 1782703231148
+  }
+]
