@@ -1,0 +1,16 @@
+{
+    "name": "RYZECHo.Archive",
+    "rootNamespace": "RYZECHo",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RYZECHO_ARCHIVE_ENABLED"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
