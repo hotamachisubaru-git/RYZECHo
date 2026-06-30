@@ -202,7 +202,7 @@ namespace RYZECHo
             const string mixerPath = "Assets/Settings/GameMixer.mixer";
 
 #if UNITY_EDITOR
-            // Compile fix: AudioMixer is an asset, not a Component, so it must be loaded instead of AddComponent<T>().
+            // 修正: AudioMixerはComponentではなくアセットなので、AddComponent<T>()ではなく読み込みで取得する。
             _audioMixer = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioMixer>(mixerPath);
 #endif
 
@@ -218,7 +218,7 @@ namespace RYZECHo
             }
             else if (audioConfig != null)
             {
-                // Compile fix: keep the generated scene valid even when the mixer asset has not been created yet.
+                // 修正: mixerアセット未作成でも、生成シーン自体は有効なまま進める。
                 Debug.LogWarning($"[SceneBuilder] AudioMixer asset not found at {mixerPath}. Volume settings were skipped.");
             }
         }

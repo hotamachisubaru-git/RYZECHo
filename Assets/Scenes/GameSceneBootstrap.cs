@@ -177,7 +177,7 @@ namespace RYZECHo
             AudioMixer mixer = null;
 
 #if UNITY_EDITOR
-            // Compile fix: AudioMixer is an asset type, not a Component, so load it instead of AddComponent<T>().
+            // 修正: AudioMixerはComponentではなくアセット型なので、AddComponent<T>()ではなく読み込みで取得する。
             mixer = UnityEditor.AssetDatabase.LoadAssetAtPath<AudioMixer>(mixerPath);
 #endif
 
@@ -187,7 +187,7 @@ namespace RYZECHo
 
             if (mixer == null)
             {
-                // Compile fix: missing mixer assets should not block bootstrap compilation or scene construction.
+                // 修正: mixerアセットが未作成でも、起動処理とコンパイルを止めない。
                 Debug.LogWarning($"[Bootstrap] AudioMixer asset not found at {mixerPath}. AudioMixerComponent will use defaults.");
             }
 

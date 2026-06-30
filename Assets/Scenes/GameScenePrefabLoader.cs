@@ -670,7 +670,7 @@ namespace RYZECHo.UI
 
             // fontWeight
             var fontWeight = properties["fontWeight"];
-            // Compile fix: this TextMeshPro package exposes FontWeight, so use the available enum.
+            // 修正: このTextMeshPro環境で利用できるFontWeight列挙体を使う。
             if (fontWeight != null) text.fontWeight = (FontWeight)fontWeight.Value<int>();
         }
 
