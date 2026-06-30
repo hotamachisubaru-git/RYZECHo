@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 0
+    path: Assets/Scenes/SampleScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/RYZECHoGame.unity
+    guid: 0000000000000000f000000000000001
+  - enabled: 1
+    path: Assets/Scenes/GameScene.unity
+    guid: 18cc9643d20a14d4c844080cb1de9dad
   m_configObjects: {}

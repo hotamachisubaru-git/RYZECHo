@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Audio;
@@ -434,7 +434,7 @@ namespace RYZECHo
         /// ゲームシーン設定のJSONシリアライズ用データクラス
         /// </summary>
         [Serializable]
-        private class GameSceneConfig
+        public class GameSceneConfig
         {
             public CameraConfig camera;
             public UIConfig ui;
@@ -444,7 +444,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class CameraConfig
+        public class CameraConfig
         {
             public MainCameraConfig main;
             public CameraConfigData hud;
@@ -453,7 +453,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class MainCameraConfig
+        public class MainCameraConfig
         {
             public CameraClearFlags clearFlags;
             public Color backgroundColor;
@@ -464,7 +464,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class CameraConfigData
+        public class CameraConfigData
         {
             public CameraClearFlags clearFlags;
             public Color backgroundColor;
@@ -473,13 +473,13 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class ViewportConfig
+        public class ViewportConfig
         {
             public float x, y, width, height;
         }
 
         [Serializable]
-        private class URPConfig
+        public class URPConfig
         {
             public bool useUrp;
             public string renderPipelineAsset;
@@ -487,7 +487,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class UIConfig
+        public class UIConfig
         {
             public CanvasConfig canvas;
             public LayoutConfig layout;
@@ -495,7 +495,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class CanvasConfig
+        public class CanvasConfig
         {
             public RenderMode renderMode;
             public string screenSpaceCamera;
@@ -505,7 +505,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class LayoutConfig
+        public class LayoutConfig
         {
             public int clientWidth;
             public int clientHeight;
@@ -517,7 +517,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class ScreensConfig
+        public class ScreensConfig
         {
             public ScreenConfigData titleScreen;
             public ScreenConfigData mainMenu;
@@ -529,7 +529,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class ScreenConfigData
+        public class ScreenConfigData
         {
             public bool enabled;
             public bool autoShow;
@@ -537,7 +537,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class GameConfig
+        public class GameConfig
         {
             public InitialConfig initial;
             public RoundFlowConfig roundFlow;
@@ -549,7 +549,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class InitialConfig
+        public class InitialConfig
         {
             public int roundsToWin;
             public int startingCredits;
@@ -559,7 +559,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class RoundFlowConfig
+        public class RoundFlowConfig
         {
             public int regulationSideSwitchRound;
             public int overtimeTriggerScore;
@@ -570,7 +570,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class EconomyConfig
+        public class EconomyConfig
         {
             public int winRewardCredits;
             public int lossRewardCredits;
@@ -581,7 +581,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class BossConfig
+        public class BossConfig
         {
             public int maxBossSelectionsPerActor;
             public int optimalBossInvestment;
@@ -589,13 +589,13 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class UltimateConfig
+        public class UltimateConfig
         {
             public int maxUltPoints;
         }
 
         [Serializable]
-        private class AudioConfig
+        public class AudioConfig
         {
             public float masterVolume;
             public float sfxVolume;
@@ -604,7 +604,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class InputConfig
+        public class InputConfig
         {
             public float mouseSensitivity;
             public float lookSpeed;
@@ -612,7 +612,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class WorldConfig
+        public class WorldConfig
         {
             public float[] origin;
             public float cellSize;
@@ -623,13 +623,13 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class PerspectiveConfig
+        public class PerspectiveConfig
         {
             public float scaleX, scaleY, shearX, topInset;
         }
 
         [Serializable]
-        private class HuntCameraConfig
+        public class HuntCameraConfig
         {
             public float zoom;
             public float visibleWorldFractionX, visibleWorldFractionY;
@@ -637,7 +637,7 @@ namespace RYZECHo
         }
 
         [Serializable]
-        private class PerformanceConfig
+        public class PerformanceConfig
         {
             public int targetFps;
             public float fixedDeltaTime;

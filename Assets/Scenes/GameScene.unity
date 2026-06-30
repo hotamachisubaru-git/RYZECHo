@@ -1,456 +1,125 @@
-{
-    "version": "1.0",
-    "formatVersion": "2",
-    "scene": {
-        "name": "GameScene",
-        "guid": "a1b2c3d4e5f6789012345678abcdef00",
-        "objects": [
-            {
-                "name": "GameSceneSetup",
-                "type": "GameObject",
-                "components": [
-                    {
-                        "type": "GameSceneSetup",
-                        "properties": {
-                            "targetFps": 60,
-                            "fixedDeltaTime": 0.016666,
-                            "mainCameraClearFlags": "Skybox",
-                            "mainCameraBackgroundColor": [0.08, 0.08, 0.12, 1.0],
-                            "hudCameraClearFlags": "DepthOnly",
-                            "audioMixerName": "GameMixer"
-                        }
-                    }
-                ],
-                "isActive": true,
-                "isStatic": false
-            },
-            {
-                "name": "Main Camera",
-                "type": "GameObject",
-                "tag": "MainCamera",
-                "layer": "Default",
-                "position": { "x": 0, "y": 0, "z": -10 },
-                "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
-                "scale": { "x": 1, "y": 1, "z": 1 },
-                "components": [
-                    {
-                        "type": "Camera",
-                        "properties": {
-                            "clearFlags": "Skybox",
-                            "backgroundColor": [0.08, 0.08, 0.12, 1.0],
-                            "cullingMask": -1,
-                            "depth": -1,
-                            "renderPathType": "Automatic",
-                            "useOcclusionCulling": true,
-                            "allowHDR": false,
-                            "allowMSAA": false,
-                            "rect": { "x": 0, "y": 0, "width": 1, "height": 1 }
-                        }
-                    },
-                    {
-                        "type": "UniversalAdditionalCameraData",
-                        "properties": {
-                            "requiresColorOption": "Off",
-                            "requiresDepthOption": "Off"
-                        }
-                    },
-                    {
-                        "type": "HuntFovRenderer",
-                        "properties": {
-                            "zoom": 3.15,
-                            "visibleWorldFractionX": 0.55,
-                            "visibleWorldFractionY": 0.62,
-                            "targetX": 0.5,
-                            "targetY": 0.54
-                        }
-                    }
-                ],
-                "isActive": true,
-                "isStatic": false
-            },
-            {
-                "name": "HUD Camera",
-                "type": "GameObject",
-                "layer": "UI",
-                "position": { "x": 0, "y": 0, "z": 0 },
-                "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
-                "scale": { "x": 1, "y": 1, "z": 1 },
-                "components": [
-                    {
-                        "type": "Camera",
-                        "properties": {
-                            "clearFlags": "DepthOnly",
-                            "backgroundColor": [0, 0, 0, 0],
-                            "depth": 10,
-                            "renderPathType": "Automatic",
-                            "orthographic": true,
-                            "orthographicSize": 5,
-                            "nearClipPlane": 0.1,
-                            "farClipPlane": 100,
-                            "allowHDR": false,
-                            "allowMSAA": false
-                        }
-                    }
-                ],
-                "isActive": true,
-                "isStatic": false
-            },
-            {
-                "name": "GameCanvas",
-                "type": "GameObject",
-                "layer": "UI",
-                "position": { "x": 0, "y": 0, "z": 0 },
-                "rotation": { "x": 0, "y": 0, "z": 0, "w": 1 },
-                "scale": { "x": 1, "y": 1, "z": 1 },
-                "components": [
-                    {
-                        "type": "Canvas",
-                        "properties": {
-                            "renderMode": "ScreenSpaceOverlay",
-                            "pixelPerfect": false,
-                            "sortingGridSize": 16
-                        }
-                    },
-                    {
-                        "type": "CanvasScaler",
-                        "properties": {
-                            "uiScaleMode": "ScaleWithScreenSize",
-                            "referenceResolution": [1440, 960],
-                            "screenMatchMode": "MatchWidthOrHeight",
-                            "matchWidthOrHeight": 0.5
-                        }
-                    },
-                    {
-                        "type": "GraphicRaycaster",
-                        "properties": {
-                            "referencePixelsPerUnit": 100
-                        }
-                    }
-                ],
-                "isActive": true,
-                "isStatic": false,
-                "children": [
-                    {
-                        "name": "UIScreenManager",
-                        "type": "GameObject",
-                        "components": [
-                            {
-                                "type": "UIScreenManager",
-                                "properties": {
-                                    "screenPrefabs": [
-                                        "TitleScreen",
-                                        "MainMenu",
-                                        "DifficultySelect",
-                                        "SetupScreen",
-                                        "GameOver",
-                                        "GameHUD",
-                                        "Settings",
-                                        "PauseOverlay",
-                                        "StatusScreen"
-                                    ],
-                                    "initialScreen": "TitleScreen"
-                                }
-                            }
-                        ],
-                        "isActive": true,
-                        "isStatic": false
-                    },
-                    {
-                        "name": "GameHUD",
-                        "type": "GameObject",
-                        "components": [
-                            {
-                                "type": "GameHUDController",
-                                "properties": {
-                                    "enabled": true,
-                                    "combatResultFadeTime": 2.0
-                                }
-                            }
-                        ],
-                        "isActive": true,
-                        "isStatic": false,
-                        "children": [
-                            {
-                                "name": "HPBar",
-                                "type": "GameObject",
-                                "components": [
-                                    {
-                                        "type": "Image",
-                                        "properties": {
-                                            "color": [0, 0, 0, 0.7],
-                                            "rectTransform": {
-                                                "anchoredPosition": [300, 30],
-                                                "sizeDelta": [200, 20],
-                                                "anchorMin": [0, 0],
-                                                "anchorMax": [0, 0]
-                                            }
-                                        }
-                                    }
-                                ],
-                                "isActive": true,
-                                "isStatic": false,
-                                "children": [
-                                    {
-                                        "name": "HPBarFill",
-                                        "type": "GameObject",
-                                        "components": [
-                                            {
-                                                "type": "Image",
-                                                "properties": {
-                                                    "color": [0.3, 0.95, 0.5, 1],
-                                                    "rectTransform": {
-                                                        "anchoredPosition": [0, 0],
-                                                        "sizeDelta": [200, 20],
-                                                        "anchorMin": [0, 0],
-                                                        "anchorMax": [0, 1]
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "HPText",
-                                        "type": "GameObject",
-                                        "components": [
-                                            {
-                                                "type": "TextMeshProUGUI",
-                                                "properties": {
-                                                    "text": "100/100",
-                                                    "fontSize": 12,
-                                                    "color": [1, 1, 1, 1],
-                                                    "alignment": "Center",
-                                                    "rectTransform": {
-                                                        "anchoredPosition": [0, 0],
-                                                        "sizeDelta": [200, 20],
-                                                        "anchorMin": [0, 0],
-                                                        "anchorMax": [0, 1]
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "isActive": true,
-                                        "isStatic": false
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "ScoreText",
-                                "type": "GameObject",
-                                "components": [
-                                    {
-                                        "type": "TextMeshProUGUI",
-                                        "properties": {
-                                            "text": "SCORE 0 - 0",
-                                            "fontSize": 16,
-                                            "color": [1, 1, 1, 1],
-                                            "alignment": "Center",
-                                            "rectTransform": {
-                                                "anchoredPosition": [720, 460],
-                                                "sizeDelta": [200, 30],
-                                                "anchorMin": [0.5, 0.5],
-                                                "anchorMax": [0.5, 0.5]
-                                            }
-                                        }
-                                            }
-                                        ],
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "RoundText",
-                                        "type": "GameObject",
-                                        "components": [
-                                            {
-                                                "type": "TextMeshProUGUI",
-                                                "properties": {
-                                                    "text": "第1ラウンド",
-                                                    "fontSize": 14,
-                                                    "color": [0.9, 0.94, 0.97, 1],
-                                                    "alignment": "Center",
-                                                    "rectTransform": {
-                                                        "anchoredPosition": [720, 430],
-                                                        "sizeDelta": [200, 24],
-                                                        "anchorMin": [0.5, 0.5],
-                                                        "anchorMax": [0.5, 0.5]
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "PhaseText",
-                                        "type": "GameObject",
-                                        "components": [
-                                            {
-                                                "type": "TextMeshProUGUI",
-                                                "properties": {
-                                                    "text": "CONSTRUCT",
-                                                    "fontSize": 18,
-                                                    "color": [0.24, 0.55, 0.97, 1],
-                                                    "alignment": "Center",
-                                                    "rectTransform": {
-                                                        "anchoredPosition": [720, 400],
-                                                        "sizeDelta": [300, 30],
-                                                        "anchorMin": [0.5, 0.5],
-                                                        "anchorMax": [0.5, 0.5]
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "PhaseFlashOverlay",
-                                        "type": "GameObject",
-                                        "components": [
-                                            {
-                                                "type": "Image",
-                                                "properties": {
-                                                    "color": [1, 0.9, 0.7, 0],
-                                                    "rectTransform": {
-                                                        "anchoredPosition": [0, 0],
-                                                        "sizeDelta": [0, 0],
-                                                        "anchorMin": [0, 0],
-                                                        "anchorMax": [1, 1]
-                                                    }
-                                                }
-                                            }
-                                        ],
-                                        "isActive": false,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "KillFeedParent",
-                                        "type": "GameObject",
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "EnemyUnitParent",
-                                        "type": "GameObject",
-                                        "isActive": true,
-                                        "isStatic": false
-                                    },
-                                    {
-                                        "name": "ActivityFeedParent",
-                                        "type": "GameObject",
-                                        "isActive": true,
-                                        "isStatic": false
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "PlayerView",
-                                "type": "GameObject",
-                                "components": [
-                                    {
-                                        "type": "SpriteRenderer",
-                                        "properties": {
-                                            "color": [0.48, 0.9, 1, 1],
-                                            "sortingOrder": 50
-                                        }
-                                    }
-                                ],
-                                "isActive": true,
-                                "isStatic": false
-                            }
-                        ]
-                    },
-                    {
-                        "name": "RyzechoGameController",
-                        "type": "GameObject",
-                        "components": [
-                            {
-                                "type": "RyzechoGameController",
-                                "properties": {
-                                    "initialRoundsToWin": 7,
-                                    "initialStartingCredits": 1000,
-                                    "initialBuildPoints": 12,
-                                    "teamSize": 4,
-                                    "targetFps": 60,
-                                    "fixedDeltaTime": 0.016666
-                                }
-                            }
-                        ],
-                        "isActive": true,
-                        "isStatic": false
-                    },
-                    {
-                        "name": "AudioMixer",
-                        "type": "GameObject",
-                        "components": [
-                            {
-                                "type": "AudioMixerComponent",
-                                "properties": {
-                                    "mixerName": "GameMixer",
-                                    "masterVolume": 1.0,
-                                    "sfxVolume": 1.0,
-                                    "musicVolume": 1.0
-                                }
-                            }
-                        ],
-                        "isActive": true,
-                        "isStatic": false
-                    }
-                ]
-            }
-        ]
-    },
-    "prefabs": {
-        "TitleScreen": "Assets/RYZECHo/UI/Prefabs/TitleScreen.prefab.json",
-        "MainMenu": "Assets/RYZECHo/UI/Prefabs/MainMenu.prefab.json",
-        "DifficultySelect": "Assets/RYZECHo/UI/Prefabs/DifficultySelect.prefab.json",
-        "SetupScreen": "Assets/RYZECHo/UI/Prefabs/SetupScreen.prefab.json",
-        "GameOver": "Assets/RYZECHo/UI/Prefabs/GameOver.prefab.json",
-        "GameHUD": "Assets/RYZECHo/UI/Prefabs/GameHUD.prefab.json",
-        "Settings": "Assets/RYZECHo/UI/Prefabs/Settings.prefab.json",
-        "PauseOverlay": "Assets/RYZECHo/UI/Prefabs/PauseOverlay.prefab.json",
-        "StatusScreen": "Assets/RYZECHo/UI/Prefabs/StatusScreen.prefab.json"
-    },
-    "settings": {
-        "targetFps": 60,
-        "fixedDeltaTime": 0.016666,
-        "qualitySettings": {
-            "vSyncCount": 0,
-            "antiAliasing": 0,
-            "textureQuality": 0,
-            "shadowDistance": 50,
-            "shadowCascades": 0
-        },
-        "rendering": {
-            "useUrp": true,
-            "renderPipelineAsset": "URP-Default",
-            "defaultMaterial": "UniversalMaterial"
-        },
-        "audio": {
-            "masterVolume": 1.0,
-            "sfxVolume": 1.0,
-            "musicVolume": 1.0,
-            "audioMixerName": "GameMixer"
-        },
-        "world": {
-            "origin": [-9.0, -6.0],
-            "cellSize": 1.0,
-            "gridColumns": 18,
-            "gridRows": 12,
-            "perspective": {
-                "scaleX": 0.84,
-                "scaleY": 0.78,
-                "shearX": 0.22,
-                "topInset": 10.0
-            },
-            "huntCamera": {
-                "zoom": 3.15,
-                "visibleWorldFractionX": 0.55,
-                "visibleWorldFractionY": 0.62,
-                "targetX": 0.5,
-                "targetY": 0.54
-            }
-        }
-    }
-}
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 10
+  m_Fog: 0
+  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.01
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  m_LightmapEditorSettings:
+    serializedVersion: 12
+    m_Resolution: 2
+    m_BakeResolution: 40
+    m_AtlasSize: 1024
+    m_AO: 0
+    m_AOMaxDistance: 1
+    m_CompAOExponent: 1
+    m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
+    m_Padding: 2
+    m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
+    m_TextureCompression: 1
+    m_ReflectionCompression: 2
+    m_MixedBakeMode: 2
+    m_BakeBackend: 2
+    m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
+    m_PVRSampleCount: 512
+    m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 256
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 1
+    m_PVRDenoiserTypeDirect: 1
+    m_PVRDenoiserTypeIndirect: 1
+    m_PVRDenoiserTypeAO: 1
+    m_PVRFilterTypeDirect: 0
+    m_PVRFilterTypeIndirect: 0
+    m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 1
+    m_PVRFilteringGaussRadiusAO: 1
+    m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+    m_PVRFilteringAtrousPositionSigmaIndirect: 2
+    m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingSettings: {fileID: 0}
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    serializedVersion: 3
+    agentTypeID: 0
+    agentRadius: 0.5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: 0.4
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    minRegionArea: 2
+    manualCellSize: 0
+    cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
+    buildHeightMesh: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
+    debug:
+      m_Flags: 0
+  m_NavMeshData: {fileID: 0}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots: []
